@@ -26,6 +26,14 @@ test:
   <<: *default
   database: trade_reporting_tool_test
 
+sapi_test:
+  <<: *default
+  database: sapi_test
+
+epix_test:
+  <<: *default
+  database: epix_test
+
 staging:
   <<: *default
   database: trade_reporting_tool_staging
