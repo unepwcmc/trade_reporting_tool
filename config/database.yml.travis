@@ -1,0 +1,9 @@
+epix_test:
+  adapter: postgresql
+  database: epix_test
+  username: postgres
+
+sapi_test:
+  adapter: postgresql
+  database: sapi_test
+  username: postgres

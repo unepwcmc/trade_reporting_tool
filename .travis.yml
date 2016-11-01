@@ -10,6 +10,8 @@ before_script:
   - bundle exec rake db:create db:migrate
   - psql -c 'create database epix_test' -U postgres
   - psql -c 'create database sapi_test' -U postgres
+  - cp config/database.yml.travis config/database.yml
+
 
 notifications:
   slack: wcmc:yE7a4PPcVZoApcwWKt6O2mlz
