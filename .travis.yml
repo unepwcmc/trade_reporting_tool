@@ -1,0 +1,11 @@
+language: ruby
+bundler_args: --without development production
+
+addons:
+  postgresql: 9.4
+
+before_script:
+  - bundle exec rake db:create db:migrate
+
+notifications:
+  slack: wcmc:yE7a4PPcVZoApcwWKt6O2mlz
