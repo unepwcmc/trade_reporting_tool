@@ -10,6 +10,7 @@ RSpec.describe EpixUser::SessionsController, type: :controller do
       sign_in @user
       get :new
 
+      expect(response.status).to eq(302)
       expect(subject.current_epix_user.class).to eq(Epix::User)
     end
   end

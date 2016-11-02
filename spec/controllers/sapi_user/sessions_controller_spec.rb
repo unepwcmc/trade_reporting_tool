@@ -10,6 +10,7 @@ RSpec.describe SapiUser::SessionsController, type: :controller do
       sign_in @user
       get :new
 
+      expect(response.status).to eq(302)
       expect(subject.current_sapi_user.class).to eq(Sapi::User)
     end
   end
