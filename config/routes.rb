@@ -19,6 +19,9 @@ Rails.application.routes.draw do
   end
 
   resources :annual_report_uploads, only: [:index]
+
+  wash_out "api/v1/cites_reporting"
+
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   root to: 'home#index'
 end
