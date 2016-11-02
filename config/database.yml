@@ -1,25 +1,47 @@
-# SQLite version 3.x
-#   gem install sqlite3
-#
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem 'sqlite3'
-#
 default: &default
-  adapter: sqlite3
+  adapter: postgresql
   pool: 5
+  username: postgres
+  password:
   timeout: 5000
+  port: 5432
+  host: localhost
 
-development:
+sapi_development:
   <<: *default
-  database: db/development.sqlite3
+  database: sapi_development
+
+epix_development:
+  <<: *default
+  database: epix_development
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: db/test.sqlite3
+  database: trade_reporting_tool_test
 
-production:
+sapi_test:
   <<: *default
-  database: db/production.sqlite3
+  database: sapi_test
+
+epix_test:
+  <<: *default
+  database: epix_test
+
+sapi_staging:
+  <<: *default
+  database: sapi_staging
+
+epix_staging:
+  <<: *default
+  database: epix_staging
+
+sapi_production:
+  <<: *default
+  database: sapi_production
+
+epix_production:
+  <<: *default
+  database: epix_production
