@@ -7,10 +7,6 @@ default: &default
   port: 5432
   host: localhost
 
-development:
-  <<: *default
-  database: trade_reporting_tool_development
-
 sapi_development:
   <<: *default
   database: sapi_development
@@ -34,10 +30,18 @@ epix_test:
   <<: *default
   database: epix_test
 
-staging:
+sapi_staging:
   <<: *default
-  database: trade_reporting_tool_staging
+  database: sapi_staging
 
-production:
+epix_staging:
   <<: *default
-  database: trade_reporting_tool_production
+  database: epix_staging
+
+sapi_production:
+  <<: *default
+  database: sapi_production
+
+epix_production:
+  <<: *default
+  database: epix_production
