@@ -1,0 +1,20 @@
+language: ruby
+bundler_args: --without development production
+rvm:
+  - 2.2.3
+
+addons:
+  postgresql: 9.4
+
+before_script:
+  - psql -c 'create database travis_ci_test' -U postgres
+  - psql -c 'create database epix_test' -U postgres
+  - psql -d epix_test < db/epix_structure.sql -U postgres
+  - psql -c 'create database sapi_test' -U postgres
+  - psql -d sapi_test < db/sapi_structure.sql -U postgres
+  - cp config/database.yml.travis config/database.yml
+  - RAILS_ENV=test bundle exec rake db:migrate
+
+notifications:
+  slack: wcmc:yE7a4PPcVZoApcwWKt6O2mlz
+

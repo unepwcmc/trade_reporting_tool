@@ -1,0 +1,14 @@
+test:
+  adapter: postgresql
+  database: travis_ci_test
+  username: postgres
+
+epix_test:
+  adapter: postgresql
+  database: epix_test
+  username: postgres
+
+sapi_test:
+  adapter: postgresql
+  database: sapi_test
+  username: postgres
