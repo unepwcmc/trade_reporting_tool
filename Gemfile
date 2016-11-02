@@ -35,6 +35,7 @@ gem 'jbuilder', '~> 2.5'
 gem 'devise'
 gem 'react-rails'
 gem 'active_model_serializers'
+gem 'wash_out'
 
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
