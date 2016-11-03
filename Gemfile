@@ -36,6 +36,8 @@ gem 'devise'
 gem 'react-rails'
 gem 'active_model_serializers'
 gem 'wash_out'
+gem 'savon'
+gem 'httpi'
 
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
