@@ -3,6 +3,6 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
   render: ->
     p(
       {}
-      @props.annualReportUpload.id
+      @props.annualReportUpload.file_name
     )
 
