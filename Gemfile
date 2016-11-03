@@ -31,6 +31,7 @@ gem 'jbuilder', '~> 2.5'
 #
 gem 'devise'
 gem 'react-rails'
+gem 'active_model_serializers'
 
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
