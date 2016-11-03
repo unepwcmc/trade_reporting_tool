@@ -1,5 +1,8 @@
 require "rails_helper"
 
+# idea for this way of testing washout controllers:
+# http://blog.johnsonch.com/2013/04/18/rails-3-soap-and-testing-oh-my/
+
 RSpec.describe Api::V1::CitesReportingController do
   HTTPI.adapter = :rack
   HTTPI::Adapter::Rack.mount 'application', TradeReportingTool::Application
