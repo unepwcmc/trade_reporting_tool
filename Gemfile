@@ -30,6 +30,7 @@ gem 'jbuilder', '~> 2.5'
 # gem 'capistrano-rails', group: :development
 #
 gem 'devise'
+gem 'react-rails'
 
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
