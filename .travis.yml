@@ -7,16 +7,13 @@ addons:
   postgresql: 9.4
 
 before_script:
-  - psql -c 'create database travis_ci_test' -U postgres
   - psql -c 'create database epix_test' -U postgres
     # Load epix database structure into epix_test db
-  - psql -d epix_test < db/epix_structure.sql -U postgres
+  - psql -d epix_test < db/structure.sql -U postgres
   - psql -c 'create database sapi_test' -U postgres
     # Load sapi database structure into sapi_test db
-  - psql -d sapi_test < db/sapi_structure.sql -U postgres
-  - cp config/database.yml.travis config/database.yml
+  - psql -d sapi_test < db/secondbase/structure.sql -U postgres
   - RAILS_ENV=test bundle exec rake db:migrate
 
 notifications:
   slack: wcmc:yE7a4PPcVZoApcwWKt6O2mlz
-

@@ -7,41 +7,35 @@ default: &default
   port: 5432
   host: localhost
 
-sapi_development:
-  <<: *default
-  database: sapi_development
-
-epix_development:
+development:
   <<: *default
   database: epix_development
 
-# Warning: The database defined as "test" will be erased and
-# re-generated from your development database when you run "rake".
-# Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: trade_reporting_tool_test
-
-sapi_test:
-  <<: *default
-  database: sapi_test
-
-epix_test:
   <<: *default
   database: epix_test
 
-sapi_staging:
-  <<: *default
-  database: sapi_staging
-
-epix_staging:
+staging:
   <<: *default
   database: epix_staging
 
-sapi_production:
-  <<: *default
-  database: sapi_production
-
-epix_production:
+production:
   <<: *default
   database: epix_production
+
+secondbase:
+  development:
+    <<: *default
+    database: sapi_development
+
+  test:
+    <<: *default
+    database: sapi_test
+
+  staging:
+    <<: *default
+    database: sapi_staging
+
+  production:
+    <<: *default
+    database: sapi_production
