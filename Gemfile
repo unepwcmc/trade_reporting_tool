@@ -30,6 +30,8 @@ gem 'jbuilder', '~> 2.5'
 # gem 'capistrano-rails', group: :development
 #
 gem 'devise'
+gem 'react-rails'
+gem 'active_model_serializers'
 
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
@@ -57,6 +59,7 @@ group :test do
   gem 'rspec-rails'
   gem 'factory_girl_rails'
   gem 'faker'
+  gem 'rails-controller-testing'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem

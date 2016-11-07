@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       },
       class_name: Sapi::User
     }
+
   end
 
   namespace :epix do
@@ -16,6 +17,8 @@ Rails.application.routes.draw do
       class_name: Epix::User
     }
   end
+
+  resources :annual_report_uploads, only: [:index]
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
   root to: 'home#index'
 end

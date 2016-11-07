@@ -1,0 +1,10 @@
+<h1>Annual Report Uploads</h1>
+
+<h2>Uploads in progress</h2>
+<div class="in-progress-uploads">
+  <%= react_component 'AnnualReportUploads', {data: @in_progress_uploads} %>
+</div>
+<h2>Submitted uploads</h2>
+<div class="submitted-uploads">
+  <%= react_component 'AnnualReportUploads', {data: @submitted_uploads} %>
+</div>

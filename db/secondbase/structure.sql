@@ -139,6 +139,17 @@ CREATE TYPE api_trade_code AS (
 
 
 --
+-- Name: document_language_version; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE document_language_version AS (
+	id integer,
+	title text,
+	language text
+);
+
+
+--
 -- Name: event_properties; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -1803,7 +1814,7 @@ CREATE FUNCTION create_trade_sandbox_views() RETURNS void
       AND table_name != 'trade_sandbox_template'
       AND table_type != 'VIEW'
     LOOP
-      aru_id := SUBSTRING(current_table_name, E'trade_sandbox_(\\\\d+)')::INT;
+      aru_id := SUBSTRING(current_table_name, E'trade_sandbox_(\\d+)')::INT;
       IF aru_id IS NULL THEN
   RAISE WARNING 'Unable to determine annual report upload id from %', current_table_name;
       ELSE
@@ -5433,285 +5444,13 @@ CREATE FUNCTION rebuild_taxon_concepts_mview() RETURNS void
     AS $$
   BEGIN
     DROP table IF EXISTS taxon_concepts_mview_tmp CASCADE;
-    DROP view IF EXISTS taxon_concepts_view_tmp;
-
-    CREATE OR REPLACE VIEW taxon_concepts_view_tmp AS
-    SELECT taxon_concepts.id,
-    taxon_concepts.parent_id,
-    taxon_concepts.taxonomy_id,
-    CASE
-    WHEN taxonomies.name = 'CITES_EU' THEN TRUE
-    ELSE FALSE
-    END AS taxonomy_is_cites_eu,
-    full_name,
-    name_status,
-    rank_id,
-    ranks.name AS rank_name,
-    ranks.display_name_en AS rank_display_name_en,
-    ranks.display_name_es AS rank_display_name_es,
-    ranks.display_name_fr AS rank_display_name_fr,
-    (data->'spp')::BOOLEAN AS spp,
-    (data->'cites_accepted')::BOOLEAN AS cites_accepted,
-    CASE
-    WHEN data->'kingdom_name' = 'Animalia' THEN 0
-    ELSE 1
-    END AS kingdom_position,
-    taxon_concepts.taxonomic_position,
-    data->'kingdom_name' AS kingdom_name,
-    data->'phylum_name' AS phylum_name,
-    data->'class_name' AS class_name,
-    data->'order_name' AS order_name,
-    data->'family_name' AS family_name,
-    data->'subfamily_name' AS subfamily_name,
-    data->'genus_name' AS genus_name,
-    LOWER(data->'species_name') AS species_name,
-    LOWER(data->'subspecies_name') AS subspecies_name,
-    (data->'kingdom_id')::INTEGER AS kingdom_id,
-    (data->'phylum_id')::INTEGER AS phylum_id,
-    (data->'class_id')::INTEGER AS class_id,
-    (data->'order_id')::INTEGER AS order_id,
-    (data->'family_id')::INTEGER AS family_id,
-    (data->'subfamily_id')::INTEGER AS subfamily_id,
-    (data->'genus_id')::INTEGER AS genus_id,
-    (data->'species_id')::INTEGER AS species_id,
-    (data->'subspecies_id')::INTEGER AS subspecies_id,
-    CASE
-    WHEN listing->'cites_I' = 'I' THEN TRUE
-    ELSE FALSE
-    END AS cites_I,
-    CASE
-    WHEN listing->'cites_II' = 'II' THEN TRUE
-    ELSE FALSE
-    END AS cites_II,
-    CASE
-    WHEN listing->'cites_III' = 'III' THEN TRUE
-    ELSE FALSE
-    END AS cites_III,
-    CASE
-    WHEN listing->'cites_status' = 'LISTED' AND listing->'cites_level_of_listing' = 't'
-    THEN TRUE
-    WHEN listing->'cites_status' = 'LISTED'
-    THEN FALSE
-    ELSE NULL
-    END AS cites_listed,
-    (listing->'cites_listed_descendants')::BOOLEAN AS cites_listed_descendants,
-    (listing->'cites_show')::BOOLEAN AS cites_show,
-    --(listing->'cites_status_original')::BOOLEAN AS cites_status_original, --doesn't seem to be used
-    listing->'cites_status' AS cites_status,
-    listing->'cites_listing_original' AS cites_listing_original, --used in CSV downloads
-    listing->'cites_listing' AS cites_listing,
-    (listing->'cites_listing_updated_at')::TIMESTAMP AS cites_listing_updated_at,
-    (listing->'ann_symbol') AS ann_symbol,
-    (listing->'hash_ann_symbol') AS hash_ann_symbol,
-    (listing->'hash_ann_parent_symbol') AS hash_ann_parent_symbol,
-    CASE
-    WHEN listing->'eu_status' = 'LISTED' AND listing->'eu_level_of_listing' = 't'
-    THEN TRUE
-    WHEN listing->'eu_status' = 'LISTED'
-    THEN FALSE
-    ELSE NULL
-    END AS eu_listed,
-    (listing->'eu_show')::BOOLEAN AS eu_show,
-    --(listing->'eu_status_original')::BOOLEAN AS eu_status_original, --doesn't seem to be used
-    listing->'eu_status' AS eu_status,
-    listing->'eu_listing_original' AS eu_listing_original,
-    listing->'eu_listing' AS eu_listing,
-    (listing->'eu_listing_updated_at')::TIMESTAMP AS eu_listing_updated_at,
-    CASE
-    WHEN listing->'cms_status' = 'LISTED' AND listing->'cms_level_of_listing' = 't'
-    THEN TRUE
-    WHEN listing->'cms_status' = 'LISTED'
-    THEN FALSE
-    ELSE NULL
-    END AS cms_listed,
-    (listing->'cms_show')::BOOLEAN AS cms_show,
-    listing->'cms_status' AS cms_status,
-    listing->'cms_listing_original' AS cms_listing_original,
-    listing->'cms_listing' AS cms_listing,
-    (listing->'cms_listing_updated_at')::TIMESTAMP AS cms_listing_updated_at,
-    (listing->'species_listings_ids')::INT[] AS species_listings_ids,
-    (listing->'species_listings_ids_aggregated')::INT[] AS species_listings_ids_aggregated,
-    author_year,
-    taxon_concepts.created_at,
-    taxon_concepts.updated_at,
-    taxon_concepts.dependents_updated_at,
-    common_names.*,
-    synonyms.*,
-    countries_ids_ary,
-    all_distribution_iso_codes_ary,
-    -- BEGIN remove once checklist translation has been deployed
-    all_distribution_ary_en AS all_distribution_ary,
-    native_distribution_ary_en AS native_distribution_ary,
-    introduced_distribution_ary_en AS introduced_distribution_ary,
-    introduced_uncertain_distribution_ary_en AS introduced_uncertain_distribution_ary,
-    reintroduced_distribution_ary_en AS reintroduced_distribution_ary,
-    extinct_distribution_ary_en AS extinct_distribution_ary,
-    extinct_uncertain_distribution_ary_en AS extinct_uncertain_distribution_ary,
-    uncertain_distribution_ary_en AS uncertain_distribution_ary,
-    -- END remove once checklist translation has been deployed
-    all_distribution_ary_en,
-    native_distribution_ary_en,
-    introduced_distribution_ary_en,
-    introduced_uncertain_distribution_ary_en,
-    reintroduced_distribution_ary_en,
-    extinct_distribution_ary_en,
-    extinct_uncertain_distribution_ary_en,
-    uncertain_distribution_ary_en,
-    all_distribution_ary_es,
-    native_distribution_ary_es,
-    introduced_distribution_ary_es,
-    introduced_uncertain_distribution_ary_es,
-    reintroduced_distribution_ary_es,
-    extinct_distribution_ary_es,
-    extinct_uncertain_distribution_ary_es,
-    uncertain_distribution_ary_es,
-    all_distribution_ary_fr,
-    native_distribution_ary_fr,
-    introduced_distribution_ary_fr,
-    introduced_uncertain_distribution_ary_fr,
-    reintroduced_distribution_ary_fr,
-    extinct_distribution_ary_fr,
-    extinct_uncertain_distribution_ary_fr,
-    uncertain_distribution_ary_fr,
-    CASE
-      WHEN
-        name_status = 'A'
-        AND (
-          ranks.name = 'SPECIES'
-          OR (
-            ranks.name = 'SUBSPECIES'
-            AND (
-              taxonomies.name = 'CITES_EU'
-              AND (
-                (listing->'cites_historically_listed')::BOOLEAN
-                OR (listing->'eu_historically_listed')::BOOLEAN
-              )
-              OR
-              taxonomies.name = 'CMS'
-              AND (listing->'cms_historically_listed')::BOOLEAN
-            )
-          )
-        )
-      THEN TRUE
-      ELSE FALSE
-    END AS show_in_species_plus
-    FROM taxon_concepts
-    JOIN ranks ON ranks.id = rank_id
-    JOIN taxonomies ON taxonomies.id = taxon_concepts.taxonomy_id
-    LEFT JOIN (
-      SELECT *
-      FROM
-      CROSSTAB(
-      'SELECT taxon_commons.taxon_concept_id AS taxon_concept_id_com, languages.iso_code1 AS lng,
-      ARRAY_AGG_NOTNULL(common_names.name ORDER BY common_names.name) AS common_names_ary
-      FROM "taxon_commons"
-      INNER JOIN "common_names"
-      ON "common_names"."id" = "taxon_commons"."common_name_id"
-      INNER JOIN "languages"
-      ON "languages"."id" = "common_names"."language_id" AND UPPER(languages.iso_code1) IN (''EN'', ''FR'', ''ES'')
-      GROUP BY taxon_commons.taxon_concept_id, languages.iso_code1
-      ORDER BY 1,2',
-      'SELECT DISTINCT languages.iso_code1 FROM languages WHERE UPPER(languages.iso_code1) IN (''EN'', ''FR'', ''ES'') order by 1'
-      ) AS ct(
-      taxon_concept_id_com INTEGER,
-      english_names_ary VARCHAR[], spanish_names_ary VARCHAR[], french_names_ary VARCHAR[]
-      )
-    ) common_names ON taxon_concepts.id = common_names.taxon_concept_id_com
-    LEFT JOIN (
-      SELECT taxon_relationships.taxon_concept_id AS taxon_concept_id_syn,
-      ARRAY_AGG_NOTNULL(synonym_tc.full_name) AS synonyms_ary,
-      ARRAY_AGG_NOTNULL(synonym_tc.author_year) AS synonyms_author_years_ary
-      FROM taxon_relationships
-      JOIN "taxon_relationship_types"
-      ON "taxon_relationship_types"."id" = "taxon_relationships"."taxon_relationship_type_id"
-      AND "taxon_relationship_types"."name" = 'HAS_SYNONYM'
-      JOIN taxon_concepts AS synonym_tc
-      ON synonym_tc.id = taxon_relationships.other_taxon_concept_id
-      GROUP BY taxon_relationships.taxon_concept_id
-    ) synonyms ON taxon_concepts.id = synonyms.taxon_concept_id_syn
-    LEFT JOIN (
-      SELECT distributions.taxon_concept_id AS taxon_concept_id_cnt,
-      ARRAY_AGG_NOTNULL(geo_entities.id ORDER BY geo_entities.name_en) AS countries_ids_ary,
-      ARRAY_AGG_NOTNULL(geo_entities.iso_code2 ORDER BY geo_entities.name_en) AS all_distribution_iso_codes_ary,
-      ARRAY_AGG_NOTNULL(geo_entities.name_en ORDER BY geo_entities.name_en) AS all_distribution_ary_en,
-      ARRAY_AGG_NOTNULL(geo_entities.name_en ORDER BY geo_entities.name_es) AS all_distribution_ary_es,
-      ARRAY_AGG_NOTNULL(geo_entities.name_en ORDER BY geo_entities.name_fr) AS all_distribution_ary_fr
-      FROM distributions
-      JOIN geo_entities
-      ON distributions.geo_entity_id = geo_entities.id
-      JOIN "geo_entity_types"
-      ON "geo_entity_types"."id" = "geo_entities"."geo_entity_type_id"
-      AND (geo_entity_types.name = 'COUNTRY' OR geo_entity_types.name = 'TERRITORY')
-      GROUP BY distributions.taxon_concept_id
-    ) countries_ids ON taxon_concepts.id = countries_ids.taxon_concept_id_cnt
-    LEFT JOIN  (
-      SELECT *
-      FROM CROSSTAB(
-        'SELECT distributions.taxon_concept_id,
-          CASE WHEN tags.name IS NULL THEN ''NATIVE'' ELSE UPPER(tags.name) END || ''_'' || lng AS tag,
-          ARRAY_AGG_NOTNULL(geo_entities.name ORDER BY geo_entities.name) AS locations_ary
-        FROM distributions
-        JOIN (
-          SELECT geo_entities.id, geo_entities.iso_code2,  ''EN'' AS lng, geo_entities.name_en AS name FROM geo_entities
-          UNION
-          SELECT geo_entities.id, geo_entities.iso_code2, ''ES'' AS lng, geo_entities.name_es AS name FROM geo_entities
-          UNION
-          SELECT geo_entities.id, geo_entities.iso_code2, ''FR'' AS lng, geo_entities.name_fr AS name FROM geo_entities
-        ) geo_entities
-          ON geo_entities.id = distributions.geo_entity_id
-        LEFT JOIN taggings
-          ON taggable_id = distributions.id AND taggable_type = ''Distribution''
-        LEFT JOIN tags
-          ON tags.id = taggings.tag_id
-          AND (
-            UPPER(tags.name) IN (
-              ''INTRODUCED'', ''INTRODUCED (?)'', ''REINTRODUCED'',
-              ''EXTINCT'', ''EXTINCT (?)'', ''DISTRIBUTION UNCERTAIN''
-            ) OR tags.name IS NULL
-          )
-        GROUP BY distributions.taxon_concept_id, tags.name, geo_entities.lng
-        ',
-        'SELECT * FROM UNNEST(
-          ARRAY[
-            ''NATIVE_EN'', ''INTRODUCED_EN'', ''INTRODUCED (?)_EN'', ''REINTRODUCED_EN'',
-            ''EXTINCT_EN'', ''EXTINCT (?)_EN'', ''DISTRIBUTION UNCERTAIN_EN'',
-            ''NATIVE_ES'', ''INTRODUCED_ES'', ''INTRODUCED (?)_ES'', ''REINTRODUCED_ES'',
-            ''EXTINCT_ES'', ''EXTINCT (?)_ES'', ''DISTRIBUTION UNCERTAIN_ES'',
-            ''NATIVE_FR'', ''INTRODUCED_FR'', ''INTRODUCED (?)_FR'', ''REINTRODUCED_FR'',
-            ''EXTINCT_FR'', ''EXTINCT (?)_FR'', ''DISTRIBUTION UNCERTAIN_FR''
-          ])'
-      ) AS ct(
-        taxon_concept_id INTEGER,
-        native_distribution_ary_en VARCHAR[],
-        introduced_distribution_ary_en VARCHAR[],
-        introduced_uncertain_distribution_ary_en VARCHAR[],
-        reintroduced_distribution_ary_en VARCHAR[],
-        extinct_distribution_ary_en VARCHAR[],
-        extinct_uncertain_distribution_ary_en VARCHAR[],
-        uncertain_distribution_ary_en VARCHAR[],
-        native_distribution_ary_es VARCHAR[],
-        introduced_distribution_ary_es VARCHAR[],
-        introduced_uncertain_distribution_ary_es VARCHAR[],
-        reintroduced_distribution_ary_es VARCHAR[],
-        extinct_distribution_ary_es VARCHAR[],
-        extinct_uncertain_distribution_ary_es VARCHAR[],
-        uncertain_distribution_ary_es VARCHAR[],
-        native_distribution_ary_fr VARCHAR[],
-        introduced_distribution_ary_fr VARCHAR[],
-        introduced_uncertain_distribution_ary_fr VARCHAR[],
-        reintroduced_distribution_ary_fr VARCHAR[],
-        extinct_distribution_ary_fr VARCHAR[],
-        extinct_uncertain_distribution_ary_fr VARCHAR[],
-        uncertain_distribution_ary_fr VARCHAR[]
-      )
-    ) distributions_by_tag ON taxon_concepts.id = distributions_by_tag.taxon_concept_id;
 
     RAISE INFO 'Creating taxon concepts materialized view (tmp)';
     CREATE TABLE taxon_concepts_mview_tmp AS
     SELECT *,
     false as dirty,
     null::timestamp with time zone as expiry
-    FROM taxon_concepts_view_tmp;
+    FROM taxon_concepts_view;
 
     RAISE INFO 'Creating indexes on taxon concepts materialized view (tmp)';
     CREATE INDEX ON taxon_concepts_mview_tmp (id);
@@ -5725,8 +5464,6 @@ CREATE FUNCTION rebuild_taxon_concepts_mview() RETURNS void
     RAISE INFO 'Swapping taxon concepts materialized view';
     DROP table IF EXISTS taxon_concepts_mview CASCADE;
     ALTER TABLE taxon_concepts_mview_tmp RENAME TO taxon_concepts_mview;
-    DROP view IF EXISTS taxon_concepts_view CASCADE;
-    ALTER TABLE taxon_concepts_view_tmp RENAME TO taxon_concepts_view;
 
     DROP table IF EXISTS auto_complete_taxon_concepts_mview_tmp CASCADE;
     RAISE INFO 'Creating auto complete taxon concepts materialized view (tmp)';
@@ -6004,7 +5741,7 @@ CREATE FUNCTION rebuild_taxonomy_for_node(node_id integer) RETURNS void
       FROM taxon_concepts h
       INNER JOIN taxon_names ON h.taxon_name_id = taxon_names.id
       INNER JOIN ranks ON h.rank_id = ranks.id
-      WHERE name_status = 'A' AND
+      WHERE name_status IN ('A', 'N') AND
         CASE
         WHEN node_id IS NOT NULL THEN h.id = node_id
         ELSE h.parent_id IS NULL
@@ -6018,7 +5755,7 @@ CREATE FUNCTION rebuild_taxonomy_for_node(node_id integer) RETURNS void
       hstore(LOWER(ranks.name) || '_id', (hi.id)::VARCHAR)
       FROM q
       JOIN taxon_concepts hi
-      ON hi.parent_id = q.id AND hi.name_status = 'A'
+      ON hi.parent_id = q.id AND hi.name_status IN ('A', 'N')
       INNER JOIN taxon_names ON hi.taxon_name_id = taxon_names.id
       INNER JOIN ranks ON hi.rank_id = ranks.id
     )
@@ -6779,6 +6516,149 @@ CREATE AGGREGATE array_agg_notnull(anyelement) (
 
 
 --
+-- Name: documents; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE documents (
+    id integer NOT NULL,
+    title text NOT NULL,
+    filename text NOT NULL,
+    date date NOT NULL,
+    type character varying(255) NOT NULL,
+    is_public boolean DEFAULT false NOT NULL,
+    event_id integer,
+    language_id integer,
+    elib_legacy_id integer,
+    created_by_id integer,
+    updated_by_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    sort_index integer,
+    primary_language_document_id integer,
+    elib_legacy_file_name text,
+    original_id integer,
+    discussion_id integer,
+    discussion_sort_index integer,
+    designation_id integer
+);
+
+
+--
+-- Name: elibrary_citations_rst_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_citations_rst_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid text,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid text,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    citationid integer,
+    ctyrecid text,
+    ctyshort text,
+    ctyiso2 text,
+    speciesid text,
+    speciesname text,
+    splus_taxon_concept_id text,
+    ctyshortcombined text,
+    speciesnamecombined text,
+    sigtradephase text,
+    sigtradeprocessstage text,
+    sigtradedocumentnumber text,
+    sigtradeintroduced text,
+    sigtrademeeting1 text,
+    sigtradeacmeetingdate1 text,
+    sigtrademeeting2 text,
+    sigtradecommitteefirstdiscussed text,
+    sigtradesignificanttradereviewfor text,
+    sigtraderegion1 text,
+    sigtraderegion2 text,
+    sigtraderegion3 text,
+    sigtradeurl text,
+    sigtradeurl2 text,
+    sigtradehardcopylocation text,
+    sigtradefilename text,
+    sigtradepages text,
+    sigtradelanguage text,
+    sigtradeiucnconservationstatus text,
+    sigtradeiucnconservationstatuscriteria text,
+    sigtradeassessorsofiucnstatus text,
+    sigtradedateofiucnassessment text,
+    sigtraderecommendedcategory text,
+    sigtradenotes text,
+    sigtradeotherdocumentinformation text,
+    sigtradeinitials text,
+    sigtradetaxonid text
+);
+
+
+--
+-- Name: events; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE events (
+    id integer NOT NULL,
+    name character varying(255),
+    designation_id integer,
+    description text,
+    url text,
+    is_current boolean DEFAULT false NOT NULL,
+    type character varying(255) DEFAULT 'Event'::character varying NOT NULL,
+    effective_at timestamp without time zone,
+    published_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    legacy_id integer,
+    end_date timestamp without time zone,
+    subtype character varying(255),
+    updated_by_id integer,
+    created_by_id integer,
+    extended_description text,
+    multilingual_url text,
+    elib_legacy_id integer
+);
+
+
+--
+-- Name: actual_vs_expected_titles; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW actual_vs_expected_titles AS
+ WITH titles_from_citations AS (
+         SELECT DISTINCT elibrary_citations_rst_import.documentid,
+            elibrary_citations_rst_import.documenttitle
+           FROM elibrary_citations_rst_import
+        )
+ SELECT events.name,
+    documents.id,
+    documents.title,
+    titles_from_citations.documenttitle
+   FROM ((documents
+     JOIN events ON ((documents.event_id = events.id)))
+     LEFT JOIN titles_from_citations ON ((documents.elib_legacy_id = (titles_from_citations.documentid)::integer)))
+  WHERE ((documents.type)::text = 'Document::ReviewOfSignificantTrade'::text);
+
+
+--
 -- Name: ahoy_events; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -7240,33 +7120,6 @@ CREATE VIEW api_cites_quotas_view AS
 
 
 --
--- Name: events; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE events (
-    id integer NOT NULL,
-    name character varying(255),
-    designation_id integer,
-    description text,
-    url text,
-    is_current boolean DEFAULT false NOT NULL,
-    type character varying(255) DEFAULT 'Event'::character varying NOT NULL,
-    effective_at timestamp without time zone,
-    published_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    legacy_id integer,
-    end_date timestamp without time zone,
-    subtype character varying(255),
-    updated_by_id integer,
-    created_by_id integer,
-    extended_description text,
-    multilingual_url text,
-    elib_legacy_id integer
-);
-
-
---
 -- Name: api_cites_suspensions_view; Type: VIEW; Schema: public; Owner: -
 --
 
@@ -7503,7 +7356,7 @@ CREATE VIEW api_distributions_view AS
    FROM ((((( SELECT d_1.id,
             d_1.taxon_concept_id,
             d_1.geo_entity_id,
-            array_agg_notnull(tags.name ORDER BY tags.name) AS tags
+            array_agg_notnull(tags.name) AS tags
            FROM ((distributions d_1
              LEFT JOIN taggings ON ((((taggings.taggable_type)::text = 'Distribution'::text) AND (taggings.taggable_id = d_1.id))))
              LEFT JOIN tags ON ((tags.id = taggings.tag_id)))
@@ -7513,6 +7366,79 @@ CREATE VIEW api_distributions_view AS
      LEFT JOIN distribution_references dr ON ((dr.distribution_id = d.id)))
      LEFT JOIN "references" r ON ((r.id = dr.reference_id)))
   GROUP BY d.id, d.taxon_concept_id, d.geo_entity_id, d.tags, g.name_en, g.name_es, g.name_fr, g.iso_code2, gt.name;
+
+
+--
+-- Name: api_documents_view; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE api_documents_view (
+    id integer,
+    designation_id integer,
+    designation_name character varying(255),
+    event_id integer,
+    event_name character varying(255),
+    date text,
+    date_raw timestamp with time zone,
+    event_type character varying(255),
+    title text,
+    extension text,
+    is_public boolean,
+    document_type character varying(255),
+    sort_index integer,
+    language character varying(255),
+    primary_document_id integer,
+    proposal_number text,
+    proposal_outcome text,
+    review_phase text,
+    document_tags_ids integer[],
+    taxon_names character varying[],
+    geo_entity_names character varying[],
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    created_by_id integer,
+    created_by character varying(255),
+    updated_by_id integer,
+    updated_by character varying(255)
+);
+
+ALTER TABLE ONLY api_documents_view REPLICA IDENTITY NOTHING;
+
+
+--
+-- Name: api_documents_mview; Type: MATERIALIZED VIEW; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE MATERIALIZED VIEW api_documents_mview AS
+ SELECT api_documents_view.id,
+    api_documents_view.designation_id,
+    api_documents_view.designation_name,
+    api_documents_view.event_id,
+    api_documents_view.event_name,
+    api_documents_view.date,
+    api_documents_view.date_raw,
+    api_documents_view.event_type,
+    api_documents_view.title,
+    api_documents_view.extension,
+    api_documents_view.is_public,
+    api_documents_view.document_type,
+    api_documents_view.sort_index,
+    api_documents_view.language,
+    api_documents_view.primary_document_id,
+    api_documents_view.proposal_number,
+    api_documents_view.proposal_outcome,
+    api_documents_view.review_phase,
+    api_documents_view.document_tags_ids,
+    api_documents_view.taxon_names,
+    api_documents_view.geo_entity_names,
+    api_documents_view.created_at,
+    api_documents_view.updated_at,
+    api_documents_view.created_by_id,
+    api_documents_view.created_by,
+    api_documents_view.updated_by_id,
+    api_documents_view.updated_by
+   FROM api_documents_view
+  WITH NO DATA;
 
 
 --
@@ -7850,6 +7776,59 @@ ALTER SEQUENCE api_requests_id_seq OWNED BY api_requests.id;
 
 
 --
+-- Name: users; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE users (
+    id integer NOT NULL,
+    name character varying(255) NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    email character varying(255) DEFAULT ''::character varying NOT NULL,
+    encrypted_password character varying(255) DEFAULT ''::character varying NOT NULL,
+    reset_password_token character varying(255),
+    reset_password_sent_at timestamp without time zone,
+    remember_created_at timestamp without time zone,
+    sign_in_count integer DEFAULT 0 NOT NULL,
+    current_sign_in_at timestamp without time zone,
+    last_sign_in_at timestamp without time zone,
+    current_sign_in_ip character varying(255),
+    last_sign_in_ip character varying(255),
+    role text DEFAULT 'api'::text NOT NULL,
+    authentication_token character varying(255),
+    organisation text DEFAULT 'UNKNOWN'::text NOT NULL,
+    geo_entity_id integer,
+    is_cites_authority boolean DEFAULT false NOT NULL
+);
+
+
+--
+-- Name: api_requests_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW api_requests_view AS
+ SELECT api_requests.id,
+    api_requests.controller,
+    api_requests.action,
+    api_requests.format,
+    api_requests.params,
+    api_requests.ip,
+    api_requests.response_status,
+    api_requests.error_message,
+    api_requests.created_at,
+    users.id AS user_id,
+    users.name,
+    users.email,
+    users.organisation,
+    geo_entities.name_en,
+    users.is_cites_authority
+   FROM ((api_requests
+     LEFT JOIN users ON ((users.id = api_requests.user_id)))
+     LEFT JOIN geo_entities ON ((geo_entities.id = users.geo_entity_id)))
+  ORDER BY api_requests.created_at DESC;
+
+
+--
 -- Name: api_taxon_concepts_view; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -7916,7 +7895,7 @@ CREATE MATERIALIZED VIEW taxon_concepts_and_ancestors_mview AS
     ((taxon_concepts.data -> (lower(unnest(higher_or_equal_ranks_names(((taxon_concepts.data -> 'rank_name'::text))::character varying))) || '_id'::text)))::integer AS ancestor_taxon_concept_id,
     (generate_subscripts(higher_or_equal_ranks_names(((taxon_concepts.data -> 'rank_name'::text))::character varying), 1) - 1) AS tree_distance
    FROM taxon_concepts
-  WHERE ((taxon_concepts.name_status)::text = ANY ((ARRAY['A'::character varying, 'N'::character varying, 'H'::character varying])::text[]))
+  WHERE ((taxon_concepts.name_status)::text = ANY (ARRAY[('A'::character varying)::text, ('N'::character varying)::text, ('H'::character varying)::text]))
   WITH NO DATA;
 
 
@@ -7988,8 +7967,9 @@ CREATE TABLE auto_complete_taxon_concepts_mview (
     show_in_trade_internal_ac boolean,
     name_for_matching text,
     matched_id integer,
-    matched_name character varying,
-    full_name character varying(255)
+    matched_name character varying(255),
+    full_name character varying(255),
+    type_of_match text
 );
 
 
@@ -8070,9 +8050,9 @@ CREATE VIEW auto_complete_taxon_concepts_view AS
             taxon_concepts.full_name,
             upper(regexp_split_to_table((taxon_concepts.full_name)::text, ' '::text)) AS upper
            FROM ((taxon_concepts
-             JOIN ranks ON (((ranks.id = taxon_concepts.rank_id) AND ((ranks.name)::text = ANY ((ARRAY['SUBSPECIES'::character varying, 'VARIETY'::character varying])::text[])))))
+             JOIN ranks ON (((ranks.id = taxon_concepts.rank_id) AND ((ranks.name)::text = ANY (ARRAY[('SUBSPECIES'::character varying)::text, ('VARIETY'::character varying)::text])))))
              JOIN taxon_concepts parents ON ((parents.id = taxon_concepts.parent_id)))
-          WHERE (((taxon_concepts.name_status)::text <> ALL ((ARRAY['S'::character varying, 'T'::character varying, 'N'::character varying])::text[])) AND ((parents.name_status)::text = 'A'::text))
+          WHERE (((taxon_concepts.name_status)::text <> ALL (ARRAY[('S'::character varying)::text, ('T'::character varying)::text, ('N'::character varying)::text])) AND ((parents.name_status)::text = 'A'::text))
         EXCEPT
          SELECT parents.id,
             parents.full_name,
@@ -8083,7 +8063,7 @@ CREATE VIEW auto_complete_taxon_concepts_view AS
              JOIN ranks ON (((ranks.id = taxon_concepts.rank_id) AND ((ranks.name)::text = 'SUBSPECIES'::text))))
              JOIN taxon_concepts parents ON ((parents.id = taxon_concepts.parent_id)))
              JOIN taxonomies ON ((taxonomies.id = taxon_concepts.taxonomy_id)))
-          WHERE ((((taxon_concepts.name_status)::text <> ALL ((ARRAY['S'::character varying, 'T'::character varying, 'N'::character varying])::text[])) AND ((parents.name_status)::text = 'A'::text)) AND
+          WHERE ((((taxon_concepts.name_status)::text <> ALL (ARRAY[('S'::character varying)::text, ('T'::character varying)::text, ('N'::character varying)::text])) AND ((parents.name_status)::text = 'A'::text)) AND
                 CASE
                     WHEN ((taxonomies.name)::text = 'CMS'::text) THEN ((taxon_concepts.listing -> 'cms_historically_listed'::text))::boolean
                     ELSE (((taxon_concepts.listing -> 'cites_historically_listed'::text))::boolean OR ((taxon_concepts.listing -> 'eu_historically_listed'::text))::boolean)
@@ -8099,7 +8079,7 @@ CREATE VIEW auto_complete_taxon_concepts_view AS
             common_names.name
            FROM ((taxon_commons
              JOIN common_names ON ((common_names.id = taxon_commons.common_name_id)))
-             JOIN languages ON (((languages.id = common_names.language_id) AND ((languages.iso_code1)::text = ANY ((ARRAY['EN'::character varying, 'ES'::character varying, 'FR'::character varying])::text[])))))
+             JOIN languages ON (((languages.id = common_names.language_id) AND ((languages.iso_code1)::text = ANY (ARRAY[('EN'::character varying)::text, ('ES'::character varying)::text, ('FR'::character varying)::text])))))
         ), common_names_segmented(taxon_concept_id, full_name, matched_taxon_concept_id, matched_name, matched_name_segment) AS (
          SELECT taxon_common_names.taxon_concept_id,
             taxon_concepts.full_name,
@@ -8168,7 +8148,7 @@ CREATE VIEW auto_complete_taxon_concepts_view AS
                             synonyms_segmented.matched_taxon_concept_id,
                             synonyms_segmented.matched_name,
                             synonyms_segmented.matched_name_segment,
-                            'SYNONYM'::text
+                            'SYNONYM'::text AS text
                            FROM synonyms_segmented
                         UNION
                          SELECT unlisted_subspecies_segmented.taxon_concept_id,
@@ -8176,7 +8156,7 @@ CREATE VIEW auto_complete_taxon_concepts_view AS
                             unlisted_subspecies_segmented.matched_taxon_concept_id,
                             unlisted_subspecies_segmented.matched_name,
                             unlisted_subspecies_segmented.matched_name_segment,
-                            'SUBSPECIES'::text
+                            'SUBSPECIES'::text AS text
                            FROM unlisted_subspecies_segmented
                         UNION
                          SELECT common_names_segmented_dehyphenated.taxon_concept_id,
@@ -8184,7 +8164,7 @@ CREATE VIEW auto_complete_taxon_concepts_view AS
                             common_names_segmented_dehyphenated.matched_taxon_concept_id,
                             common_names_segmented_dehyphenated.matched_name,
                             common_names_segmented_dehyphenated.matched_name_segment,
-                            'COMMON_NAME'::text
+                            'COMMON_NAME'::text AS text
                            FROM common_names_segmented_dehyphenated) all_names_segmented) all_names_segmented_no_prefixes
           WHERE (length(all_names_segmented_no_prefixes.matched_name_segment) >= 3)
         ), taxa_with_visibility_flags AS (
@@ -8286,6 +8266,7 @@ CREATE TABLE child_cites_listing_changes_mview (
     taxon_concept_id integer,
     id integer,
     original_taxon_concept_id integer,
+    event_id integer,
     effective_at timestamp without time zone,
     species_listing_id integer,
     species_listing_name character varying(255),
@@ -8294,11 +8275,15 @@ CREATE TABLE child_cites_listing_changes_mview (
     designation_id integer,
     designation_name character varying(255),
     parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
     party_id integer,
     party_iso_code character varying(255),
     party_full_name_en character varying(255),
     party_full_name_es character varying(255),
     party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
     ann_symbol character varying(255),
     full_note_en text,
     full_note_es text,
@@ -8333,11 +8318,7 @@ CREATE TABLE child_cites_listing_changes_mview (
     excluded_geo_entities_ids integer[],
     excluded_taxon_concept_ids integer[],
     dirty boolean,
-    expiry timestamp with time zone,
-    nomenclature_note_en text,
-    nomenclature_note_fr text,
-    nomenclature_note_es text,
-    event_id integer
+    expiry timestamp with time zone
 )
 INHERITS (cites_listing_changes_mview);
 
@@ -8414,6 +8395,7 @@ CREATE TABLE child_cms_listing_changes_mview (
     taxon_concept_id integer,
     id integer,
     original_taxon_concept_id integer,
+    event_id integer,
     effective_at timestamp without time zone,
     species_listing_id integer,
     species_listing_name character varying(255),
@@ -8422,11 +8404,15 @@ CREATE TABLE child_cms_listing_changes_mview (
     designation_id integer,
     designation_name character varying(255),
     parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
     party_id integer,
     party_iso_code character varying(255),
     party_full_name_en character varying(255),
     party_full_name_es character varying(255),
     party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
     ann_symbol character varying(255),
     full_note_en text,
     full_note_es text,
@@ -8461,13 +8447,1097 @@ CREATE TABLE child_cms_listing_changes_mview (
     excluded_geo_entities_ids integer[],
     excluded_taxon_concept_ids integer[],
     dirty boolean,
-    expiry timestamp with time zone,
+    expiry timestamp with time zone
+)
+INHERITS (cms_listing_changes_mview);
+
+
+--
+-- Name: child_eu_42_44_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_42_44_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
     nomenclature_note_en text,
     nomenclature_note_fr text,
     nomenclature_note_es text,
-    event_id integer
-)
-INHERITS (cms_listing_changes_mview);
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_42_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_42_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_47_42_44_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_47_42_44_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_54_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_54_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_55_41_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_55_41_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_55_49_66_41_48_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_55_49_66_41_48_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_55_66_41_48_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_55_66_41_48_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_55_66_41_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_55_66_41_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_62_54_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_62_54_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_65_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_65_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_67_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_67_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_71_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_71_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_72_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_72_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_73_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_73_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_74_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_74_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_76_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_76_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
+
+
+--
+-- Name: child_eu_98_listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE child_eu_98_listing_changes_mview (
+    taxon_concept_id integer,
+    id integer,
+    original_taxon_concept_id integer,
+    event_id integer,
+    effective_at timestamp without time zone,
+    species_listing_id integer,
+    species_listing_name character varying(255),
+    change_type_id integer,
+    change_type_name character varying(255),
+    designation_id integer,
+    designation_name character varying(255),
+    parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
+    party_id integer,
+    party_iso_code character varying(255),
+    party_full_name_en character varying(255),
+    party_full_name_es character varying(255),
+    party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
+    ann_symbol character varying(255),
+    full_note_en text,
+    full_note_es text,
+    full_note_fr text,
+    short_note_en text,
+    short_note_es text,
+    short_note_fr text,
+    display_in_index boolean,
+    display_in_footnote boolean,
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
+    hash_full_note_en text,
+    hash_full_note_es text,
+    hash_full_note_fr text,
+    inclusion_taxon_concept_id integer,
+    inherited_short_note_en text,
+    inherited_full_note_en text,
+    inherited_short_note_es text,
+    inherited_full_note_es text,
+    inherited_short_note_fr text,
+    inherited_full_note_fr text,
+    auto_note_en text,
+    auto_note_es text,
+    auto_note_fr text,
+    is_current boolean,
+    explicit_change boolean,
+    updated_at timestamp without time zone,
+    show_in_history boolean,
+    show_in_downloads boolean,
+    show_in_timeline boolean,
+    listed_geo_entities_ids integer[],
+    excluded_geo_entities_ids integer[],
+    excluded_taxon_concept_ids integer[],
+    dirty boolean,
+    expiry timestamp with time zone
+);
 
 
 --
@@ -8478,6 +9548,7 @@ CREATE TABLE child_eu_listing_changes_mview (
     taxon_concept_id integer,
     id integer,
     original_taxon_concept_id integer,
+    event_id integer,
     effective_at timestamp without time zone,
     species_listing_id integer,
     species_listing_name character varying(255),
@@ -8486,11 +9557,15 @@ CREATE TABLE child_eu_listing_changes_mview (
     designation_id integer,
     designation_name character varying(255),
     parent_id integer,
+    nomenclature_note_en text,
+    nomenclature_note_fr text,
+    nomenclature_note_es text,
     party_id integer,
     party_iso_code character varying(255),
     party_full_name_en character varying(255),
     party_full_name_es character varying(255),
     party_full_name_fr character varying(255),
+    geo_entity_type character varying(255),
     ann_symbol character varying(255),
     full_note_en text,
     full_note_es text,
@@ -8525,13 +9600,22 @@ CREATE TABLE child_eu_listing_changes_mview (
     excluded_geo_entities_ids integer[],
     excluded_taxon_concept_ids integer[],
     dirty boolean,
-    expiry timestamp with time zone,
-    nomenclature_note_en text,
-    nomenclature_note_fr text,
-    nomenclature_note_es text,
-    event_id integer
+    expiry timestamp with time zone
 )
 INHERITS (eu_listing_changes_mview);
+
+
+--
+-- Name: cites_eu_taxon_concepts_and_ancestors_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW cites_eu_taxon_concepts_and_ancestors_view AS
+ SELECT taxon_concepts_and_ancestors_mview.taxon_concept_id,
+    taxon_concepts_and_ancestors_mview.taxonomy_id,
+    taxon_concepts_and_ancestors_mview.ancestor_taxon_concept_id,
+    taxon_concepts_and_ancestors_mview.tree_distance
+   FROM taxon_concepts_and_ancestors_mview
+  WHERE (taxon_concepts_and_ancestors_mview.taxonomy_id = 1);
 
 
 --
@@ -8687,6 +9771,19 @@ CREATE TABLE cms_species_listing_mview (
 
 
 --
+-- Name: cms_taxon_concepts_and_ancestors_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW cms_taxon_concepts_and_ancestors_view AS
+ SELECT taxon_concepts_and_ancestors_mview.taxon_concept_id,
+    taxon_concepts_and_ancestors_mview.taxonomy_id,
+    taxon_concepts_and_ancestors_mview.ancestor_taxon_concept_id,
+    taxon_concepts_and_ancestors_mview.tree_distance
+   FROM taxon_concepts_and_ancestors_mview
+  WHERE (taxon_concepts_and_ancestors_mview.taxonomy_id = 2);
+
+
+--
 -- Name: comments; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -8739,33 +9836,6 @@ CREATE SEQUENCE common_names_id_seq
 --
 
 ALTER SEQUENCE common_names_id_seq OWNED BY common_names.id;
-
-
---
--- Name: users; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE users (
-    id integer NOT NULL,
-    name character varying(255) NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    email character varying(255) DEFAULT ''::character varying NOT NULL,
-    encrypted_password character varying(255) DEFAULT ''::character varying NOT NULL,
-    reset_password_token character varying(255),
-    reset_password_sent_at timestamp without time zone,
-    remember_created_at timestamp without time zone,
-    sign_in_count integer DEFAULT 0 NOT NULL,
-    current_sign_in_at timestamp without time zone,
-    last_sign_in_at timestamp without time zone,
-    current_sign_in_ip character varying(255),
-    last_sign_in_ip character varying(255),
-    role text DEFAULT 'api'::text NOT NULL,
-    authentication_token character varying(255),
-    organisation text DEFAULT 'UNKNOWN'::text NOT NULL,
-    geo_entity_id integer,
-    is_cites_authority boolean DEFAULT false NOT NULL
-);
 
 
 --
@@ -8968,7 +10038,8 @@ CREATE TABLE document_citations (
     created_by_id integer,
     updated_by_id integer,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    elib_legacy_id integer
 );
 
 
@@ -8992,12 +10063,46 @@ ALTER SEQUENCE document_citations_id_seq OWNED BY document_citations.id;
 
 
 --
+-- Name: document_citations_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW document_citations_view AS
+ SELECT dc.id,
+    dc.document_id,
+    dctc.taxon_concept_id,
+    tc.full_name,
+    dcge.geo_entity_id,
+    ge.name_en
+   FROM ((((document_citations dc
+     LEFT JOIN document_citation_taxon_concepts dctc ON ((dctc.document_citation_id = dc.id)))
+     LEFT JOIN taxon_concepts tc ON ((tc.id = dctc.taxon_concept_id)))
+     LEFT JOIN document_citation_geo_entities dcge ON ((dcge.document_citation_id = dc.id)))
+     LEFT JOIN geo_entities ge ON ((ge.id = dcge.geo_entity_id)))
+  GROUP BY dc.id, dc.document_id, dctc.taxon_concept_id, tc.full_name, dcge.geo_entity_id, ge.name_en;
+
+
+--
+-- Name: document_citations_mview; Type: MATERIALIZED VIEW; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE MATERIALIZED VIEW document_citations_mview AS
+ SELECT document_citations_view.id,
+    document_citations_view.document_id,
+    document_citations_view.taxon_concept_id,
+    document_citations_view.full_name,
+    document_citations_view.geo_entity_id,
+    document_citations_view.name_en
+   FROM document_citations_view
+  WITH NO DATA;
+
+
+--
 -- Name: document_tags; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE document_tags (
     id integer NOT NULL,
-    name character varying(255),
+    name text NOT NULL,
     type character varying(255),
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
@@ -9034,28 +10139,6 @@ ALTER SEQUENCE document_tags_id_seq OWNED BY document_tags.id;
 
 
 --
--- Name: documents; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE documents (
-    id integer NOT NULL,
-    title text NOT NULL,
-    filename text NOT NULL,
-    date date NOT NULL,
-    type character varying(255) NOT NULL,
-    is_public boolean DEFAULT false NOT NULL,
-    event_id integer,
-    language_id integer,
-    legacy_id integer,
-    created_by_id integer,
-    updated_by_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    number character varying(255)
-);
-
-
---
 -- Name: documents_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -9072,34 +10155,6 @@ CREATE SEQUENCE documents_id_seq
 --
 
 ALTER SEQUENCE documents_id_seq OWNED BY documents.id;
-
-
---
--- Name: documents_view; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE documents_view (
-    id integer,
-    title text,
-    filename text,
-    date date,
-    type character varying(255),
-    is_public boolean,
-    event_id integer,
-    language_id integer,
-    legacy_id integer,
-    created_by_id integer,
-    updated_by_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    number character varying(255),
-    event_type character varying(255),
-    taxon_concept_ids integer[],
-    geo_entity_ids integer[],
-    document_tags_ids integer[]
-);
-
-ALTER TABLE ONLY documents_view REPLICA IDENTITY NOTHING;
 
 
 --
@@ -9136,6 +10191,436 @@ CREATE SEQUENCE downloads_id_seq
 --
 
 ALTER SEQUENCE downloads_id_seq OWNED BY downloads.id;
+
+
+--
+-- Name: elibrary_citations_cop_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_citations_cop_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid text,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid text,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    citationid integer,
+    ctyrecid text,
+    ctyshort text,
+    ctyiso2 text,
+    speciesid text,
+    speciesname text,
+    splus_taxon_concept_id text,
+    ctyshortcombined text,
+    speciesnamecombined text,
+    proposalno text,
+    proposalnature text,
+    proposaloutcome text,
+    proposaladditionalcomments text,
+    proposalhardcopy text,
+    proposalrepresentation text,
+    proposalothertaxonname text
+);
+
+
+--
+-- Name: elibrary_citations_ndf_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_citations_ndf_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid text,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid text,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    citationid integer,
+    ctyrecid text,
+    ctyshort text,
+    ctyiso2 text,
+    speciesid text,
+    speciesname text,
+    splus_taxon_concept_id text,
+    ctyshortcombined text,
+    speciesnamecombined text,
+    ndfsource text
+);
+
+
+--
+-- Name: elibrary_citations_no_event_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_citations_no_event_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid text,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid text,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    citationid integer,
+    ctyrecid text,
+    ctyshort text,
+    ctyiso2 text,
+    speciesid text,
+    speciesname text,
+    splus_taxon_concept_id text,
+    ctyshortcombined text,
+    speciesnamecombined text,
+    proposalno text,
+    proposalnature text,
+    proposaloutcome text,
+    proposaladditionalcomments text,
+    proposalhardcopy text,
+    proposalrepresentation text,
+    proposalothertaxonname text,
+    ndfsource text,
+    sigtradephase text,
+    sigtradeprocessstage text,
+    sigtradedocumentnumber text,
+    sigtradeintroduced text,
+    sigtrademeeting1 text,
+    sigtradeacmeetingdate1 text,
+    sigtrademeeting2 text,
+    sigtradecommitteefirstdiscussed text,
+    sigtradesignificanttradereviewfor text,
+    sigtraderegion1 text,
+    sigtraderegion2 text,
+    sigtraderegion3 text,
+    sigtradeurl text,
+    sigtradeurl2 text,
+    sigtradehardcopylocation text,
+    sigtradefilename text,
+    sigtradepages text,
+    sigtradelanguage text,
+    sigtradeiucnconservationstatus text,
+    sigtradeiucnconservationstatuscriteria text,
+    sigtradeassessorsofiucnstatus text,
+    sigtradedateofiucnassessment text,
+    sigtraderecommendedcategory text,
+    sigtradenotes text,
+    sigtradeotherdocumentinformation text,
+    sigtradeinitials text,
+    sigtradetaxonid text
+);
+
+
+--
+-- Name: elibrary_citations_resolved_tmp; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_citations_resolved_tmp (
+    document_id integer,
+    citationid integer,
+    ctyiso2 text,
+    splus_taxon_concept_id integer
+);
+
+
+--
+-- Name: elibrary_citations_srg_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_citations_srg_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid text,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid text,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    citationid integer,
+    ctyrecid text,
+    ctyshort text,
+    ctyiso2 text,
+    speciesid text,
+    speciesname text,
+    splus_taxon_concept_id text,
+    ctyshortcombined text,
+    speciesnamecombined text
+);
+
+
+--
+-- Name: elibrary_documents_cop_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_documents_cop_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid integer,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid integer,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    masterdocumentid integer
+);
+
+
+--
+-- Name: elibrary_documents_ndf_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_documents_ndf_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid integer,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid integer,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    masterdocumentid integer
+);
+
+
+--
+-- Name: elibrary_documents_no_event_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_documents_no_event_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid integer,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid integer,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    masterdocumentid integer
+);
+
+
+--
+-- Name: elibrary_documents_rst_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_documents_rst_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid integer,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid integer,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    masterdocumentid integer
+);
+
+
+--
+-- Name: elibrary_documents_srg_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_documents_srg_import (
+    eventtypeid text,
+    eventtypename text,
+    splus_event_type text,
+    eventid integer,
+    eventname text,
+    eventdate text,
+    meetingtype text,
+    eventdocumentreference text,
+    documentorder text,
+    documenttypeid text,
+    documenttypename text,
+    splus_document_type text,
+    documentid integer,
+    documenttitle text,
+    supertitle text,
+    subtitle text,
+    documentdate text,
+    documentfilename text,
+    documentfilepath text,
+    documentispubliclyaccessible text,
+    datecreated text,
+    datemodified text,
+    languagename text,
+    documentistranslationintoenglish text,
+    masterdocumentid integer
+);
+
+
+--
+-- Name: elibrary_events_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_events_import (
+    eventtypeid integer,
+    eventtypename text,
+    splus_event_type text,
+    eventid integer,
+    eventname text,
+    meetingtype text,
+    eventdate text
+);
+
+
+--
+-- Name: elibrary_non_cites_taxa_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_non_cites_taxa_import (
+    normalised_name text,
+    notes text,
+    genus_name text,
+    genus_id integer,
+    species_name text,
+    species_id integer,
+    rank text,
+    parent_id text,
+    family text,
+    comments text
+);
+
+
+--
+-- Name: elibrary_users_import; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE elibrary_users_import (
+    loweredusername text,
+    loweredemail text,
+    rolename text,
+    createdate text,
+    lastlogindate text
+);
 
 
 --
@@ -9334,6 +10819,22 @@ CREATE VIEW eu_decisions_view AS
      LEFT JOIN trade_codes sources ON ((((sources.type)::text = 'Source'::text) AND (sources.id = eu_decisions.source_id))))
      LEFT JOIN trade_codes terms ON ((((terms.type)::text = 'Term'::text) AND (terms.id = eu_decisions.term_id))))
      LEFT JOIN eu_suspensions_applicability_view t ON ((t.id = eu_decisions.id)));
+
+
+--
+-- Name: eu_decisions_with_missing_source; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE eu_decisions_with_missing_source (
+    full_name text,
+    rank_name text,
+    start_date text,
+    party_name text,
+    decision_type text,
+    source_code text,
+    term_code text,
+    notes text
+);
 
 
 --
@@ -9611,6 +11112,66 @@ CREATE TABLE iucn_mappings (
 
 
 --
+-- Name: iucn_mappings_export; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW iucn_mappings_export AS
+ WITH accepted_and_synonym_matches("TaxonConcept id", "TaxonConcept class", "TaxonConcept name", "TaxonConcept name status", "TaxonConcept author", "TaxonConcept taxonomic position", "IUCN taxon id", "IUCN taxon name", "IUCN taxon author", "IUCN category", "Type of match", "Type of name matched", "Synonym name (if matched)", "Synonym id (if matched)") AS (
+         SELECT taxon_concepts.id,
+            (taxon_concepts.data -> 'class_name'::text),
+            taxon_concepts.full_name,
+            taxon_concepts.name_status,
+            taxon_concepts.author_year,
+            taxon_concepts.taxonomic_position,
+            iucn_mappings.iucn_taxon_id,
+            iucn_mappings.iucn_taxon_name,
+            iucn_mappings.iucn_author,
+            iucn_mappings.iucn_category,
+            (iucn_mappings.details -> 'match'::text),
+            'A MATCH'::text AS text,
+            NULL::character varying AS "varchar",
+            NULL::integer AS int4
+           FROM (iucn_mappings
+             JOIN taxon_concepts ON ((taxon_concepts.id = iucn_mappings.taxon_concept_id)))
+          WHERE (iucn_mappings.accepted_name_id IS NULL)
+        UNION
+         SELECT taxon_concepts.id,
+            (taxon_concepts.data -> 'class_name'::text),
+            taxon_concepts.full_name,
+            taxon_concepts.name_status,
+            taxon_concepts.author_year,
+            taxon_concepts.taxonomic_position,
+            iucn_mappings.iucn_taxon_id,
+            iucn_mappings.iucn_taxon_name,
+            iucn_mappings.iucn_author,
+            iucn_mappings.iucn_category,
+            (iucn_mappings.details -> 'match'::text),
+            'S MATCH'::text AS text,
+            matched_names.full_name,
+            matched_names.id
+           FROM ((iucn_mappings
+             JOIN taxon_concepts ON ((taxon_concepts.id = iucn_mappings.accepted_name_id)))
+             JOIN taxon_concepts matched_names ON ((matched_names.id = iucn_mappings.taxon_concept_id)))
+        )
+ SELECT accepted_and_synonym_matches."TaxonConcept id",
+    accepted_and_synonym_matches."TaxonConcept class",
+    accepted_and_synonym_matches."TaxonConcept name",
+    accepted_and_synonym_matches."TaxonConcept name status",
+    accepted_and_synonym_matches."TaxonConcept author",
+    accepted_and_synonym_matches."TaxonConcept taxonomic position",
+    accepted_and_synonym_matches."IUCN taxon id",
+    accepted_and_synonym_matches."IUCN taxon name",
+    accepted_and_synonym_matches."IUCN taxon author",
+    accepted_and_synonym_matches."IUCN category",
+    accepted_and_synonym_matches."Type of match",
+    accepted_and_synonym_matches."Type of name matched",
+    accepted_and_synonym_matches."Synonym name (if matched)",
+    accepted_and_synonym_matches."Synonym id (if matched)"
+   FROM accepted_and_synonym_matches
+  ORDER BY accepted_and_synonym_matches."TaxonConcept name status", accepted_and_synonym_matches."TaxonConcept taxonomic position", accepted_and_synonym_matches."TaxonConcept name";
+
+
+--
 -- Name: iucn_mappings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -9665,57 +11226,6 @@ CREATE SEQUENCE listing_changes_id_seq
 --
 
 ALTER SEQUENCE listing_changes_id_seq OWNED BY listing_changes.id;
-
-
---
--- Name: listing_changes_mview; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE listing_changes_mview (
-    taxon_concept_id integer,
-    id integer,
-    original_taxon_concept_id integer,
-    effective_at timestamp without time zone,
-    species_listing_id integer,
-    species_listing_name character varying(255),
-    change_type_id integer,
-    change_type_name character varying(255),
-    designation_id integer,
-    designation_name character varying(255),
-    parent_id integer,
-    party_id integer,
-    party_iso_code character varying(255),
-    ann_symbol character varying(255),
-    full_note_en text,
-    full_note_es text,
-    full_note_fr text,
-    short_note_en text,
-    short_note_es text,
-    short_note_fr text,
-    display_in_index boolean,
-    display_in_footnote boolean,
-    hash_ann_symbol character varying(255),
-    hash_ann_parent_symbol character varying(255),
-    hash_full_note_en text,
-    hash_full_note_es text,
-    hash_full_note_fr text,
-    inclusion_taxon_concept_id integer,
-    inherited_short_note_en text,
-    inherited_full_note_en text,
-    auto_note text,
-    is_current boolean,
-    explicit_change boolean,
-    countries_ids_ary integer[],
-    updated_at timestamp without time zone,
-    show_in_history boolean,
-    show_in_downloads boolean,
-    show_in_timeline boolean,
-    dirty boolean,
-    expiry timestamp with time zone,
-    nomenclature_note_en text,
-    nomenclature_note_fr text,
-    nomenclature_note_es text
-);
 
 
 --
@@ -9833,14 +11343,14 @@ CREATE TABLE nomenclature_change_inputs (
     id integer NOT NULL,
     nomenclature_change_id integer NOT NULL,
     taxon_concept_id integer NOT NULL,
-    note_en text,
+    note_en text DEFAULT ''::text,
     created_by_id integer NOT NULL,
     updated_by_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    internal_note text,
-    note_es text,
-    note_fr text
+    internal_note text DEFAULT ''::text,
+    note_es text DEFAULT ''::text,
+    note_fr text DEFAULT ''::text
 );
 
 
@@ -9917,20 +11427,23 @@ CREATE TABLE nomenclature_change_outputs (
     new_scientific_name character varying(255),
     new_author_year character varying(255),
     new_name_status character varying(255),
-    note_en text,
+    note_en text DEFAULT ''::text,
     created_by_id integer NOT NULL,
     updated_by_id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    internal_note text,
+    internal_note text DEFAULT ''::text,
     is_primary_output boolean DEFAULT true,
     parent_id integer,
     rank_id integer,
     scientific_name character varying(255),
     author_year character varying(255),
     name_status character varying(255),
-    note_es text,
-    note_fr text
+    note_es text DEFAULT ''::text,
+    note_fr text DEFAULT ''::text,
+    taxonomy_id integer,
+    tag_list text DEFAULT '--- []
+'::text
 );
 
 
@@ -10141,7 +11654,8 @@ CREATE TABLE proposal_details (
     proposal_outcome_id integer,
     representation text,
     created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
+    updated_at timestamp without time zone NOT NULL,
+    proposal_number text
 );
 
 
@@ -10242,7 +11756,7 @@ CREATE TABLE review_details (
     document_id integer,
     review_phase_id integer,
     process_stage_id integer,
-    recommended_category_id integer,
+    recommended_category text,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL
 );
@@ -10329,7 +11843,7 @@ CREATE VIEW species_reference_output_view AS
      LEFT JOIN "references" rf ON ((r.reference_id = rf.id)))
      LEFT JOIN users uc ON ((r.created_by_id = uc.id)))
      LEFT JOIN users uu ON ((r.updated_by_id = uu.id)))
-  WHERE ((st.name_status)::text = ANY ((ARRAY['A'::character varying, 'N'::character varying])::text[]));
+  WHERE ((st.name_status)::text = ANY (ARRAY[('A'::character varying)::text, ('N'::character varying)::text]));
 
 
 --
@@ -10396,7 +11910,7 @@ CREATE VIEW standard_reference_output_view AS
      LEFT JOIN taxon_concepts issued_for ON ((issued_for.id = taxon_concept_references.taxon_concept_id)))
      LEFT JOIN users uc ON ((taxon_concept_references.created_by_id = uc.id)))
      LEFT JOIN users uu ON ((taxon_concept_references.updated_by_id = uu.id)))
-  WHERE ((taxon_concepts.name_status)::text = ANY ((ARRAY['N'::character varying, 'A'::character varying])::text[]))
+  WHERE ((taxon_concepts.name_status)::text = ANY (ARRAY[('N'::character varying)::text, ('A'::character varying)::text]))
   ORDER BY r.citation;
 
 
@@ -10434,9 +11948,10 @@ CREATE VIEW synonyms_and_trade_names_view AS
     uu.name AS updated_by,
     to_char(st.dependents_updated_at, 'DD/MM/YYYY HH24:MI'::text) AS dependents_updated_at,
     uud.name AS dependents_updated_by
-   FROM (((((((((taxon_concepts st
+   FROM ((((((((((taxon_concepts st
      JOIN taxonomies ON ((taxonomies.id = st.taxonomy_id)))
      LEFT JOIN taxon_relationships ON ((taxon_relationships.other_taxon_concept_id = st.id)))
+     LEFT JOIN taxon_relationship_types trt ON ((trt.id = taxon_relationships.taxon_relationship_type_id)))
      LEFT JOIN taxon_concepts a ON ((taxon_relationships.taxon_concept_id = a.id)))
      LEFT JOIN comments general_note ON ((((general_note.commentable_id = st.id) AND ((general_note.commentable_type)::text = 'TaxonConcept'::text)) AND ((general_note.comment_type)::text = 'General'::text))))
      LEFT JOIN comments nomenclature_note ON ((((nomenclature_note.commentable_id = st.id) AND ((nomenclature_note.commentable_type)::text = 'TaxonConcept'::text)) AND ((nomenclature_note.comment_type)::text = 'Nomenclature'::text))))
@@ -10444,7 +11959,7 @@ CREATE VIEW synonyms_and_trade_names_view AS
      LEFT JOIN users uc ON ((st.created_by_id = uc.id)))
      LEFT JOIN users uu ON ((st.updated_by_id = uu.id)))
      LEFT JOIN users uud ON ((st.dependents_updated_by_id = uud.id)))
-  WHERE ((st.name_status)::text = ANY ((ARRAY['S'::character varying, 'T'::character varying])::text[]));
+  WHERE (((st.name_status)::text = ANY ((ARRAY['S'::character varying, 'T'::character varying])::text[])) AND ((trt.name)::text = ANY ((ARRAY['HAS_SYNONYM'::character varying, 'HAS_TRADE_NAME'::character varying])::text[])));
 
 
 --
@@ -10628,22 +12143,22 @@ CREATE TABLE taxon_concepts_mview (
     name_status character varying(255),
     rank_id integer,
     rank_name character varying(255),
-    rank_display_name_en text,
-    rank_display_name_es text,
-    rank_display_name_fr text,
+    rank_display_name_en character varying(255),
+    rank_display_name_es character varying(255),
+    rank_display_name_fr character varying(255),
     spp boolean,
     cites_accepted boolean,
     kingdom_position integer,
     taxonomic_position character varying(255),
-    kingdom_name text,
-    phylum_name text,
-    class_name text,
-    order_name text,
-    family_name text,
-    subfamily_name text,
-    genus_name text,
-    species_name text,
-    subspecies_name text,
+    kingdom_name character varying(255),
+    phylum_name character varying(255),
+    class_name character varying(255),
+    order_name character varying(255),
+    family_name character varying(255),
+    subfamily_name character varying(255),
+    genus_name character varying(255),
+    species_name character varying(255),
+    subspecies_name character varying(255),
     kingdom_id integer,
     phylum_id integer,
     class_id integer,
@@ -10659,24 +12174,24 @@ CREATE TABLE taxon_concepts_mview (
     cites_listed boolean,
     cites_listed_descendants boolean,
     cites_show boolean,
-    cites_status text,
-    cites_listing_original text,
-    cites_listing text,
+    cites_status character varying(255),
+    cites_listing_original character varying(255),
+    cites_listing character varying(255),
     cites_listing_updated_at timestamp without time zone,
-    ann_symbol text,
-    hash_ann_symbol text,
-    hash_ann_parent_symbol text,
+    ann_symbol character varying(255),
+    hash_ann_symbol character varying(255),
+    hash_ann_parent_symbol character varying(255),
     eu_listed boolean,
     eu_show boolean,
-    eu_status text,
-    eu_listing_original text,
-    eu_listing text,
+    eu_status character varying(255),
+    eu_listing_original character varying(255),
+    eu_listing character varying(255),
     eu_listing_updated_at timestamp without time zone,
     cms_listed boolean,
     cms_show boolean,
-    cms_status text,
-    cms_listing_original text,
-    cms_listing text,
+    cms_status character varying(255),
+    cms_listing_original character varying(255),
+    cms_listing character varying(255),
     cms_listing_updated_at timestamp without time zone,
     species_listings_ids integer[],
     species_listings_ids_aggregated integer[],
@@ -10691,17 +12206,8 @@ CREATE TABLE taxon_concepts_mview (
     taxon_concept_id_syn integer,
     synonyms_ary character varying[],
     synonyms_author_years_ary character varying[],
-    subspecies_not_listed_ary character varying[],
     countries_ids_ary integer[],
     all_distribution_iso_codes_ary character varying[],
-    all_distribution_ary character varying[],
-    native_distribution_ary character varying[],
-    introduced_distribution_ary character varying[],
-    introduced_uncertain_distribution_ary character varying[],
-    reintroduced_distribution_ary character varying[],
-    extinct_distribution_ary character varying[],
-    extinct_uncertain_distribution_ary character varying[],
-    uncertain_distribution_ary character varying[],
     all_distribution_ary_en character varying[],
     native_distribution_ary_en character varying[],
     introduced_distribution_ary_en character varying[],
@@ -10769,6 +12275,228 @@ CREATE VIEW taxon_concepts_names_view AS
      LEFT JOIN users uc ON ((taxon_concepts.created_by_id = uc.id)))
      LEFT JOIN users uu ON ((taxon_concepts.updated_by_id = uu.id)))
      LEFT JOIN users uud ON ((taxon_concepts.dependents_updated_by_id = uud.id)));
+
+
+--
+-- Name: taxon_concepts_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW taxon_concepts_view AS
+ SELECT taxon_concepts.id,
+    taxon_concepts.parent_id,
+    taxon_concepts.taxonomy_id,
+        CASE
+            WHEN ((taxonomies.name)::text = 'CITES_EU'::text) THEN true
+            ELSE false
+        END AS taxonomy_is_cites_eu,
+    taxon_concepts.full_name,
+    taxon_concepts.name_status,
+    taxon_concepts.rank_id,
+    ranks.name AS rank_name,
+    (ranks.display_name_en)::character varying(255) AS rank_display_name_en,
+    (ranks.display_name_es)::character varying(255) AS rank_display_name_es,
+    (ranks.display_name_fr)::character varying(255) AS rank_display_name_fr,
+    ((taxon_concepts.data -> 'spp'::text))::boolean AS spp,
+    ((taxon_concepts.data -> 'cites_accepted'::text))::boolean AS cites_accepted,
+        CASE
+            WHEN ((taxon_concepts.data -> 'kingdom_name'::text) = 'Animalia'::text) THEN 0
+            ELSE 1
+        END AS kingdom_position,
+    taxon_concepts.taxonomic_position,
+    ((taxon_concepts.data -> 'kingdom_name'::text))::character varying(255) AS kingdom_name,
+    ((taxon_concepts.data -> 'phylum_name'::text))::character varying(255) AS phylum_name,
+    ((taxon_concepts.data -> 'class_name'::text))::character varying(255) AS class_name,
+    ((taxon_concepts.data -> 'order_name'::text))::character varying(255) AS order_name,
+    ((taxon_concepts.data -> 'family_name'::text))::character varying(255) AS family_name,
+    ((taxon_concepts.data -> 'subfamily_name'::text))::character varying(255) AS subfamily_name,
+    ((taxon_concepts.data -> 'genus_name'::text))::character varying(255) AS genus_name,
+    (lower((taxon_concepts.data -> 'species_name'::text)))::character varying(255) AS species_name,
+    (lower((taxon_concepts.data -> 'subspecies_name'::text)))::character varying(255) AS subspecies_name,
+    ((taxon_concepts.data -> 'kingdom_id'::text))::integer AS kingdom_id,
+    ((taxon_concepts.data -> 'phylum_id'::text))::integer AS phylum_id,
+    ((taxon_concepts.data -> 'class_id'::text))::integer AS class_id,
+    ((taxon_concepts.data -> 'order_id'::text))::integer AS order_id,
+    ((taxon_concepts.data -> 'family_id'::text))::integer AS family_id,
+    ((taxon_concepts.data -> 'subfamily_id'::text))::integer AS subfamily_id,
+    ((taxon_concepts.data -> 'genus_id'::text))::integer AS genus_id,
+    ((taxon_concepts.data -> 'species_id'::text))::integer AS species_id,
+    ((taxon_concepts.data -> 'subspecies_id'::text))::integer AS subspecies_id,
+        CASE
+            WHEN ((taxon_concepts.listing -> 'cites_I'::text) = 'I'::text) THEN true
+            ELSE false
+        END AS cites_i,
+        CASE
+            WHEN ((taxon_concepts.listing -> 'cites_II'::text) = 'II'::text) THEN true
+            ELSE false
+        END AS cites_ii,
+        CASE
+            WHEN ((taxon_concepts.listing -> 'cites_III'::text) = 'III'::text) THEN true
+            ELSE false
+        END AS cites_iii,
+        CASE
+            WHEN (((taxon_concepts.listing -> 'cites_status'::text) = 'LISTED'::text) AND ((taxon_concepts.listing -> 'cites_level_of_listing'::text) = 't'::text)) THEN true
+            WHEN ((taxon_concepts.listing -> 'cites_status'::text) = 'LISTED'::text) THEN false
+            ELSE NULL::boolean
+        END AS cites_listed,
+    ((taxon_concepts.listing -> 'cites_listed_descendants'::text))::boolean AS cites_listed_descendants,
+    ((taxon_concepts.listing -> 'cites_show'::text))::boolean AS cites_show,
+    ((taxon_concepts.listing -> 'cites_status'::text))::character varying(255) AS cites_status,
+    ((taxon_concepts.listing -> 'cites_listing_original'::text))::character varying(255) AS cites_listing_original,
+    ((taxon_concepts.listing -> 'cites_listing'::text))::character varying(255) AS cites_listing,
+    ((taxon_concepts.listing -> 'cites_listing_updated_at'::text))::timestamp without time zone AS cites_listing_updated_at,
+    ((taxon_concepts.listing -> 'ann_symbol'::text))::character varying(255) AS ann_symbol,
+    ((taxon_concepts.listing -> 'hash_ann_symbol'::text))::character varying(255) AS hash_ann_symbol,
+    ((taxon_concepts.listing -> 'hash_ann_parent_symbol'::text))::character varying(255) AS hash_ann_parent_symbol,
+        CASE
+            WHEN (((taxon_concepts.listing -> 'eu_status'::text) = 'LISTED'::text) AND ((taxon_concepts.listing -> 'eu_level_of_listing'::text) = 't'::text)) THEN true
+            WHEN ((taxon_concepts.listing -> 'eu_status'::text) = 'LISTED'::text) THEN false
+            ELSE NULL::boolean
+        END AS eu_listed,
+    ((taxon_concepts.listing -> 'eu_show'::text))::boolean AS eu_show,
+    ((taxon_concepts.listing -> 'eu_status'::text))::character varying(255) AS eu_status,
+    ((taxon_concepts.listing -> 'eu_listing_original'::text))::character varying(255) AS eu_listing_original,
+    ((taxon_concepts.listing -> 'eu_listing'::text))::character varying(255) AS eu_listing,
+    ((taxon_concepts.listing -> 'eu_listing_updated_at'::text))::timestamp without time zone AS eu_listing_updated_at,
+        CASE
+            WHEN (((taxon_concepts.listing -> 'cms_status'::text) = 'LISTED'::text) AND ((taxon_concepts.listing -> 'cms_level_of_listing'::text) = 't'::text)) THEN true
+            WHEN ((taxon_concepts.listing -> 'cms_status'::text) = 'LISTED'::text) THEN false
+            ELSE NULL::boolean
+        END AS cms_listed,
+    ((taxon_concepts.listing -> 'cms_show'::text))::boolean AS cms_show,
+    ((taxon_concepts.listing -> 'cms_status'::text))::character varying(255) AS cms_status,
+    ((taxon_concepts.listing -> 'cms_listing_original'::text))::character varying(255) AS cms_listing_original,
+    ((taxon_concepts.listing -> 'cms_listing'::text))::character varying(255) AS cms_listing,
+    ((taxon_concepts.listing -> 'cms_listing_updated_at'::text))::timestamp without time zone AS cms_listing_updated_at,
+    ((taxon_concepts.listing -> 'species_listings_ids'::text))::integer[] AS species_listings_ids,
+    ((taxon_concepts.listing -> 'species_listings_ids_aggregated'::text))::integer[] AS species_listings_ids_aggregated,
+    taxon_concepts.author_year,
+    taxon_concepts.created_at,
+    taxon_concepts.updated_at,
+    taxon_concepts.dependents_updated_at,
+    common_names.taxon_concept_id_com,
+    common_names.english_names_ary,
+    common_names.spanish_names_ary,
+    common_names.french_names_ary,
+    synonyms.taxon_concept_id_syn,
+    synonyms.synonyms_ary,
+    synonyms.synonyms_author_years_ary,
+    countries_ids.countries_ids_ary,
+    countries_ids.all_distribution_iso_codes_ary,
+    countries_ids.all_distribution_ary_en,
+    distributions_by_tag.native_distribution_ary_en,
+    distributions_by_tag.introduced_distribution_ary_en,
+    distributions_by_tag.introduced_uncertain_distribution_ary_en,
+    distributions_by_tag.reintroduced_distribution_ary_en,
+    distributions_by_tag.extinct_distribution_ary_en,
+    distributions_by_tag.extinct_uncertain_distribution_ary_en,
+    distributions_by_tag.uncertain_distribution_ary_en,
+    countries_ids.all_distribution_ary_es,
+    distributions_by_tag.native_distribution_ary_es,
+    distributions_by_tag.introduced_distribution_ary_es,
+    distributions_by_tag.introduced_uncertain_distribution_ary_es,
+    distributions_by_tag.reintroduced_distribution_ary_es,
+    distributions_by_tag.extinct_distribution_ary_es,
+    distributions_by_tag.extinct_uncertain_distribution_ary_es,
+    distributions_by_tag.uncertain_distribution_ary_es,
+    countries_ids.all_distribution_ary_fr,
+    distributions_by_tag.native_distribution_ary_fr,
+    distributions_by_tag.introduced_distribution_ary_fr,
+    distributions_by_tag.introduced_uncertain_distribution_ary_fr,
+    distributions_by_tag.reintroduced_distribution_ary_fr,
+    distributions_by_tag.extinct_distribution_ary_fr,
+    distributions_by_tag.extinct_uncertain_distribution_ary_fr,
+    distributions_by_tag.uncertain_distribution_ary_fr,
+        CASE
+            WHEN (((taxon_concepts.name_status)::text = 'A'::text) AND (((ranks.name)::text = 'SPECIES'::text) OR (((ranks.name)::text = 'SUBSPECIES'::text) AND ((((taxonomies.name)::text = 'CITES_EU'::text) AND (((taxon_concepts.listing -> 'cites_historically_listed'::text))::boolean OR ((taxon_concepts.listing -> 'eu_historically_listed'::text))::boolean)) OR (((taxonomies.name)::text = 'CMS'::text) AND ((taxon_concepts.listing -> 'cms_historically_listed'::text))::boolean))))) THEN true
+            ELSE false
+        END AS show_in_species_plus
+   FROM ((((((taxon_concepts
+     JOIN ranks ON ((ranks.id = taxon_concepts.rank_id)))
+     JOIN taxonomies ON ((taxonomies.id = taxon_concepts.taxonomy_id)))
+     LEFT JOIN ( SELECT ct.taxon_concept_id_com,
+            ct.english_names_ary,
+            ct.spanish_names_ary,
+            ct.french_names_ary
+           FROM crosstab('SELECT taxon_commons.taxon_concept_id AS taxon_concept_id_com, languages.iso_code1 AS lng,
+  ARRAY_AGG_NOTNULL(common_names.name ORDER BY common_names.name) AS common_names_ary
+  FROM "taxon_commons"
+  INNER JOIN "common_names"
+  ON "common_names"."id" = "taxon_commons"."common_name_id"
+  INNER JOIN "languages"
+  ON "languages"."id" = "common_names"."language_id" AND UPPER(languages.iso_code1) IN (''EN'', ''FR'', ''ES'')
+  GROUP BY taxon_commons.taxon_concept_id, languages.iso_code1
+  ORDER BY 1,2'::text, 'SELECT DISTINCT languages.iso_code1 FROM languages WHERE UPPER(languages.iso_code1) IN (''EN'', ''FR'', ''ES'') order by 1'::text) ct(taxon_concept_id_com integer, english_names_ary character varying[], spanish_names_ary character varying[], french_names_ary character varying[])) common_names ON ((taxon_concepts.id = common_names.taxon_concept_id_com)))
+     LEFT JOIN ( SELECT taxon_relationships.taxon_concept_id AS taxon_concept_id_syn,
+            array_agg_notnull(synonym_tc.full_name) AS synonyms_ary,
+            array_agg_notnull(synonym_tc.author_year) AS synonyms_author_years_ary
+           FROM ((taxon_relationships
+             JOIN taxon_relationship_types ON (((taxon_relationship_types.id = taxon_relationships.taxon_relationship_type_id) AND ((taxon_relationship_types.name)::text = 'HAS_SYNONYM'::text))))
+             JOIN taxon_concepts synonym_tc ON ((synonym_tc.id = taxon_relationships.other_taxon_concept_id)))
+          GROUP BY taxon_relationships.taxon_concept_id) synonyms ON ((taxon_concepts.id = synonyms.taxon_concept_id_syn)))
+     LEFT JOIN ( SELECT distributions.taxon_concept_id AS taxon_concept_id_cnt,
+            array_agg_notnull(geo_entities.id ORDER BY geo_entities.name_en) AS countries_ids_ary,
+            array_agg_notnull(geo_entities.iso_code2 ORDER BY geo_entities.name_en) AS all_distribution_iso_codes_ary,
+            array_agg_notnull(geo_entities.name_en ORDER BY geo_entities.name_en) AS all_distribution_ary_en,
+            array_agg_notnull(geo_entities.name_en ORDER BY geo_entities.name_es) AS all_distribution_ary_es,
+            array_agg_notnull(geo_entities.name_en ORDER BY geo_entities.name_fr) AS all_distribution_ary_fr
+           FROM ((distributions
+             JOIN geo_entities ON ((distributions.geo_entity_id = geo_entities.id)))
+             JOIN geo_entity_types ON (((geo_entity_types.id = geo_entities.geo_entity_type_id) AND (((geo_entity_types.name)::text = 'COUNTRY'::text) OR ((geo_entity_types.name)::text = 'TERRITORY'::text)))))
+          GROUP BY distributions.taxon_concept_id) countries_ids ON ((taxon_concepts.id = countries_ids.taxon_concept_id_cnt)))
+     LEFT JOIN ( SELECT ct.taxon_concept_id,
+            ct.native_distribution_ary_en,
+            ct.introduced_distribution_ary_en,
+            ct.introduced_uncertain_distribution_ary_en,
+            ct.reintroduced_distribution_ary_en,
+            ct.extinct_distribution_ary_en,
+            ct.extinct_uncertain_distribution_ary_en,
+            ct.uncertain_distribution_ary_en,
+            ct.native_distribution_ary_es,
+            ct.introduced_distribution_ary_es,
+            ct.introduced_uncertain_distribution_ary_es,
+            ct.reintroduced_distribution_ary_es,
+            ct.extinct_distribution_ary_es,
+            ct.extinct_uncertain_distribution_ary_es,
+            ct.uncertain_distribution_ary_es,
+            ct.native_distribution_ary_fr,
+            ct.introduced_distribution_ary_fr,
+            ct.introduced_uncertain_distribution_ary_fr,
+            ct.reintroduced_distribution_ary_fr,
+            ct.extinct_distribution_ary_fr,
+            ct.extinct_uncertain_distribution_ary_fr,
+            ct.uncertain_distribution_ary_fr
+           FROM crosstab('SELECT distributions.taxon_concept_id,
+      CASE WHEN tags.name IS NULL THEN ''NATIVE'' ELSE UPPER(tags.name) END || ''_'' || lng AS tag,
+      ARRAY_AGG_NOTNULL(geo_entities.name ORDER BY geo_entities.name) AS locations_ary
+    FROM distributions
+    JOIN (
+      SELECT geo_entities.id, geo_entities.iso_code2, ''EN'' AS lng, geo_entities.name_en AS name FROM geo_entities
+      UNION
+      SELECT geo_entities.id, geo_entities.iso_code2, ''ES'' AS lng, geo_entities.name_es AS name FROM geo_entities
+      UNION
+      SELECT geo_entities.id, geo_entities.iso_code2, ''FR'' AS lng, geo_entities.name_fr AS name FROM geo_entities
+    ) geo_entities
+      ON geo_entities.id = distributions.geo_entity_id
+    LEFT JOIN taggings
+      ON taggable_id = distributions.id AND taggable_type = ''Distribution''
+    LEFT JOIN tags
+      ON tags.id = taggings.tag_id
+      AND (
+        UPPER(tags.name) IN (
+          ''INTRODUCED'', ''INTRODUCED (?)'', ''REINTRODUCED'',
+          ''EXTINCT'', ''EXTINCT (?)'', ''DISTRIBUTION UNCERTAIN''
+        ) OR tags.name IS NULL
+      )
+    GROUP BY distributions.taxon_concept_id, tags.name, geo_entities.lng
+    '::text, 'SELECT * FROM UNNEST(
+      ARRAY[
+        ''NATIVE_EN'', ''INTRODUCED_EN'', ''INTRODUCED (?)_EN'', ''REINTRODUCED_EN'',
+        ''EXTINCT_EN'', ''EXTINCT (?)_EN'', ''DISTRIBUTION UNCERTAIN_EN'',
+        ''NATIVE_ES'', ''INTRODUCED_ES'', ''INTRODUCED (?)_ES'', ''REINTRODUCED_ES'',
+        ''EXTINCT_ES'', ''EXTINCT (?)_ES'', ''DISTRIBUTION UNCERTAIN_ES'',
+        ''NATIVE_FR'', ''INTRODUCED_FR'', ''INTRODUCED (?)_FR'', ''REINTRODUCED_FR'',
+        ''EXTINCT_FR'', ''EXTINCT (?)_FR'', ''DISTRIBUTION UNCERTAIN_FR''
+      ])'::text) ct(taxon_concept_id integer, native_distribution_ary_en character varying[], introduced_distribution_ary_en character varying[], introduced_uncertain_distribution_ary_en character varying[], reintroduced_distribution_ary_en character varying[], extinct_distribution_ary_en character varying[], extinct_uncertain_distribution_ary_en character varying[], uncertain_distribution_ary_en character varying[], native_distribution_ary_es character varying[], introduced_distribution_ary_es character varying[], introduced_uncertain_distribution_ary_es character varying[], reintroduced_distribution_ary_es character varying[], extinct_distribution_ary_es character varying[], extinct_uncertain_distribution_ary_es character varying[], uncertain_distribution_ary_es character varying[], native_distribution_ary_fr character varying[], introduced_distribution_ary_fr character varying[], introduced_uncertain_distribution_ary_fr character varying[], reintroduced_distribution_ary_fr character varying[], extinct_distribution_ary_fr character varying[], extinct_uncertain_distribution_ary_fr character varying[], uncertain_distribution_ary_fr character varying[])) distributions_by_tag ON ((taxon_concepts.id = distributions_by_tag.taxon_concept_id)));
 
 
 --
@@ -10928,6 +12656,47 @@ ALTER SEQUENCE term_trade_codes_pairs_id_seq OWNED BY term_trade_codes_pairs.id;
 
 
 --
+-- Name: tmp_api_documents_view; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE tmp_api_documents_view (
+    id integer,
+    designation_name character varying(255),
+    event_name character varying(255),
+    date timestamp without time zone,
+    event_type character varying(255),
+    title text,
+    filename text,
+    is_public boolean,
+    document_type character varying(255),
+    sort_index integer,
+    language character varying(255),
+    primary_document_id integer,
+    proposal_number text,
+    proposal_outcome text,
+    review_phase text,
+    taxon_concept_ids integer[],
+    taxon_names character varying[],
+    geo_entity_ids integer[],
+    geo_entity_names character varying[],
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+ALTER TABLE ONLY tmp_api_documents_view REPLICA IDENTITY NOTHING;
+
+
+--
+-- Name: tmp_quota_bulk_update; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE tmp_quota_bulk_update (
+    id integer,
+    url text
+);
+
+
+--
 -- Name: trade_annual_report_uploads; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -10943,7 +12712,20 @@ CREATE TABLE trade_annual_report_uploads (
     trading_country_id integer NOT NULL,
     point_of_view character varying(255) DEFAULT 'E'::character varying NOT NULL,
     created_by_id integer,
-    updated_by_id integer
+    updated_by_id integer,
+    is_from_web_service boolean DEFAULT false,
+    number_of_records_submitted integer,
+    auto_reminder_sent_at timestamp without time zone,
+    sandbox_transferred_at timestamp without time zone,
+    sandbox_transferred_by_id integer,
+    submitted_at timestamp without time zone,
+    submitted_by_id integer,
+    deleted_at timestamp without time zone,
+    deleted_by_id integer,
+    epix_created_by_id integer,
+    epix_created_at timestamp without time zone,
+    epix_updated_by_id integer,
+    epix_updated_at timestamp without time zone
 );
 
 
@@ -11157,8 +12939,106 @@ CREATE TABLE trade_sandbox_template (
     year character varying(255),
     import_permit text,
     reported_taxon_concept_id integer,
-    taxon_concept_id integer
+    taxon_concept_id integer,
+    created_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at timestamp without time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+
+--
+-- Name: trade_sandbox_652; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_652 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_652_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_652_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_652.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_652.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_652.id,
+    trade_sandbox_652.appendix,
+    trade_sandbox_652.taxon_name,
+    trade_sandbox_652.term_code,
+    trade_sandbox_652.quantity,
+    trade_sandbox_652.unit_code,
+    trade_sandbox_652.trading_partner,
+    trade_sandbox_652.country_of_origin,
+    trade_sandbox_652.export_permit,
+    trade_sandbox_652.origin_permit,
+    trade_sandbox_652.purpose_code,
+    trade_sandbox_652.source_code,
+    trade_sandbox_652.year,
+    trade_sandbox_652.import_permit,
+    trade_sandbox_652.reported_taxon_concept_id,
+    trade_sandbox_652.taxon_concept_id
+   FROM (((trade_sandbox_652
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 652)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_652.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_653; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_653 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_653_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_653_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_653.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_653.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_653.id,
+    trade_sandbox_653.appendix,
+    trade_sandbox_653.taxon_name,
+    trade_sandbox_653.term_code,
+    trade_sandbox_653.quantity,
+    trade_sandbox_653.unit_code,
+    trade_sandbox_653.trading_partner,
+    trade_sandbox_653.country_of_origin,
+    trade_sandbox_653.export_permit,
+    trade_sandbox_653.origin_permit,
+    trade_sandbox_653.purpose_code,
+    trade_sandbox_653.source_code,
+    trade_sandbox_653.year,
+    trade_sandbox_653.import_permit,
+    trade_sandbox_653.reported_taxon_concept_id,
+    trade_sandbox_653.taxon_concept_id
+   FROM (((trade_sandbox_653
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 653)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_653.taxon_concept_id = taxon_concepts.id)));
 
 
 --
@@ -11379,6 +13259,43 @@ ALTER SEQUENCE trade_trade_data_downloads_id_seq OWNED BY trade_trade_data_downl
 
 
 --
+-- Name: trade_validation_errors; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_validation_errors (
+    id integer NOT NULL,
+    annual_report_upload_id integer NOT NULL,
+    validation_rule_id integer NOT NULL,
+    matching_criteria jsonb NOT NULL,
+    is_ignored boolean DEFAULT false,
+    is_primary boolean DEFAULT false,
+    error_message text NOT NULL,
+    error_count integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: trade_validation_errors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE trade_validation_errors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: trade_validation_errors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE trade_validation_errors_id_seq OWNED BY trade_validation_errors.id;
+
+
+--
 -- Name: trade_validation_rules; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -11452,7 +13369,7 @@ CREATE VIEW valid_country_of_origin_view AS
  SELECT geo_entities.iso_code2 AS country_of_origin
    FROM (geo_entities
      JOIN geo_entity_types ON ((geo_entity_types.id = geo_entities.geo_entity_type_id)))
-  WHERE ((geo_entity_types.name)::text = ANY ((ARRAY['COUNTRY'::character varying, 'TERRITORY'::character varying, 'TRADE_ENTITY'::character varying])::text[]));
+  WHERE ((geo_entity_types.name)::text = ANY (ARRAY[('COUNTRY'::character varying)::text, ('TERRITORY'::character varying)::text, ('TRADE_ENTITY'::character varying)::text]));
 
 
 --
@@ -11645,7 +13562,7 @@ CREATE VIEW valid_trading_partner_view AS
  SELECT geo_entities.iso_code2 AS trading_partner
    FROM (geo_entities
      JOIN geo_entity_types ON ((geo_entity_types.id = geo_entities.geo_entity_type_id)))
-  WHERE ((geo_entity_types.name)::text = ANY ((ARRAY['COUNTRY'::character varying, 'TERRITORY'::character varying, 'TRADE_ENTITY'::character varying])::text[]));
+  WHERE ((geo_entity_types.name)::text = ANY (ARRAY[('COUNTRY'::character varying)::text, ('TERRITORY'::character varying)::text, ('TRADE_ENTITY'::character varying)::text]));
 
 
 --
@@ -12167,6 +14084,48 @@ ALTER TABLE ONLY trade_restrictions ALTER COLUMN id SET DEFAULT nextval('trade_r
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY trade_sandbox_652 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_652 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_652 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_653 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_653 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_653 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY trade_sandbox_template ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
 
 
@@ -12189,6 +14148,13 @@ ALTER TABLE ONLY trade_taxon_concept_term_pairs ALTER COLUMN id SET DEFAULT next
 --
 
 ALTER TABLE ONLY trade_trade_data_downloads ALTER COLUMN id SET DEFAULT nextval('trade_trade_data_downloads_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_validation_errors ALTER COLUMN id SET DEFAULT nextval('trade_validation_errors_id_seq'::regclass);
 
 
 --
@@ -12725,6 +14691,22 @@ ALTER TABLE ONLY trade_restrictions
 
 
 --
+-- Name: trade_sandbox_652_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_652
+    ADD CONSTRAINT trade_sandbox_652_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_653_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_653
+    ADD CONSTRAINT trade_sandbox_653_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: trade_sandbox_template_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -12757,6 +14739,14 @@ ALTER TABLE ONLY trade_trade_data_downloads
 
 
 --
+-- Name: trade_validation_errors_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_validation_errors
+    ADD CONSTRAINT trade_validation_errors_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: trade_validation_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -12784,35 +14774,35 @@ ALTER TABLE ONLY versions
 -- Name: auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx3; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx3 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, rank_name, show_in_species_plus_ac);
+CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx3 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, type_of_match, show_in_species_plus_ac);
 
 
 --
 -- Name: auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx4; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx4 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, rank_name, show_in_checklist_ac);
+CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx4 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, type_of_match, show_in_checklist_ac);
 
 
 --
 -- Name: auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx5; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx5 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, rank_name, show_in_trade_ac);
+CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx5 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, type_of_match, show_in_trade_ac);
 
 
 --
 -- Name: auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx6; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx6 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, rank_name, show_in_trade_internal_ac);
+CREATE INDEX auto_complete_taxon_concepts__name_for_matching_taxonomy_i_idx6 ON auto_complete_taxon_concepts_mview USING btree (name_for_matching text_pattern_ops, taxonomy_is_cites_eu, type_of_match, show_in_trade_internal_ac);
 
 
 --
--- Name: cites_species_listing_mview_tmp_countries_ids_ary_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: cites_species_listing_mview_tmp_countries_ids_ary_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX cites_species_listing_mview_tmp_countries_ids_ary_idx ON cites_species_listing_mview USING gin (countries_ids_ary);
+CREATE INDEX cites_species_listing_mview_tmp_countries_ids_ary_idx1 ON cites_species_listing_mview USING gin (countries_ids_ary);
 
 
 --
@@ -12820,6 +14810,27 @@ CREATE INDEX cites_species_listing_mview_tmp_countries_ids_ary_idx ON cites_spec
 --
 
 CREATE INDEX cms_species_listing_mview_tmp_countries_ids_ary_idx ON cms_species_listing_mview USING gin (countries_ids_ary);
+
+
+--
+-- Name: elibrary_citations_resolved_tmp_citationid_document_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX elibrary_citations_resolved_tmp_citationid_document_id_idx ON elibrary_citations_resolved_tmp USING btree (citationid, document_id);
+
+
+--
+-- Name: elibrary_citations_resolved_tmp_ctyiso2_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX elibrary_citations_resolved_tmp_ctyiso2_idx ON elibrary_citations_resolved_tmp USING btree (ctyiso2);
+
+
+--
+-- Name: elibrary_citations_resolved_tmp_splus_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX elibrary_citations_resolved_tmp_splus_taxon_concept_id_idx ON elibrary_citations_resolved_tmp USING btree (splus_taxon_concept_id);
 
 
 --
@@ -12858,6 +14869,34 @@ CREATE INDEX index_ahoy_visits_on_user_id ON ahoy_visits USING btree (user_id);
 
 
 --
+-- Name: index_api_requests_on_created_at; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_api_requests_on_created_at ON api_requests USING btree (created_at);
+
+
+--
+-- Name: index_citation_geo_entities_on_geo_entity_id_citation_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_citation_geo_entities_on_geo_entity_id_citation_id ON document_citation_geo_entities USING btree (geo_entity_id, document_citation_id);
+
+
+--
+-- Name: index_citation_taxon_concepts_on_taxon_concept_id_citation_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_citation_taxon_concepts_on_taxon_concept_id_citation_id ON document_citation_taxon_concepts USING btree (taxon_concept_id, document_citation_id);
+
+
+--
+-- Name: index_combinations_mview_on_document_id_tc_id_ge_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_combinations_mview_on_document_id_tc_id_ge_id ON document_citations_mview USING btree (document_id, taxon_concept_id, geo_entity_id, id);
+
+
+--
 -- Name: index_comments_on_commentable_and_comment_type; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -12893,6 +14932,13 @@ CREATE INDEX index_distributions_on_taxon_concept_id ON distributions USING btre
 
 
 --
+-- Name: index_document_citations_on_document_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_document_citations_on_document_id ON document_citations USING btree (document_id);
+
+
+--
 -- Name: index_document_tags_documents_composite; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -12904,6 +14950,41 @@ CREATE INDEX index_document_tags_documents_composite ON document_tags_documents 
 --
 
 CREATE INDEX index_document_tags_documents_on_document_tag_id ON document_tags_documents USING btree (document_tag_id);
+
+
+--
+-- Name: index_documents_mview_on_date_raw; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_documents_mview_on_date_raw ON api_documents_mview USING btree (date_raw);
+
+
+--
+-- Name: index_documents_mview_on_event_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_documents_mview_on_event_id ON api_documents_mview USING btree (event_id);
+
+
+--
+-- Name: index_documents_mview_on_title_to_ts_vector; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_documents_mview_on_title_to_ts_vector ON api_documents_mview USING gin (to_tsvector('simple'::regconfig, COALESCE(title, ''::text)));
+
+
+--
+-- Name: index_documents_on_event_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_documents_on_event_id ON documents USING btree (event_id);
+
+
+--
+-- Name: index_documents_on_language_id_and_primary_language_document_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_documents_on_language_id_and_primary_language_document_id ON documents USING btree (language_id, primary_language_document_id);
 
 
 --
@@ -12970,6 +15051,27 @@ CREATE INDEX index_listing_distributions_on_listing_change_id ON listing_distrib
 
 
 --
+-- Name: index_proposal_details_on_proposal_outcome_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_proposal_details_on_proposal_outcome_id ON proposal_details USING btree (proposal_outcome_id);
+
+
+--
+-- Name: index_review_details_on_process_stage_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_review_details_on_process_stage_id ON review_details USING btree (process_stage_id);
+
+
+--
+-- Name: index_review_details_on_review_phase_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_review_details_on_review_phase_id ON review_details USING btree (review_phase_id);
+
+
+--
 -- Name: index_taggings_on_tag_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -12984,17 +15086,10 @@ CREATE INDEX index_taggings_on_taggable_id_and_taggable_type_and_context ON tagg
 
 
 --
--- Name: index_taxon_concept_references_on_taxon_concept_id_and_ref_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE UNIQUE INDEX index_taxon_concept_references_on_taxon_concept_id_and_ref_id ON taxon_concept_references USING btree (taxon_concept_id, reference_id);
-
-
---
 -- Name: index_taxon_concept_references_on_tc_id_is_std_is_cascaded; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX index_taxon_concept_references_on_tc_id_is_std_is_cascaded ON taxon_concept_references USING btree (is_standard, is_cascaded, taxon_concept_id);
+CREATE UNIQUE INDEX index_taxon_concept_references_on_tc_id_is_std_is_cascaded ON taxon_concept_references USING btree (taxon_concept_id, reference_id, is_standard, is_cascaded);
 
 
 --
@@ -13208,6 +15303,34 @@ CREATE INDEX index_trade_shipments_on_year_importer_id ON trade_shipments USING 
 
 
 --
+-- Name: index_trade_validation_errors_on_aru_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_trade_validation_errors_on_aru_id ON trade_validation_errors USING btree (annual_report_upload_id);
+
+
+--
+-- Name: index_trade_validation_errors_on_matching_criteria; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_trade_validation_errors_on_matching_criteria ON trade_validation_errors USING gin (matching_criteria jsonb_path_ops);
+
+
+--
+-- Name: index_trade_validation_errors_on_vr_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_trade_validation_errors_on_vr_id ON trade_validation_errors USING btree (validation_rule_id);
+
+
+--
+-- Name: index_trade_validation_errors_unique; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE UNIQUE INDEX index_trade_validation_errors_unique ON trade_validation_errors USING btree (annual_report_upload_id, validation_rule_id, matching_criteria);
+
+
+--
 -- Name: index_users_on_authentication_token; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -13233,55 +15356,6 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON users USING btree (re
 --
 
 CREATE INDEX index_versions_on_item_type_and_item_id ON versions USING btree (item_type, item_id);
-
-
---
--- Name: listing_changes_mview_display_in_index; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_display_in_index ON listing_changes_mview USING btree (is_current, display_in_index, designation_id);
-
-
---
--- Name: listing_changes_mview_tmp_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_tmp_id_taxon_concept_id_idx1 ON listing_changes_mview USING btree (id, taxon_concept_id);
-
-
---
--- Name: listing_changes_mview_tmp_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_tmp_inclusion_taxon_concept_id_idx1 ON listing_changes_mview USING btree (inclusion_taxon_concept_id);
-
-
---
--- Name: listing_changes_mview_tmp_is_current_designation_name_chan_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_tmp_is_current_designation_name_chan_idx1 ON listing_changes_mview USING btree (is_current, designation_name, change_type_name);
-
-
---
--- Name: listing_changes_mview_tmp_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_tmp_original_taxon_concept_id_idx1 ON listing_changes_mview USING btree (original_taxon_concept_id);
-
-
---
--- Name: listing_changes_mview_tmp_show_in_downloads_taxon_concept__idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_tmp_show_in_downloads_taxon_concept__idx1 ON listing_changes_mview USING btree (show_in_downloads, taxon_concept_id, designation_id);
-
-
---
--- Name: listing_changes_mview_tmp_show_in_timeline_taxon_concept_i_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX listing_changes_mview_tmp_show_in_timeline_taxon_concept_i_idx1 ON listing_changes_mview USING btree (show_in_timeline, taxon_concept_id, designation_id);
 
 
 --
@@ -13348,185 +15422,1256 @@ CREATE INDEX taxon_concepts_mview_tmp_taxonomy_is_cites_eu_cites_listed__idx ON 
 
 
 --
--- Name: tmp_cascaded_cites_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_ch_show_in_downloads_taxon_conce_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cites_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_cites_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_cites_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cites_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_cites_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+CREATE INDEX tmp_cascaded_cites_listing_ch_show_in_downloads_taxon_conce_idx ON child_cites_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_cites_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_ch_show_in_timeline_taxon_concep_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cites_listing_ch_taxon_concept_id_original_ta_idx1 ON child_cites_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
-
-
---
--- Name: tmp_cascaded_cites_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cites_listing_cha_is_current_change_type_name_idx1 ON child_cites_listing_changes_mview USING btree (is_current, change_type_name);
+CREATE INDEX tmp_cascaded_cites_listing_ch_show_in_timeline_taxon_concep_idx ON child_cites_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_cites_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_ch_taxon_concept_id_original_tax_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cites_listing_chan_inclusion_taxon_concept_id_idx1 ON child_cites_listing_changes_mview USING btree (inclusion_taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_cites_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cites_listing_chang_excluded_geo_entities_ids_idx1 ON child_cites_listing_changes_mview USING gin (excluded_geo_entities_ids);
+CREATE INDEX tmp_cascaded_cites_listing_ch_taxon_concept_id_original_tax_idx ON child_cites_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
 
 
 --
--- Name: tmp_cascaded_cites_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_chan_is_current_change_type_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cites_listing_chang_original_taxon_concept_id_idx1 ON child_cites_listing_changes_mview USING btree (original_taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_cites_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cites_listing_changes_listed_geo_entities_ids_idx1 ON child_cites_listing_changes_mview USING gin (listed_geo_entities_ids);
+CREATE INDEX tmp_cascaded_cites_listing_chan_is_current_change_type_name_idx ON child_cites_listing_changes_mview USING btree (is_current, change_type_name);
 
 
 --
--- Name: tmp_cascaded_cites_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_chang_inclusion_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cites_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_cites_listing_changes_mview USING btree (id, taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_cms_listing_chan_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cms_listing_chan_show_in_downloads_taxon_conc_idx1 ON child_cms_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+CREATE INDEX tmp_cascaded_cites_listing_chang_inclusion_taxon_concept_id_idx ON child_cites_listing_changes_mview USING btree (inclusion_taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_cms_listing_chan_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_change_excluded_geo_entities_ids_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cms_listing_chan_show_in_timeline_taxon_conce_idx1 ON child_cms_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_cms_listing_chan_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cms_listing_chan_taxon_concept_id_original_ta_idx1 ON child_cms_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+CREATE INDEX tmp_cascaded_cites_listing_change_excluded_geo_entities_ids_idx ON child_cites_listing_changes_mview USING gin (excluded_geo_entities_ids);
 
 
 --
--- Name: tmp_cascaded_cms_listing_chang_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_change_original_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cms_listing_chang_is_current_change_type_name_idx1 ON child_cms_listing_changes_mview USING btree (is_current, change_type_name);
-
-
---
--- Name: tmp_cascaded_cms_listing_change_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cms_listing_change_inclusion_taxon_concept_id_idx1 ON child_cms_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+CREATE INDEX tmp_cascaded_cites_listing_change_original_taxon_concept_id_idx ON child_cites_listing_changes_mview USING btree (original_taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_cms_listing_changes_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_changes__listed_geo_entities_ids_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cms_listing_changes_excluded_geo_entities_ids_idx1 ON child_cms_listing_changes_mview USING gin (excluded_geo_entities_ids);
-
-
---
--- Name: tmp_cascaded_cms_listing_changes_m_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cms_listing_changes_m_listed_geo_entities_ids_idx1 ON child_cms_listing_changes_mview USING gin (listed_geo_entities_ids);
+CREATE INDEX tmp_cascaded_cites_listing_changes__listed_geo_entities_ids_idx ON child_cites_listing_changes_mview USING gin (listed_geo_entities_ids);
 
 
 --
--- Name: tmp_cascaded_cms_listing_changes_mview_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cites_listing_changes_mvie_id_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_cms_listing_changes_mview_id_taxon_concept_id_idx1 ON child_cms_listing_changes_mview USING btree (id, taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_cms_listing_changes_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_cms_listing_changes_original_taxon_concept_id_idx1 ON child_cms_listing_changes_mview USING btree (original_taxon_concept_id);
+CREATE INDEX tmp_cascaded_cites_listing_changes_mvie_id_taxon_concept_id_idx ON child_cites_listing_changes_mview USING btree (id, taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_eu_listing_chang_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cms_listing_chan_show_in_downloads_taxon_conce_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_eu_listing_chang_show_in_downloads_taxon_conc_idx1 ON child_eu_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
-
-
---
--- Name: tmp_cascaded_eu_listing_chang_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_eu_listing_chang_show_in_timeline_taxon_conce_idx1 ON child_eu_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+CREATE INDEX tmp_cascaded_cms_listing_chan_show_in_downloads_taxon_conce_idx ON child_cms_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_eu_listing_chang_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cms_listing_chan_show_in_timeline_taxon_concep_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_eu_listing_chang_taxon_concept_id_original_ta_idx1 ON child_eu_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
-
-
---
--- Name: tmp_cascaded_eu_listing_change_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_eu_listing_change_is_current_change_type_name_idx1 ON child_eu_listing_changes_mview USING btree (is_current, change_type_name);
+CREATE INDEX tmp_cascaded_cms_listing_chan_show_in_timeline_taxon_concep_idx ON child_cms_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
 
 
 --
--- Name: tmp_cascaded_eu_listing_changes__excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cms_listing_chan_taxon_concept_id_original_tax_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_eu_listing_changes__excluded_geo_entities_ids_idx1 ON child_eu_listing_changes_mview USING gin (excluded_geo_entities_ids);
-
-
---
--- Name: tmp_cascaded_eu_listing_changes__original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX tmp_cascaded_eu_listing_changes__original_taxon_concept_id_idx1 ON child_eu_listing_changes_mview USING btree (original_taxon_concept_id);
+CREATE INDEX tmp_cascaded_cms_listing_chan_taxon_concept_id_original_tax_idx ON child_cms_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
 
 
 --
--- Name: tmp_cascaded_eu_listing_changes_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cms_listing_change_is_current_change_type_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_eu_listing_changes_inclusion_taxon_concept_id_idx1 ON child_eu_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+CREATE INDEX tmp_cascaded_cms_listing_change_is_current_change_type_name_idx ON child_cms_listing_changes_mview USING btree (is_current, change_type_name);
 
 
 --
--- Name: tmp_cascaded_eu_listing_changes_mv_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: tmp_cascaded_cms_listing_changes__excluded_geo_entities_ids_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX tmp_cascaded_eu_listing_changes_mv_listed_geo_entities_ids_idx1 ON child_eu_listing_changes_mview USING gin (listed_geo_entities_ids);
+CREATE INDEX tmp_cascaded_cms_listing_changes__excluded_geo_entities_ids_idx ON child_cms_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_cms_listing_changes__original_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_cms_listing_changes__original_taxon_concept_id_idx ON child_cms_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_cms_listing_changes_inclusion_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_cms_listing_changes_inclusion_taxon_concept_id_idx ON child_cms_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_cms_listing_changes_mv_listed_geo_entities_ids_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_cms_listing_changes_mv_listed_geo_entities_ids_idx ON child_cms_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_cms_listing_changes_mview_id_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_cms_listing_changes_mview_id_taxon_concept_id_idx ON child_cms_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing__is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing__is_current_change_type_name_idx1 ON child_eu_42_44_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_c_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_c_inclusion_taxon_concept_id_idx1 ON child_eu_42_44_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_ch_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_ch_excluded_geo_entities_ids_idx1 ON child_eu_42_44_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_ch_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_ch_original_taxon_concept_id_idx1 ON child_eu_42_44_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_chan_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_chan_listed_geo_entities_ids_idx1 ON child_eu_42_44_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_changes__id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_changes__id_taxon_concept_id_idx1 ON child_eu_42_44_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_show_in_downloads_taxon_conc_idx1 ON child_eu_42_44_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_show_in_timeline_taxon_conce_idx1 ON child_eu_42_44_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_44_listing_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_44_listing_taxon_concept_id_original_ta_idx1 ON child_eu_42_44_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_42_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_42_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_42_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_cha_is_current_change_type_name_idx1 ON child_eu_42_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_42_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_42_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_chang_original_taxon_concept_id_idx1 ON child_eu_42_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_42_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_42_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_42_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_42_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_list_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_list_show_in_downloads_taxon_conc_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_list_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_list_show_in_timeline_taxon_conce_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_list_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_list_taxon_concept_id_original_ta_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_listi_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_listi_is_current_change_type_name_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_listin_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_listin_inclusion_taxon_concept_id_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_listing_c_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_listing_c_listed_geo_entities_ids_idx1 ON child_eu_47_42_44_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_listing_chang_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_listing_chang_id_taxon_concept_id_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_listing_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_listing_excluded_geo_entities_ids_idx1 ON child_eu_47_42_44_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_47_42_44_listing_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_47_42_44_listing_original_taxon_concept_id_idx1 ON child_eu_47_42_44_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_54_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_54_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_54_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_cha_is_current_change_type_name_idx1 ON child_eu_54_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_54_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_54_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_chang_original_taxon_concept_id_idx1 ON child_eu_54_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_54_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_54_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_54_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_54_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing__is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing__is_current_change_type_name_idx1 ON child_eu_55_41_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_c_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_c_inclusion_taxon_concept_id_idx1 ON child_eu_55_41_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_ch_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_ch_excluded_geo_entities_ids_idx1 ON child_eu_55_41_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_ch_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_ch_original_taxon_concept_id_idx1 ON child_eu_55_41_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_chan_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_chan_listed_geo_entities_ids_idx1 ON child_eu_55_41_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_changes__id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_changes__id_taxon_concept_id_idx1 ON child_eu_55_41_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_show_in_downloads_taxon_conc_idx1 ON child_eu_55_41_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_show_in_timeline_taxon_conce_idx1 ON child_eu_55_41_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_41_listing_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_41_listing_taxon_concept_id_original_ta_idx1 ON child_eu_55_41_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_48__inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_48__inclusion_taxon_concept_id_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_48_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_48_is_current_change_type_name_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_48_l_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_48_l_excluded_geo_entities_ids_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_48_l_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_48_l_original_taxon_concept_id_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_48_lis_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_48_lis_listed_geo_entities_ids_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_48_listing_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_48_listing_id_taxon_concept_id_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_4_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_4_show_in_downloads_taxon_conc_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_4_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_4_show_in_timeline_taxon_conce_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_49_66_41_4_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_49_66_41_4_taxon_concept_id_original_ta_idx1 ON child_eu_55_49_66_41_48_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_l_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_l_show_in_downloads_taxon_conc_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_l_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_l_show_in_timeline_taxon_conce_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_l_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_l_taxon_concept_id_original_ta_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_li_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_li_is_current_change_type_name_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_lis_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_lis_inclusion_taxon_concept_id_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_list_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_list_excluded_geo_entities_ids_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_list_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_list_original_taxon_concept_id_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_listin_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_listin_listed_geo_entities_ids_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_48_listing_ch_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_48_listing_ch_id_taxon_concept_id_idx1 ON child_eu_55_66_41_48_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_list_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_list_show_in_downloads_taxon_conc_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_list_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_list_show_in_timeline_taxon_conce_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_list_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_list_taxon_concept_id_original_ta_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_listi_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_listi_is_current_change_type_name_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_listin_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_listin_inclusion_taxon_concept_id_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_listing_c_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_listing_c_listed_geo_entities_ids_idx1 ON child_eu_55_66_41_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_listing_chang_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_listing_chang_id_taxon_concept_id_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_listing_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_listing_excluded_geo_entities_ids_idx1 ON child_eu_55_66_41_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_55_66_41_listing_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_55_66_41_listing_original_taxon_concept_id_idx1 ON child_eu_55_66_41_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing__is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing__is_current_change_type_name_idx1 ON child_eu_62_54_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_c_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_c_inclusion_taxon_concept_id_idx1 ON child_eu_62_54_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_ch_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_ch_excluded_geo_entities_ids_idx1 ON child_eu_62_54_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_ch_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_ch_original_taxon_concept_id_idx1 ON child_eu_62_54_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_chan_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_chan_listed_geo_entities_ids_idx1 ON child_eu_62_54_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_changes__id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_changes__id_taxon_concept_id_idx1 ON child_eu_62_54_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_show_in_downloads_taxon_conc_idx1 ON child_eu_62_54_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_show_in_timeline_taxon_conce_idx1 ON child_eu_62_54_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_62_54_listing_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_62_54_listing_taxon_concept_id_original_ta_idx1 ON child_eu_62_54_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_65_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_65_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_65_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_cha_is_current_change_type_name_idx1 ON child_eu_65_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_65_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_65_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_chang_original_taxon_concept_id_idx1 ON child_eu_65_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_65_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_65_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_65_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_65_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_67_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_67_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_67_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_cha_is_current_change_type_name_idx1 ON child_eu_67_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_67_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_67_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_chang_original_taxon_concept_id_idx1 ON child_eu_67_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_67_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_67_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_67_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_67_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_71_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_71_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_71_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_cha_is_current_change_type_name_idx1 ON child_eu_71_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_71_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_71_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_chang_original_taxon_concept_id_idx1 ON child_eu_71_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_71_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_71_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_71_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_71_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_72_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_72_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_72_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_cha_is_current_change_type_name_idx1 ON child_eu_72_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_72_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_72_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_chang_original_taxon_concept_id_idx1 ON child_eu_72_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_72_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_72_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_72_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_72_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_73_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_73_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_73_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_cha_is_current_change_type_name_idx1 ON child_eu_73_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_73_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_73_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_chang_original_taxon_concept_id_idx1 ON child_eu_73_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_73_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_73_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_73_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_73_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_74_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_74_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_74_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_cha_is_current_change_type_name_idx1 ON child_eu_74_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_74_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_74_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_chang_original_taxon_concept_id_idx1 ON child_eu_74_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_74_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_74_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_74_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_74_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_76_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_76_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_76_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_cha_is_current_change_type_name_idx1 ON child_eu_76_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_76_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_76_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_chang_original_taxon_concept_id_idx1 ON child_eu_76_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_76_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_76_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_76_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_76_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_ch_show_in_downloads_taxon_conc_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_ch_show_in_downloads_taxon_conc_idx1 ON child_eu_98_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_ch_show_in_timeline_taxon_conce_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_ch_show_in_timeline_taxon_conce_idx1 ON child_eu_98_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_ch_taxon_concept_id_original_ta_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_ch_taxon_concept_id_original_ta_idx1 ON child_eu_98_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_cha_is_current_change_type_name_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_cha_is_current_change_type_name_idx1 ON child_eu_98_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_chan_inclusion_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_chan_inclusion_taxon_concept_id_idx1 ON child_eu_98_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_chang_excluded_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_chang_excluded_geo_entities_ids_idx1 ON child_eu_98_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_chang_original_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_chang_original_taxon_concept_id_idx1 ON child_eu_98_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_changes_listed_geo_entities_ids_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_changes_listed_geo_entities_ids_idx1 ON child_eu_98_listing_changes_mview USING gin (listed_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_98_listing_changes_mvi_id_taxon_concept_id_idx1; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_98_listing_changes_mvi_id_taxon_concept_id_idx1 ON child_eu_98_listing_changes_mview USING btree (id, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_chang_show_in_downloads_taxon_conce_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_chang_show_in_downloads_taxon_conce_idx ON child_eu_listing_changes_mview USING btree (show_in_downloads, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_chang_show_in_timeline_taxon_concep_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_chang_show_in_timeline_taxon_concep_idx ON child_eu_listing_changes_mview USING btree (show_in_timeline, taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_chang_taxon_concept_id_original_tax_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_chang_taxon_concept_id_original_tax_idx ON child_eu_listing_changes_mview USING btree (taxon_concept_id, original_taxon_concept_id, change_type_id, effective_at);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_changes__inclusion_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_changes__inclusion_taxon_concept_id_idx ON child_eu_listing_changes_mview USING btree (inclusion_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_changes_is_current_change_type_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_changes_is_current_change_type_name_idx ON child_eu_listing_changes_mview USING btree (is_current, change_type_name);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_changes_m_excluded_geo_entities_ids_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_changes_m_excluded_geo_entities_ids_idx ON child_eu_listing_changes_mview USING gin (excluded_geo_entities_ids);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_changes_m_original_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_changes_m_original_taxon_concept_id_idx ON child_eu_listing_changes_mview USING btree (original_taxon_concept_id);
+
+
+--
+-- Name: tmp_cascaded_eu_listing_changes_mvi_listed_geo_entities_ids_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX tmp_cascaded_eu_listing_changes_mvi_listed_geo_entities_ids_idx ON child_eu_listing_changes_mview USING gin (listed_geo_entities_ids);
 
 
 --
@@ -13548,6 +16693,146 @@ CREATE UNIQUE INDEX trade_permits_number_idx ON trade_permits USING btree (upper
 --
 
 CREATE INDEX trade_restrictions_extract_year_from_start_date ON trade_restrictions USING btree (date_part('year'::text, start_date)) WHERE ((type)::text = 'Quota'::text);
+
+
+--
+-- Name: trade_sandbox_652_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_appendix_idx ON trade_sandbox_652 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_652_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_country_of_origin_idx ON trade_sandbox_652 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_652_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_purpose_code_idx ON trade_sandbox_652 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_652_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_quantity_idx ON trade_sandbox_652 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_652_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_source_code_idx ON trade_sandbox_652 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_652_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_taxon_concept_id_idx ON trade_sandbox_652 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_652_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_taxon_name_idx ON trade_sandbox_652 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_652_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_term_code_idx ON trade_sandbox_652 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_652_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_trading_partner_idx ON trade_sandbox_652 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_652_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_652_unit_code_idx ON trade_sandbox_652 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_653_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_appendix_idx ON trade_sandbox_653 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_653_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_country_of_origin_idx ON trade_sandbox_653 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_653_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_purpose_code_idx ON trade_sandbox_653 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_653_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_quantity_idx ON trade_sandbox_653 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_653_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_source_code_idx ON trade_sandbox_653 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_653_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_taxon_concept_id_idx ON trade_sandbox_653 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_653_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_taxon_name_idx ON trade_sandbox_653 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_653_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_term_code_idx ON trade_sandbox_653 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_653_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_trading_partner_idx ON trade_sandbox_653 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_653_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_653_unit_code_idx ON trade_sandbox_653 USING btree (unit_code);
 
 
 --
@@ -13576,41 +16861,6 @@ CREATE INDEX valid_taxon_concept_appendix_year_mview_idx ON valid_taxon_concept_
 --
 
 CREATE INDEX valid_taxon_concept_appendix_year_mview_year_idx ON valid_taxon_concept_appendix_year_mview USING btree (taxon_concept_id, date_part('year'::text, effective_from), date_part('year'::text, effective_to), appendix);
-
-
---
--- Name: _RETURN; Type: RULE; Schema: public; Owner: -
---
-
-CREATE RULE "_RETURN" AS
-    ON SELECT TO documents_view DO INSTEAD  SELECT d.id,
-    d.title,
-    d.filename,
-    d.date,
-    d.type,
-    d.is_public,
-    d.event_id,
-    d.language_id,
-    d.legacy_id,
-    d.created_by_id,
-    d.updated_by_id,
-    d.created_at,
-    d.updated_at,
-    d.number,
-    e.type AS event_type,
-    array_agg_notnull(dctc.taxon_concept_id) AS taxon_concept_ids,
-    array_agg(dcge.geo_entity_id) AS geo_entity_ids,
-    (array_agg(po.id) || array_agg(rp.id)) AS document_tags_ids
-   FROM ((((((((documents d
-     LEFT JOIN events e ON ((e.id = d.event_id)))
-     LEFT JOIN document_citations dc ON ((dc.document_id = d.id)))
-     LEFT JOIN document_citation_taxon_concepts dctc ON ((dctc.document_citation_id = dc.id)))
-     LEFT JOIN document_citation_geo_entities dcge ON ((dcge.document_citation_id = dc.id)))
-     LEFT JOIN proposal_details pd ON ((pd.document_id = d.id)))
-     LEFT JOIN document_tags po ON ((pd.proposal_outcome_id = po.id)))
-     LEFT JOIN review_details rd ON ((rd.document_id = d.id)))
-     LEFT JOIN document_tags rp ON ((rd.review_phase_id = rp.id)))
-  GROUP BY d.id, e.type;
 
 
 --
@@ -13663,6 +16913,57 @@ CREATE RULE "_RETURN" AS
 --
 
 CREATE RULE "_RETURN" AS
+    ON SELECT TO tmp_api_documents_view DO INSTEAD  SELECT d.id,
+    designations.name AS designation_name,
+    e.name AS event_name,
+        CASE
+            WHEN (e.published_at IS NOT NULL) THEN e.published_at
+            ELSE (d.date)::timestamp without time zone
+        END AS date,
+    e.type AS event_type,
+    d.title,
+    d.filename,
+    d.is_public,
+    d.type AS document_type,
+    d.sort_index,
+        CASE
+            WHEN (l.iso_code1 IS NULL) THEN 'EN'::character varying(255)
+            ELSE l.iso_code1
+        END AS language,
+        CASE
+            WHEN (d.primary_language_document_id IS NULL) THEN d.id
+            ELSE d.primary_language_document_id
+        END AS primary_document_id,
+    squish_null(pd.proposal_number) AS proposal_number,
+    po.name AS proposal_outcome,
+    rp.name AS review_phase,
+    array_agg_notnull(dctc.taxon_concept_id) AS taxon_concept_ids,
+    array_agg_notnull(DISTINCT tc.full_name ORDER BY tc.full_name) AS taxon_names,
+    array_agg_notnull(dcge.geo_entity_id) AS geo_entity_ids,
+    array_agg_notnull(DISTINCT ge.name_en ORDER BY ge.name_en) AS geo_entity_names,
+    d.created_at,
+    d.updated_at
+   FROM ((((((((((((documents d
+     LEFT JOIN designations ON ((designations.id = d.designation_id)))
+     LEFT JOIN events e ON ((e.id = d.event_id)))
+     LEFT JOIN document_citations dc ON ((dc.document_id = d.id)))
+     LEFT JOIN document_citation_taxon_concepts dctc ON ((dctc.document_citation_id = dc.id)))
+     LEFT JOIN taxon_concepts tc ON ((dctc.taxon_concept_id = tc.id)))
+     LEFT JOIN document_citation_geo_entities dcge ON ((dcge.document_citation_id = dc.id)))
+     LEFT JOIN geo_entities ge ON ((dcge.geo_entity_id = ge.id)))
+     LEFT JOIN languages l ON ((d.language_id = l.id)))
+     LEFT JOIN proposal_details pd ON ((pd.document_id = d.id)))
+     LEFT JOIN document_tags po ON ((pd.proposal_outcome_id = po.id)))
+     LEFT JOIN review_details rd ON ((rd.document_id = d.id)))
+     LEFT JOIN document_tags rp ON ((rd.review_phase_id = rp.id)))
+  GROUP BY d.id, designations.name, e.name, e.published_at, e.type, d.title, l.iso_code1, pd.proposal_number, po.name, rp.name;
+
+
+--
+-- Name: _RETURN; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE "_RETURN" AS
     ON SELECT TO api_taxon_concepts_view DO INSTEAD  SELECT tc.id,
     tc.parent_id,
     taxonomies.name,
@@ -13693,7 +16994,7 @@ CREATE RULE "_RETURN" AS
     array_to_json(array_agg_notnull(ROW(synonyms.id, (synonyms.full_name)::text, (synonyms.author_year)::text, (synonyms.data -> 'rank_name'::text))::api_taxon_concept)) AS synonyms,
     NULL::json AS accepted_names,
     tc.created_at,
-    tc.updated_at,
+    COALESCE(tc.dependents_updated_at, tc.updated_at) AS updated_at,
     true AS active
    FROM (((((taxon_concepts tc
      JOIN taxonomies ON ((taxonomies.id = tc.taxonomy_id)))
@@ -13702,7 +17003,7 @@ CREATE RULE "_RETURN" AS
      LEFT JOIN taxon_relationship_types trt ON (((trt.id = tr.taxon_relationship_type_id) AND ((trt.name)::text = 'HAS_SYNONYM'::text))))
      LEFT JOIN taxon_concepts synonyms ON (((synonyms.id = tr.other_taxon_concept_id) AND (synonyms.taxonomy_id = taxonomies.id))))
   WHERE ((tc.name_status)::text = 'A'::text)
-  GROUP BY tc.id, tc.parent_id, taxonomies.name, tc.full_name, tc.author_year, ranks.name, tc.taxonomic_position, tc.created_at, tc.updated_at
+  GROUP BY tc.id, tc.parent_id, taxonomies.name, tc.full_name, tc.author_year, ranks.name, tc.taxonomic_position, tc.created_at, tc.dependents_updated_at
 UNION ALL
  SELECT tc.id,
     NULL::integer AS parent_id,
@@ -13734,7 +17035,7 @@ UNION ALL
     NULL::json AS synonyms,
     array_to_json(array_agg_notnull(ROW(accepted_names.id, (accepted_names.full_name)::text, (accepted_names.author_year)::text, (accepted_names.data -> 'rank_name'::text))::api_taxon_concept)) AS accepted_names,
     tc.created_at,
-    tc.updated_at,
+    COALESCE(tc.dependents_updated_at, tc.updated_at) AS updated_at,
     true AS active
    FROM (((((taxon_concepts tc
      JOIN taxonomies ON ((taxonomies.id = tc.taxonomy_id)))
@@ -13743,7 +17044,7 @@ UNION ALL
      JOIN taxon_relationship_types trt ON (((trt.id = tr.taxon_relationship_type_id) AND ((trt.name)::text = 'HAS_SYNONYM'::text))))
      JOIN taxon_concepts accepted_names ON (((accepted_names.id = tr.taxon_concept_id) AND (accepted_names.taxonomy_id = taxonomies.id))))
   WHERE ((tc.name_status)::text = 'S'::text)
-  GROUP BY tc.id, tc.parent_id, taxonomies.name, tc.full_name, tc.author_year, ranks.name, tc.taxonomic_position, tc.created_at, tc.updated_at
+  GROUP BY tc.id, tc.parent_id, taxonomies.name, tc.full_name, tc.author_year, ranks.name, tc.taxonomic_position, tc.created_at, tc.dependents_updated_at
 UNION ALL
  SELECT taxon_concept_versions.taxon_concept_id,
     NULL::integer AS parent_id,
@@ -13779,6 +17080,64 @@ UNION ALL
     false AS active
    FROM taxon_concept_versions
   WHERE (((taxon_concept_versions.event)::text = 'destroy'::text) AND (taxon_concept_versions.name_status = ANY (ARRAY['A'::text, 'S'::text])));
+
+
+--
+-- Name: _RETURN; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE "_RETURN" AS
+    ON SELECT TO api_documents_view DO INSTEAD  SELECT d.id,
+    d.designation_id,
+    designations.name AS designation_name,
+    d.event_id,
+    e.name AS event_name,
+        CASE
+            WHEN (e.published_at IS NOT NULL) THEN to_char(e.published_at, 'DD/MM/YYYY'::text)
+            ELSE to_char((d.date)::timestamp with time zone, 'DD/MM/YYYY'::text)
+        END AS date,
+        CASE
+            WHEN (e.published_at IS NOT NULL) THEN (e.published_at)::timestamp with time zone
+            ELSE (d.date)::timestamp with time zone
+        END AS date_raw,
+    e.type AS event_type,
+    d.title,
+    upper("substring"(d.filename, ((length(d.filename) - "position"(reverse(d.filename), '.'::text)) + 2))) AS extension,
+    d.is_public,
+    d.type AS document_type,
+    d.sort_index,
+        CASE
+            WHEN (l.iso_code1 IS NULL) THEN 'EN'::character varying(255)
+            ELSE l.iso_code1
+        END AS language,
+        CASE
+            WHEN (d.primary_language_document_id IS NULL) THEN d.id
+            ELSE d.primary_language_document_id
+        END AS primary_document_id,
+    squish_null(pd.proposal_number) AS proposal_number,
+    po.name AS proposal_outcome,
+    rp.name AS review_phase,
+    ((array_agg_notnull(pd.proposal_outcome_id) || array_agg_notnull(rd.review_phase_id)) || array_agg_notnull(rd.process_stage_id)) AS document_tags_ids,
+    array_agg_notnull(DISTINCT dc.full_name ORDER BY dc.full_name) AS taxon_names,
+    array_agg_notnull(DISTINCT dc.name_en ORDER BY dc.name_en) AS geo_entity_names,
+    d.created_at,
+    d.updated_at,
+    d.created_by_id,
+    uc.name AS created_by,
+    d.updated_by_id,
+    uu.name AS updated_by
+   FROM ((((((((((documents d
+     LEFT JOIN designations ON ((designations.id = d.designation_id)))
+     LEFT JOIN events e ON ((e.id = d.event_id)))
+     LEFT JOIN document_citations_mview dc ON ((dc.document_id = d.id)))
+     LEFT JOIN languages l ON ((d.language_id = l.id)))
+     LEFT JOIN proposal_details pd ON ((pd.document_id = d.id)))
+     LEFT JOIN document_tags po ON ((pd.proposal_outcome_id = po.id)))
+     LEFT JOIN review_details rd ON ((rd.document_id = d.id)))
+     LEFT JOIN document_tags rp ON ((rd.review_phase_id = rp.id)))
+     LEFT JOIN users uc ON ((d.created_by_id = uc.id)))
+     LEFT JOIN users uu ON ((d.updated_by_id = uu.id)))
+  GROUP BY d.id, designations.name, e.name, e.published_at, e.type, d.title, l.iso_code1, pd.proposal_number, po.name, rp.name, uc.name, uu.name;
 
 
 --
@@ -14046,6 +17405,14 @@ ALTER TABLE ONLY documents
 
 
 --
+-- Name: documents_designation_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY documents
+    ADD CONSTRAINT documents_designation_id_fk FOREIGN KEY (designation_id) REFERENCES designations(id) ON DELETE SET NULL;
+
+
+--
 -- Name: documents_event_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -14059,6 +17426,22 @@ ALTER TABLE ONLY documents
 
 ALTER TABLE ONLY documents
     ADD CONSTRAINT documents_language_id_fk FOREIGN KEY (language_id) REFERENCES languages(id);
+
+
+--
+-- Name: documents_original_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY documents
+    ADD CONSTRAINT documents_original_id_fk FOREIGN KEY (original_id) REFERENCES documents(id) ON DELETE SET NULL;
+
+
+--
+-- Name: documents_primary_language_document_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY documents
+    ADD CONSTRAINT documents_primary_language_document_id_fk FOREIGN KEY (primary_language_document_id) REFERENCES documents(id) ON DELETE SET NULL;
 
 
 --
@@ -14546,7 +17929,7 @@ ALTER TABLE ONLY nomenclature_changes
 --
 
 ALTER TABLE ONLY proposal_details
-    ADD CONSTRAINT proposal_details_document_id_fk FOREIGN KEY (document_id) REFERENCES documents(id);
+    ADD CONSTRAINT proposal_details_document_id_fk FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE;
 
 
 --
@@ -14578,7 +17961,7 @@ ALTER TABLE ONLY "references"
 --
 
 ALTER TABLE ONLY review_details
-    ADD CONSTRAINT review_details_document_id_fk FOREIGN KEY (document_id) REFERENCES documents(id);
+    ADD CONSTRAINT review_details_document_id_fk FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE;
 
 
 --
@@ -14587,14 +17970,6 @@ ALTER TABLE ONLY review_details
 
 ALTER TABLE ONLY review_details
     ADD CONSTRAINT review_details_process_stage_id_fk FOREIGN KEY (process_stage_id) REFERENCES document_tags(id);
-
-
---
--- Name: review_details_recommended_category_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY review_details
-    ADD CONSTRAINT review_details_recommended_category_id_fk FOREIGN KEY (recommended_category_id) REFERENCES document_tags(id);
 
 
 --
@@ -15150,6 +18525,22 @@ ALTER TABLE ONLY trade_taxon_concept_term_pairs
 
 
 --
+-- Name: trade_validation_errors_aru_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_validation_errors
+    ADD CONSTRAINT trade_validation_errors_aru_id_fk FOREIGN KEY (annual_report_upload_id) REFERENCES trade_annual_report_uploads(id) ON DELETE CASCADE;
+
+
+--
+-- Name: trade_validation_errors_vr_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_validation_errors
+    ADD CONSTRAINT trade_validation_errors_vr_id_fk FOREIGN KEY (validation_rule_id) REFERENCES trade_validation_rules(id) ON DELETE CASCADE;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -15493,9 +18884,19 @@ INSERT INTO schema_migrations (version) VALUES ('20141124163355');
 
 INSERT INTO schema_migrations (version) VALUES ('20141202142048');
 
+INSERT INTO schema_migrations (version) VALUES ('20141209092341');
+
+INSERT INTO schema_migrations (version) VALUES ('20141209133037');
+
 INSERT INTO schema_migrations (version) VALUES ('20141212093310');
 
+INSERT INTO schema_migrations (version) VALUES ('20141215104216');
+
+INSERT INTO schema_migrations (version) VALUES ('20141215114029');
+
 INSERT INTO schema_migrations (version) VALUES ('20141215134420');
+
+INSERT INTO schema_migrations (version) VALUES ('20141217135242');
 
 INSERT INTO schema_migrations (version) VALUES ('20141222103221');
 
@@ -15628,3 +19029,95 @@ INSERT INTO schema_migrations (version) VALUES ('20150610111751');
 INSERT INTO schema_migrations (version) VALUES ('20150701133536');
 
 INSERT INTO schema_migrations (version) VALUES ('20150713105852');
+
+INSERT INTO schema_migrations (version) VALUES ('20150714075603');
+
+INSERT INTO schema_migrations (version) VALUES ('20150717152937');
+
+INSERT INTO schema_migrations (version) VALUES ('20150720133624');
+
+INSERT INTO schema_migrations (version) VALUES ('20150720150338');
+
+INSERT INTO schema_migrations (version) VALUES ('20150721121640');
+
+INSERT INTO schema_migrations (version) VALUES ('20150722113923');
+
+INSERT INTO schema_migrations (version) VALUES ('20150723141854');
+
+INSERT INTO schema_migrations (version) VALUES ('20150723142812');
+
+INSERT INTO schema_migrations (version) VALUES ('20150730153305');
+
+INSERT INTO schema_migrations (version) VALUES ('20150806092509');
+
+INSERT INTO schema_migrations (version) VALUES ('20150812180311');
+
+INSERT INTO schema_migrations (version) VALUES ('20150817102427');
+
+INSERT INTO schema_migrations (version) VALUES ('20150817204542');
+
+INSERT INTO schema_migrations (version) VALUES ('20150818131407');
+
+INSERT INTO schema_migrations (version) VALUES ('20150819124804');
+
+INSERT INTO schema_migrations (version) VALUES ('20150820121520');
+
+INSERT INTO schema_migrations (version) VALUES ('20150820183942');
+
+INSERT INTO schema_migrations (version) VALUES ('20150929175554');
+
+INSERT INTO schema_migrations (version) VALUES ('20151001094410');
+
+INSERT INTO schema_migrations (version) VALUES ('20151005141953');
+
+INSERT INTO schema_migrations (version) VALUES ('20151006153403');
+
+INSERT INTO schema_migrations (version) VALUES ('20151117145544');
+
+INSERT INTO schema_migrations (version) VALUES ('20151201095234');
+
+INSERT INTO schema_migrations (version) VALUES ('20151201135029');
+
+INSERT INTO schema_migrations (version) VALUES ('20151214111814');
+
+INSERT INTO schema_migrations (version) VALUES ('20151221144352');
+
+INSERT INTO schema_migrations (version) VALUES ('20160223074747');
+
+INSERT INTO schema_migrations (version) VALUES ('20160223104016');
+
+INSERT INTO schema_migrations (version) VALUES ('20160304141931');
+
+INSERT INTO schema_migrations (version) VALUES ('20160317080944');
+
+INSERT INTO schema_migrations (version) VALUES ('20160317154107');
+
+INSERT INTO schema_migrations (version) VALUES ('20160405104833');
+
+INSERT INTO schema_migrations (version) VALUES ('20160406101826');
+
+INSERT INTO schema_migrations (version) VALUES ('20160406150331');
+
+INSERT INTO schema_migrations (version) VALUES ('20160421083820');
+
+INSERT INTO schema_migrations (version) VALUES ('20160425091139');
+
+INSERT INTO schema_migrations (version) VALUES ('20160503073026');
+
+INSERT INTO schema_migrations (version) VALUES ('20160504095537');
+
+INSERT INTO schema_migrations (version) VALUES ('20160505105252');
+
+INSERT INTO schema_migrations (version) VALUES ('20160621093131');
+
+INSERT INTO schema_migrations (version) VALUES ('20160623105336');
+
+INSERT INTO schema_migrations (version) VALUES ('20160630084345');
+
+INSERT INTO schema_migrations (version) VALUES ('20160705093243');
+
+INSERT INTO schema_migrations (version) VALUES ('20160705114949');
+
+INSERT INTO schema_migrations (version) VALUES ('20161103110635');
+
+INSERT INTO schema_migrations (version) VALUES ('20161104135655');
