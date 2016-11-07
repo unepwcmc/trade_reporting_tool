@@ -26,7 +26,7 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
     end
 
     context "when logging in from sapi" do
-      it "should show uploads from epix user" do
+      it "should show uploads from sapi user" do
         @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
         sign_in @sapi_user
         get :index
