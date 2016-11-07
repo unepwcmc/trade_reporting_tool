@@ -1,4 +1,5 @@
 class AnnualReportUploadsController < ApplicationController
+  before_action :authenticate_user!
   respond_to :json
 
   def index
@@ -12,5 +13,11 @@ class AnnualReportUploadsController < ApplicationController
     @in_progress_uploads = @annual_report_uploads.in_progress.map do |aru|
         AnnualReportUploadSerializer.new(aru)
     end
+  end
+
+  private
+
+  def authenticate_user!
+    render "unauthorised" unless (current_epix_user || current_sapi_user).present?
   end
 end
