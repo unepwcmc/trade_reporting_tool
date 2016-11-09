@@ -17,3 +17,11 @@ before_script:
 
 notifications:
   slack: wcmc:yE7a4PPcVZoApcwWKt6O2mlz
+
+git:
+  submodules: false
+
+before_install:
+  - sed -i 's/git@github.com:/https:\/\/github.com\//' .gitmodules
+  - git submodule update --init --recursive
+
