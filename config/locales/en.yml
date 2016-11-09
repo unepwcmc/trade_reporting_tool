@@ -29,3 +29,5 @@ en:
   trading_country: 'Trading country'
   uploads_in_progress: 'Uploads in progress'
   submitted_uploads: 'Submitted uploads'
+  export_report: 'Export report'
+  import_report: 'Import report'

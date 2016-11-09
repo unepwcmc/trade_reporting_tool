@@ -8,7 +8,44 @@ h4 {
   background-color: $lightest-grey;
   height: 400px;
   label {
+    display: block;
+    cursor: pointer;
+    line-height: 2.5;
     color: $grey;
     margin: 10px 0;
+    font-weight: normal;
   }
+}
+
+[type="radio"] {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px; margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+[type="radio"] + span {
+  display: block;
+}
+
+/* the basic, unchecked style */
+[type="radio"] + span:before {
+  content: '';
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: -0.3em;
+  border-radius: 1em;
+  border: 0.25em solid white;
+  box-shadow: 0 0 0 0.1em $light-grey;
+  margin-right: 0.75em;
+  transition: 0.5s ease all;
+}
+
+/* the checked style using the :checked pseudo class */
+[type="radio"]:checked + span:before {
+  background: $main-blue;
 }
