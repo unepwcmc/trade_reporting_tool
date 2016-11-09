@@ -25,3 +25,7 @@ en:
   validation_rules: 'Validation rules'
   stats: 'Stats'
   language: 'English'
+  new_upload: 'New upload'
+  trading_country: 'Trading country'
+  uploads_in_progress: 'Uploads in progress'
+  submitted_uploads: 'Submitted uploads'
