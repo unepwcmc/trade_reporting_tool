@@ -10,7 +10,8 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         FactoryGirl.create(
           :annual_report_upload,
           created_by_id: @sapi_user.id,
-          submitted_by_id: @sapi_user.id
+          submitted_by_id: @sapi_user.id,
+          submitted_at: DateTime.now
         )
       }
     end
