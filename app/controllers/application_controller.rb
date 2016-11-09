@@ -8,7 +8,12 @@ class ApplicationController < ActionController::Base
                   else
                     new_sapi_user_session_url
                   end
-    if request.referer.slice(0..(request.referer.index('?')-1)) == sign_in_url
+    referer_index = if request.referer.index('?')
+                      request.referer.index('?') - 1
+                    else
+                      request.referer.size
+                    end
+    if request.referer.slice(0..(referer_index)) == sign_in_url
       annual_report_uploads_path
     else
       stored_location_for(resource) || request.referer || root_path
