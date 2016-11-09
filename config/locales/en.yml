@@ -20,4 +20,7 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  home: 'Home'
+  annual_report_upload: 'Annual Report Upload'
+  validation_rules: 'Validation rules'
+  stats: 'Stats'

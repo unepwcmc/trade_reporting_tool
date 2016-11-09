@@ -1,0 +1,48 @@
+<header class="mobile-header">
+  <div class="row">
+    <div class="mobile-logo col-md-6 col-xs-6">
+      <%= image_tag("epix_white_logo.png") %>
+    </div>
+    <div class="menu-button col-md-6 col-xs-6">
+      <%= link_to "Menu", "#",  class: 'button btn-menu' %>
+    </div>
+  </div>
+  <div class="menu">
+    <div class="mobile-nav">
+      <ul class="mobile-nav-list">
+        <li class="mobile-nav-elem bold"><%= link_to t('home'), root_path %></li>
+        <li class="mobile-nav-elem bold"><%= link_to t('cites_permit'), '#' %></li>
+        <li class="mobile-nav-elem bold"><%= link_to t('about'), '#' %></li>
+        <% unless current_user %>
+          <li class="mobile-nav-elem login bold">
+            <a href="#" data-toggle="modal" data-target="#login_modal">
+              <i class="fa fa-sign-in"></i>
+              <span><%= t('login') %></span>
+            </a>
+          </li>
+        <% else %>
+          <li class="mobile-nav-elem bold">
+            <%= link_to('Logout', destroy_user, :method => :delete) %>
+          </li>
+        <% end %>
+      </ul>
+      <ul class="mobile-languages-list">
+        <li class="mobile-language-elem">
+          <a href=<%= "#{request.path}?locale=en" %> class=<%= 'active' if I18n.locale == :en %>>
+            <%= t('language', locale: 'en') %>
+          </a>
+        </li>
+        <li class="mobile-language-elem">
+          <a href=<%= "#{request.path}?locale=fr" %> class=<%= 'active' if I18n.locale == :fr %>>
+            <%= t('language', locale: 'fr') %>
+          </a>
+        </li>
+        <li class="mobile-language-elem">
+          <a href=<%= "#{request.path}?locale=es" %> class=<%= 'active' if I18n.locale == :es %>>
+            <%= t('language', locale: 'es') %>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
