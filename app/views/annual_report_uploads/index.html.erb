@@ -12,6 +12,14 @@
         ) %>
       </div>
       <%= report_radio_buttons %>
+      <div class="form-group">
+        <%= label_tag(:csv_file, t('upload_file'), class: 'bold') %>
+        <%= file_field_tag :csv_file, class: 'real-file-input' %>
+        <div class='file-upload-container'>
+          <%= link_to t('choose_file'), '#', class: 'fake-file-input btn' %>
+          <i class='fa fa-upload'></i>
+        </div>
+      </div>
     <% end %>
   </div>
 

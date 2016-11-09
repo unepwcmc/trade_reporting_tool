@@ -49,3 +49,24 @@ h4 {
 [type="radio"]:checked + span:before {
   background: $main-blue;
 }
+
+input.real-file-input {
+  display: none;
+}
+
+.file-upload-container {
+  width: 100%;
+  height: 30px;
+  background: white;
+  border: 1px solid $cream;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  cursor: pointer;
+  a.fake-file-input {
+    color: $grey;
+    padding: 0;
+  }
+  .fa-upload { color: $main-green; }
+}

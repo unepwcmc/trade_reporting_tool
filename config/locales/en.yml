@@ -31,3 +31,5 @@ en:
   submitted_uploads: 'Submitted uploads'
   export_report: 'Export report'
   import_report: 'Import report'
+  upload_file: 'Upload a file (CSV format)'
+  choose_file: 'Please choose a file'
