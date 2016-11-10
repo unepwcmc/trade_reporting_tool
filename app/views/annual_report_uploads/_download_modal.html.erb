@@ -11,6 +11,18 @@
         <i class="fa fa-info-circle"></i>
         <span><%= t('change_sandbox_settings').html_safe %></span>
       </div>
+      <div class="buttons right">
+        <%=
+          button_tag('Cancel',
+            {href: '#', class: 'cancel-button button btn-scnd', "data-dismiss": "modal"}
+          )
+        %>
+        <%=
+          button_tag('Download',
+            {href: '#', class: 'download-button button' }
+          )
+        %>
+      </div>
     </div>
   </div>
 </div>

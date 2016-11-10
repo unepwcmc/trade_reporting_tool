@@ -77,7 +77,10 @@ input.real-file-input {
 }
 
 #download_modal {
-  .modal-content { width: 500px; }
+  .modal-content {
+    width: 500px;
+    height: 350px;
+  }
   .change-sandbox-settings {
     background: $lightest-grey;
     padding: 20px;
@@ -98,4 +101,6 @@ input.real-file-input {
       color: $main-green;
     }
   }
+  .buttons { margin: 20px 0; }
+  .button { padding: 9px 30px; }
 }
