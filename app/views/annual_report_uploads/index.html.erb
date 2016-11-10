@@ -28,12 +28,25 @@
   <div class="uploads-lists col col-sm-9 col-md-9 col-lg-9">
     <h4 class="bold"><%= t('uploads_in_progress') %></h4>
     <div class="in-progress-uploads">
-      <%= react_component 'AnnualReportUploads', {data: @in_progress_uploads} %>
+      <%=
+        react_component 'AnnualReportUploads',
+          {
+            data: @in_progress_uploads,
+            sandbox_enabled: @sandbox_enabled
+          }
+      %>
     </div>
-    <h4 class="bold"><%= t('submitted_uploads') %></h4>
+    <h4 class="bold"><%= t('past_uploads') %></h4>
     <div class="submitted-uploads">
-      <%= react_component 'AnnualReportUploads', {data: @submitted_uploads} %>
+      <%=
+        react_component 'AnnualReportUploads',
+          {
+            data: @submitted_uploads,
+            sandbox_enabled: @sandbox_enabled
+          }
+      %>
     </div>
   </div>
 </div>
+<%= render 'download_modal' %>
 

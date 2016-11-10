@@ -2,7 +2,7 @@
 window.AnnualReportUploads = class AnnualReportUploads extends React.Component
   constructor: (props, context) ->
     super(props, context)
-    @state = { annualReportUploads: props.data }
+    @state = { annualReportUploads: props.data, sandbox_enabled: props.sandbox_enabled }
 
   render: ->
     uploads = @generateUploads()
@@ -15,6 +15,12 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
     for annualReportUpload in @state.annualReportUploads
       div(
         {key: annualReportUpload.id}
-        React.createElement(AnnualReportUpload, {key: annualReportUpload.id, annualReportUpload: annualReportUpload})
+        React.createElement(AnnualReportUpload,
+          {
+            key: annualReportUpload.id,
+            annualReportUpload: annualReportUpload,
+            sandbox_enabled: @state.sanndbox_enabled
+          }
+        )
       )
 
