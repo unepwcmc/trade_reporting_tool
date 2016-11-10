@@ -16,10 +16,12 @@
             class: (current_page?(annual_report_uploads_path) ? 'active' : nil)
           %>
         </li>
-        <li class="nav-elem">
-          <%= link_to t("validation_rules"), "#" %>
-        </li>
-        <li class="nav-elem"><a href="#"><%= t('stats') %></a></li>
+        <% if current_sapi_user %>
+          <li class="nav-elem">
+            <%= link_to t("validation_rules"), "#" %>
+          </li>
+          <li class="nav-elem"><a href="#"><%= t('stats') %></a></li>
+        <% end %>
       </ul>
     </nav>
     <nav id='user_nav_bar' class="col-xs-4 col-md-4 col-lg-4 navbar">
@@ -31,7 +33,7 @@
               <span><%= t('login') %></span>
             </a>
           <% else %>
-            <a href="#" data-toggle="modal" data-target="#login_modal">
+            <a href="#">
               <i class='fa fa-sign-out'></i>
               <span><%= t('logout') %></span>
             </a>
@@ -53,5 +55,6 @@
     </nav>
   </div>
 </header>
+<%#= render "layouts/shared/login_modal" %>
 
 
