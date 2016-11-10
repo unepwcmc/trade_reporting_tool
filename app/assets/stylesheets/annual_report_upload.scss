@@ -75,3 +75,27 @@ input.real-file-input {
   padding: 6px 65px;
   margin-top: 10px;
 }
+
+#download_modal {
+  .modal-content { width: 500px; }
+  .change-sandbox-settings {
+    background: $lightest-grey;
+    padding: 20px;
+  }
+  .fa-info-circle {
+    width: 0;
+    position: relative;
+    top: 7px;
+    right: 10px;
+    color: $main-blue;
+    font-size: 18px;
+  }
+  span {
+    position: relative;
+    left: 10px;
+    a {
+      text-decoration: underline;
+      color: $main-green;
+    }
+  }
+}

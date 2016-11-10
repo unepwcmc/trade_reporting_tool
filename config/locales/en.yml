@@ -37,4 +37,4 @@ en:
   choose_file: 'Please choose a file'
   download_report: 'Download report'
   download_info: 'You are about to download the following report on existing errors:'
-  change_sandbox_settings: 'If you would like to correct these existing errors by using the app sandbox please update the relevant settings on <a href="#">your admin account page.</a>'
+  change_sandbox_settings: 'If you would like to correct these existing errors by using the app sandbox please update the relevant settings on <a href="#" class="bold">your admin account page.</a>'
