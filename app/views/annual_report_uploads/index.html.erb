@@ -3,14 +3,16 @@
   <div class="new-upload-form col col-sm-3 col-md-3 col-lg-3">
     <h4 class="bold"><%= t('new_upload') %> </h4>
     <%= form_tag("", method: 'get') do %>
-      <div class="form-group">
-        <%= label_tag(:trading_country, t('trading_country'), class: 'bold') %>
-        <%= select_tag(
-          :country,
-          options_for_select(@countries.map { |c| [c.name_en, c.iso_code2] }),
-          class: 'form-control'
-        ) %>
-      </div>
+      <% if current_sapi_user %>
+        <div class="form-group">
+          <%= label_tag(:trading_country, t('trading_country'), class: 'bold') %>
+          <%= select_tag(
+            :country,
+            options_for_select(@countries.map { |c| [c.name_en, c.iso_code2] }),
+            class: 'form-control'
+          ) %>
+        </div>
+      <% end %>
       <%= report_radio_buttons %>
       <div class="form-group">
         <%= label_tag(:csv_file, t('upload_file'), class: 'bold') %>
