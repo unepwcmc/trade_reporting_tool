@@ -231,7 +231,9 @@ CREATE TABLE organisations (
     id integer NOT NULL,
     name character varying DEFAULT ''::character varying NOT NULL,
     role character varying DEFAULT ''::character varying NOT NULL,
-    country_id integer
+    country_id integer,
+    trade_reporting_enabled boolean DEFAULT false,
+    trade_error_correction_in_sandbox_enabled boolean DEFAULT false
 );
 
 
@@ -472,6 +474,6 @@ ALTER TABLE ONLY adapters
 
 SET search_path TO "$user",public;
 
-INSERT INTO schema_migrations (version) VALUES ('20160616095833'), ('20160616105528'), ('20160616105832'), ('20160801131959'), ('20160801140250'), ('20160803103950'), ('20160804081133'), ('20160829120425'), ('20160916125555'), ('20160916145722'), ('20160919114622'), ('20160923163410'), ('20160926105708');
+INSERT INTO schema_migrations (version) VALUES ('20160616095833'), ('20160616105528'), ('20160616105832'), ('20160801131959'), ('20160801140250'), ('20160803103950'), ('20160804081133'), ('20160829120425'), ('20160916125555'), ('20160916145722'), ('20160919114622'), ('20160923163410'), ('20160926105708'), ('20161102160102');
 
 
