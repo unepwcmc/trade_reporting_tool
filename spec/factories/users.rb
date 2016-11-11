@@ -6,7 +6,6 @@ FactoryGirl.define do
     last_name { Faker::Name.last_name }
     organisation
     is_admin false
-    organisation
   end
 
   factory :sapi_user, class: Sapi::User do
