@@ -15,5 +15,9 @@ module Sapi
 
     validates :trading_country_id, :epix_created_by_id, :epix_created_at,
       :epix_updated_by_id, :epix_updated_at, presence: true
+
+    def is_submitted?
+      submitted_at.present?
+    end
   end
 end

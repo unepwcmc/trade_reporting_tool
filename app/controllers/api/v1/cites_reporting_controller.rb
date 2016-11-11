@@ -20,18 +20,14 @@ class Api::V1::CitesReportingController < ApplicationController
               return: :cites_report_result
 
   def submit_cites_report
-    @aru = Sapi::Trade::AnnualReportUpload.new
-    @aru.trading_country_id = @sapi_country.id
-    @aru.epix_created_by_id = @user.id
-    @aru.epix_created_at = Time.now
-    @aru.epix_updated_by_id = @aru.epix_created_by_id
-    @aru.epix_updated_at = @aru.epix_created_at
-    if @aru.save
-      # TODO: store data in sandbox
-      render xml: {'test' => 'passed'}
-    else
-      render_soap_error "Invalid request: #{@aru.errors.map{|p,m| "#{p}: #{m}" }.join(' ')}"
-    end
+    @cites_report = CitesReportFromWS.new(
+      @sapi_country,
+      @user,
+      params[:TypeOfReport],
+      params[:SubmittedData]
+    )
+    @cites_report.save
+    render xml: {'test' => 'passed'}
   end
 
   private
