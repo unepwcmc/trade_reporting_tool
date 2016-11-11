@@ -48,6 +48,19 @@ RSpec.describe Api::V1::CitesReportingController do
     }.to raise_error(Savon::SOAPFault)
   end
 
+  it 'cannot submit a CITES report if XML invalid' do
+    application_base = "http://application"
+    client = Savon::Client.new({
+      wsdl: application_base + api_v1_cites_reporting_wsdl_path,
+      wsse_auth: authorised_wsse_auth,
+      log: true,
+      logger: Rails.logger
+    })
+    expect {
+      client.call(:submit_cites_report)
+    }.to raise_error(Savon::SOAPFault)
+  end
+
   it 'can submit a CITES report if authorised' do
     application_base = "http://application"
     client = Savon::Client.new({
@@ -56,7 +69,11 @@ RSpec.describe Api::V1::CitesReportingController do
       log: true,
       logger: Rails.logger
     })
-    response = client.call(:submit_cites_report)
+    response = client.call(:submit_cites_report, message: {
+      'TypeOfReport' => 'E',
+      'SubmittedData' => ['CITESReport' => {'CITESReportRow' => {}}],
+      'ForceSubmitWithWarnings' => true
+    })
     xml = Nokogiri::XML(response.to_xml)
     expect(xml.at('//test')).to be_present
   end

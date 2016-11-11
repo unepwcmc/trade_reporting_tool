@@ -13,6 +13,7 @@ class Api::V1::CitesReportingController < ApplicationController
   soap_action :submit_cites_report,
               as: 'SubmitCitesReportRequest',
               args: {
+                TypeOfReport: :string,
                 SubmittedData: Api::V1::CitesReport,
                 ForceSubmitWithWarnings: :boolean
               },
