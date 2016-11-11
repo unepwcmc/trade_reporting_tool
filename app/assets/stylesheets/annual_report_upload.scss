@@ -105,12 +105,27 @@ input.real-file-input {
   .button { padding: 9px 30px; }
 }
 
+.annual-report-upload {
+  margin-bottom: 10px;
+}
+
 .upload-summary {
   color: $main-green;
   text-decoration: underline;
 }
 
+.in-progress-upload {
+  a.delete-upload {
+    color: $main-green;
+    text-decoration: underline;
+    float: right;
+  }
+}
+
 .past-upload {
-  i { display: block };
+  i {
+    display: block;
+    color: $grey;
+  }
   margin-bottom: 10px;
 }

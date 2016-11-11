@@ -14,7 +14,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
   generateUploads: ->
     for annualReportUpload in @state.annualReportUploads
       div(
-        {key: annualReportUpload.id}
+        { className: 'annual-report-upload', key: annualReportUpload.id }
         React.createElement(AnnualReportUpload,
           {
             key: annualReportUpload.id,

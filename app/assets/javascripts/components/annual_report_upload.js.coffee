@@ -19,10 +19,18 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         @displaySubmissions()
       )
     else
-      unless @state.sandbox_enabled
-        @renderWithDownload()
-      else
-        @renderWithSandbox()
+      div(
+        {className: 'in-progress-upload'}
+        unless @state.sandbox_enabled
+          @renderWithDownload()
+        else
+          @renderWithSandbox()
+        a(
+          {className: 'delete-upload', href: '#'}
+          i({className: 'fa fa-times'})
+          "Delete"
+        )
+      )
 
   renderWithDownload: ->
     a(
