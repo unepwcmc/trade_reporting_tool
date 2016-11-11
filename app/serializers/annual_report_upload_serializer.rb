@@ -9,7 +9,13 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
   end
 
   def created_at
-    object.created_at.strftime("%d/%m/%y")
+    if object.epix_created_at
+      object.epix_created_at.strftime("%d/%m/%y")
+    elsif object.created_at
+      object.created_at.strftime("%d/%m/%y")
+    else
+      nil
+    end
   end
 
   def updated_at
@@ -17,11 +23,23 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
   end
 
   def created_by
-    object.created_by && object.created_by.name
+    if object.epix_creator
+      object.epix_creator.first_name + ' ' + object.epix_creator.last_name
+    elsif object.sapi_creator
+      object.sapi_creator.name
+    else
+      nil
+    end
   end
 
   def updated_by
-    object.created_by && object.updated_by.name
+    if object.epix_updater
+      object.epix_updater.first_name + ' ' + object.epix_updater.last_name
+    elsif object.sapi_updater
+      object.sapi_updater.name
+    else
+      nil
+    end
   end
 
   def submitted_at
