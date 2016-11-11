@@ -104,3 +104,13 @@ input.real-file-input {
   .buttons { margin: 20px 0; }
   .button { padding: 9px 30px; }
 }
+
+.upload-summary {
+  color: $main-green;
+  text-decoration: underline;
+}
+
+.past-upload {
+  i { display: block };
+  margin-bottom: 10px;
+}
