@@ -17,7 +17,7 @@ class Api::V1::CitesReportingController < ApplicationController
                 SubmittedData: Api::V1::CitesReport,
                 ForceSubmitWithWarnings: :boolean
               },
-              return: :cites_report_result
+              return: Api::V1::CITESReportResult
 
   def submit_cites_report
     @cites_report = CitesReportFromWS.new(
@@ -26,8 +26,8 @@ class Api::V1::CitesReportingController < ApplicationController
       params[:TypeOfReport],
       params[:SubmittedData]
     )
-    @cites_report.save
-    render xml: {'test' => 'passed'}
+    result = @cites_report.save
+    render xml: result
   end
 
   private

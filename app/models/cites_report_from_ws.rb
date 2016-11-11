@@ -12,14 +12,21 @@ class CitesReportFromWS
   end
 
   def save
+    result = {}
     Sapi::Base.transaction do
       if @aru.save
         sandbox.copy_data(@submitted_data)
         @aru.update_attribute(:number_of_rows, sandbox_shipments.size)
+        result[:Status] = 'SUCCESS'
+        result[:Message] = 'Data queued for validation'
+        result[:CITESReportId] = @aru.id
       else
-        # TODO: the error report
+        result[:Status] = 'ERROR'
+        result[:Message] = 'Failed to queue data for validation'
+        result[:Details] = @aru.errors
       end
     end
+    result
   end
 
   def sandbox

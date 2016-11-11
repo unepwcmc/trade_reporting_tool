@@ -75,6 +75,6 @@ RSpec.describe Api::V1::CitesReportingController do
       'ForceSubmitWithWarnings' => true
     })
     xml = Nokogiri::XML(response.to_xml)
-    expect(xml.at('//test')).to be_present
+    expect(xml.at('//Status')).to be_present
   end
 end
