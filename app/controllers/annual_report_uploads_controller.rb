@@ -13,6 +13,10 @@ class AnnualReportUploadsController < ApplicationController
     @in_progress_uploads = @annual_report_uploads.in_progress.map do |aru|
         AnnualReportUploadSerializer.new(aru)
     end
+
+    @countries = Sapi::GeoEntity.includes(:geo_entity_type).where('geo_entity_types.name' => 'COUNTRY').order(:name_en)
+    @sandbox_enabled = current_epix_user &&
+      current_epix_user.organisation.trade_error_correction_in_sandbox_enabled
   end
 
   private

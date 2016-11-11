@@ -20,4 +20,21 @@
 # available at http://guides.rubyonrails.org/i18n.html.
 
 en:
-  hello: "Hello world"
+  home: 'Home'
+  annual_report_upload: 'Annual Report Upload'
+  validation_rules: 'Validation rules'
+  stats: 'Stats'
+  language: 'English'
+  new_upload: 'New upload'
+  trading_country: 'Trading country'
+  uploads_in_progress: 'Uploads in progress'
+  submitted_uploads: 'Submitted uploads'
+  past_uploads: 'Past uploads'
+  export_report: 'Export report'
+  import_report: 'Import report'
+  upload: 'Upload'
+  upload_file: 'Upload a file (CSV format)'
+  choose_file: 'Please choose a file'
+  download_report: 'Download report'
+  download_info: 'You are about to download the following report on existing errors:'
+  change_sandbox_settings: 'If you would like to correct these existing errors by using the app sandbox please update the relevant settings on <a href="#" class="bold">your admin account page.</a>'
