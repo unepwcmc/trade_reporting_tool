@@ -16,26 +16,30 @@ module Sapi
 
     def copy_data(submitted_data)
       create_target_table
-      submitted_data[:CITESReport].each do |row|
-        row = row[:CITESReportRow]
-        values = {
-          trading_partner: row[:TradingPartnerId],
-          year: row[:Year],
-          taxon_name: row[:ScientificName],
-          appendix: row[:Appendix],
-          term_code: row[:TermCode],
-          quantity: row[:Quantity],
-          unit_code: row[:UnitCode],
-          source_code: row[:SourceCode],
-          purpose_code: row[:PurposeCode],
-          country_of_origin: row[:OriginCountryId],
-          origin_permit: row[:OriginPermitId],
-          export_permit: row[:ExportPermitId],
-          import_permit: row[:ImportPermitId]
-        }
-        @ar_klass.create(values)
+      @ar_klass.bulk_insert do |worker|
+        submitted_data[:CITESReport].each do |row|
+          row = row[:CITESReportRow]
+          worker.add({
+            trading_partner: row[:TradingPartnerId],
+            year: row[:Year],
+            taxon_name: row[:ScientificName],
+            appendix: row[:Appendix],
+            term_code: row[:TermCode],
+            quantity: row[:Quantity],
+            unit_code: row[:UnitCode],
+            source_code: row[:SourceCode],
+            purpose_code: row[:PurposeCode],
+            country_of_origin: row[:OriginCountryId],
+            origin_permit: row[:OriginPermitId],
+            export_permit: row[:ExportPermitId],
+            import_permit: row[:ImportPermitId],
+            created_by_id: @annual_report_upload.created_by_id,
+            updated_by_id: @annual_report_upload.updated_by_id
+          })
+        end
       end
       @ar_klass.sanitize
+      create_target_table_indexes
     end
 
     def copy_from_sandbox_to_shipments
@@ -84,12 +88,15 @@ module Sapi
           Trade::SandboxTemplate.create_table_stmt(@table_name)
         )
         Trade::SandboxTemplate.connection.execute(
-          Trade::SandboxTemplate.create_indexes_stmt(@table_name)
-        )
-        Trade::SandboxTemplate.connection.execute(
           Trade::SandboxTemplate.create_view_stmt(@table_name, @annual_report_upload.id)
         )
       end
+    end
+
+    def create_target_table_indexes
+      Trade::SandboxTemplate.connection.execute(
+        Trade::SandboxTemplate.create_indexes_stmt(@table_name)
+      )
     end
 
     def copy_csv_to_target_table
