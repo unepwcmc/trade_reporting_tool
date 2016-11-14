@@ -15,8 +15,9 @@ class CitesReportFromWS
     result = {}
     Sapi::Base.transaction do
       if @aru.save
-        sandbox.copy_data(@submitted_data)
-        @aru.update_attribute(:number_of_rows, sandbox_shipments.size)
+        @sandbox ||= Sapi::Trade::Sandbox.new(@aru)
+        @sandbox.copy_data(@submitted_data)
+        @aru.update_attribute(:number_of_rows, @sandbox.shipments.size)
         result[:Status] = 'SUCCESS'
         result[:Message] = 'Data queued for validation'
         result[:CITESReportId] = @aru.id
@@ -27,16 +28,6 @@ class CitesReportFromWS
       end
     end
     result
-  end
-
-  def sandbox
-    return nil unless @aru && !@aru.is_submitted?
-    @sandbox ||= Sapi::Trade::Sandbox.new(@aru)
-  end
-
-  def sandbox_shipments
-    return [] if @aru.is_submitted?
-    sandbox.shipments
   end
 
 end
