@@ -1,7 +1,7 @@
 class CitesReportFromWS
 
   def initialize(sapi_country, epix_user, type_of_report, submitted_data)
-    @aru = Sapi::Trade::AnnualReportUpload.new
+    @aru = Trade::AnnualReportUpload.new
     @aru.trading_country_id = sapi_country.id
     @aru.point_of_view = (type_of_report == 'E' ? 'E' : 'I')
     @aru.epix_created_by_id = epix_user.id

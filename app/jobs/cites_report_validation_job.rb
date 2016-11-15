@@ -4,7 +4,7 @@ class CitesReportValidationJob < ApplicationJob
   def perform(aru_id)
     Rails.logger.info "Started validation of CITES Report #{aru_id}"
     begin
-      aru = Sapi::Trade::AnnualReportUpload.find(aru_id)
+      aru = Trade::AnnualReportUpload.find(aru_id)
     rescue ActiveRecord::RecordNotFound => e
       # catch this exception so that retry is not scheduled
       Rails.logger.warn "CITES Report not found #{aru_id}"

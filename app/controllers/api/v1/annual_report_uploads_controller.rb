@@ -4,7 +4,7 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
   def index
     epix_user_id = current_epix_user && current_epix_user.id
     @annual_report_uploads =
-      Sapi::Trade::AnnualReportUpload.created_by(epix_user_id)
+      Trade::AnnualReportUpload.created_by(epix_user_id)
     @submitted_uploads = @annual_report_uploads.submitted.
       paginate(page: params[:submitted_uploads], per_page: 10).map do |aru|
         AnnualReportUploadSerializer.new(aru)

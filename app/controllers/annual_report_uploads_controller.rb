@@ -4,10 +4,13 @@ class AnnualReportUploadsController < ApplicationController
 
   def index
     epix_user_id = current_epix_user && current_epix_user.id
-    per_page = Sapi::Trade::AnnualReportUpload.per_page
+    per_page = Trade::AnnualReportUpload.per_page
 
     @annual_report_uploads =
-      Sapi::Trade::AnnualReportUpload.created_by(epix_user_id)
+      Trade::AnnualReportUpload.created_by(epix_user_id)
+    @submitted_uploads = @annual_report_uploads.submitted.map do |aru|
+        AnnualReportUploadSerializer.new(aru)
+    end
 
     submitted_uploads = @annual_report_uploads.submitted
 
