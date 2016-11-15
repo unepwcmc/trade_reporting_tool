@@ -1,15 +1,18 @@
 class CitesReportFromWS
 
-  def initialize(sapi_country, epix_user, type_of_report, submitted_data)
-    @aru = Trade::AnnualReportUpload.new
-    @aru.trading_country_id = sapi_country.id
-    @aru.point_of_view = (type_of_report == 'E' ? 'E' : 'I')
-    @aru.epix_created_by_id = epix_user.id
-    @aru.epix_updated_by_id = epix_user.id
-    @aru.epix_created_at = Time.now
-    @aru.epix_updated_at = @aru.epix_created_at
-    @aru.is_from_web_service = true
-    @submitted_data = submitted_data
+  def initialize(sapi_country, epix_user, data)
+    @type_of_report = data[:type_of_report]
+    @submitted_data = data[:submitted_data]
+    @force_submit = data[:force_submit]
+    @aru = Trade::AnnualReportUpload.new({
+      is_from_web_service: true,
+      point_of_view: (@type_of_report == 'E' ? 'E' : 'I'),
+      trading_country_id: sapi_country.id,
+      epix_created_by_id: epix_user.id,
+      epix_updated_by_id: epix_user.id,
+      epix_created_at: Time.now,
+      epix_updated_at: Time.now
+    })
   end
 
   def save
