@@ -1,5 +1,6 @@
 module Sapi
   class Trade::AnnualReportUpload < Sapi::Base
+    self.per_page = 10
     self.table_name = 'trade_annual_report_uploads'
 
     belongs_to :trading_country, class_name: Sapi::GeoEntity, foreign_key: :trading_country_id
