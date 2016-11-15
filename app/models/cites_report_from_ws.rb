@@ -4,6 +4,7 @@ class CitesReportFromWS
     @type_of_report = data[:type_of_report]
     @submitted_data = data[:submitted_data]
     @force_submit = data[:force_submit]
+    # TODO: store force_submit in aru table
     @aru = Trade::AnnualReportUpload.new({
       is_from_web_service: true,
       point_of_view: (@type_of_report == 'E' ? 'E' : 'I'),
@@ -19,9 +20,8 @@ class CitesReportFromWS
     result = {}
     Sapi::Base.transaction do
       if @aru.save
-        sandbox.copy_data(@submitted_data)
-        @aru.update_attribute(:number_of_rows, sandbox_shipments.size)
-        CitesReportValidationJob.perform_later @aru.id
+        @aru.sandbox.copy_data(@submitted_data)
+        @aru.update_attribute(:number_of_rows, @aru.sandbox.shipments.count)
         result[:Status] = 'SUCCESS'
         result[:Message] = 'Data queued for validation'
         result[:CITESReportId] = @aru.id
@@ -31,7 +31,10 @@ class CitesReportFromWS
         result[:Details] = @aru.errors
       end
     end
+    if result[:Status] == 'SUCCESS'
+      # needs to happen after transaction committed
+      CitesReportValidationJob.perform_later(@aru.id, @force_submit)
+    end
     result
   end
-
 end

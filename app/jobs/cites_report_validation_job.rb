@@ -1,7 +1,7 @@
 class CitesReportValidationJob < ApplicationJob
   queue_as :default
 
-  def perform(aru_id)
+  def perform(aru_id, force_submit)
     Rails.logger.info "Started validation of CITES Report #{aru_id}"
     begin
       aru = Trade::AnnualReportUpload.find(aru_id)
