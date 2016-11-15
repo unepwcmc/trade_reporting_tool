@@ -129,3 +129,31 @@ input.real-file-input {
   }
   margin-bottom: 10px;
 }
+
+.paginator {
+  border-top: 1px solid $light-grey;
+  color: $grey;
+  text-align: center;
+  padding-top: 10px;
+}
+
+.paginator-link {
+  color: $main-green;
+  text-decoration: underline;
+  margin: 0 10px;
+}
+
+.current-page {
+  position: relative;
+  top: 2px;
+  background: $main-blue;
+  border-left: 7px solid $main-blue;
+  border-right: 7px solid $main-blue;
+  border-top: 3px solid $main-blue;
+  border-radius: 100px;
+  span {
+    color: white;
+    position: relative;
+    top: -2px;
+  }
+}
