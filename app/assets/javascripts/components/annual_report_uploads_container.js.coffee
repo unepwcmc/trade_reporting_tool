@@ -16,8 +16,11 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
     @lastPage = @changePage.bind(@, 'last')
 
   render: ->
-    div
-      className: 'annual-report-uploads-list'
+    div(
+      {
+        id: @state.pageName,
+        className: "annual-report-uploads-list"
+      }
       React.createElement(AnnualReportUploads,
         {
           key: @state.pageName,
@@ -27,6 +30,7 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
         }
       )
       @renderPaginator() if @state.totalPages > 1
+    )
 
   renderPaginator: ->
     div(

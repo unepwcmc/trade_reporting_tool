@@ -114,6 +114,10 @@ input.real-file-input {
   text-decoration: underline;
 }
 
+#in_progress_uploads {
+  margin-bottom: 40px;
+}
+
 .in-progress-upload {
   a.delete-upload {
     color: $main-green;
