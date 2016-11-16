@@ -38,7 +38,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
   getData: (props) ->
     props = props || @props
     $.ajax({
-      url: 'http://localhost:3000/api/v1/annual_report_uploads'
+      url: window.location.origin + '/api/v1/annual_report_uploads'
       data: props.pageName + "=" + props.page
       dataType: 'json'
       success: (response) =>
