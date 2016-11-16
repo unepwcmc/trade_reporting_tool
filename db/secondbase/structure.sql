@@ -12706,7 +12706,6 @@ CREATE TABLE trade_annual_report_uploads (
     updated_by integer,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    is_done boolean DEFAULT false,
     number_of_rows integer,
     csv_source_file text,
     trading_country_id integer NOT NULL,
@@ -12725,7 +12724,9 @@ CREATE TABLE trade_annual_report_uploads (
     epix_created_by_id integer,
     epix_created_at timestamp without time zone,
     epix_updated_by_id integer,
-    epix_updated_at timestamp without time zone
+    epix_updated_at timestamp without time zone,
+    epix_submitted_by_id integer,
+    epix_submitted_at timestamp without time zone
 );
 
 
@@ -19121,3 +19122,7 @@ INSERT INTO schema_migrations (version) VALUES ('20160705114949');
 INSERT INTO schema_migrations (version) VALUES ('20161103110635');
 
 INSERT INTO schema_migrations (version) VALUES ('20161104135655');
+
+INSERT INTO schema_migrations (version) VALUES ('20161107191141');
+
+INSERT INTO schema_migrations (version) VALUES ('20161111114955');

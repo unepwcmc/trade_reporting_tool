@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 RSpec.describe AnnualReportUploadsController, type: :controller do
-  describe "GET index" do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
@@ -16,42 +15,38 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
       }
     end
 
-    context "when logging in from epix" do
-      it "should show uploads from epix user" do
+    context "Initialise variables" do
+      it "should initialise countries" do
         @request.env['devise.mapping'] = Devise.mappings[:epix_user]
         sign_in @epix_user
+
         get :index
 
-        expect(assigns(:annual_report_uploads).size).to eq(1)
+        expect(assigns(:countries).size).to eq(Sapi::GeoEntity.count)
+      end
+
+      context "When sapi user" do
+        it "should initialise total pages" do
+          @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
+          sign_in @sapi_user
+
+          get :index
+
+          expect(assigns(:submitted_pages)).to eq(1)
+          expect(assigns(:in_progress_pages)).to eq(1)
+        end
+      end
+
+      context "When epix user" do
+        it "should initialise total pages" do
+          @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+          sign_in @epix_user
+
+          get :index
+
+          expect(assigns(:submitted_pages)).to eq(0)
+          expect(assigns(:in_progress_pages)).to eq(1)
+        end
       end
     end
-
-    context "when logging in from sapi" do
-      it "should show uploads from sapi user" do
-        @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
-        sign_in @sapi_user
-        get :index
-
-        expect(assigns(:annual_report_uploads).size).to eq(3)
-      end
-    end
-
-    context "filter by submitted and in progress" do
-      it "should assign only submitted uploads" do
-        @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
-        sign_in @sapi_user
-        get :index
-
-        expect(assigns(:submitted_uploads).size).to eq(2)
-      end
-
-      it "should assign only in progress uploads" do
-        @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
-        sign_in @sapi_user
-        get :index
-
-        expect(assigns(:in_progress_uploads).size).to eq(1)
-      end
-    end
-  end
 end

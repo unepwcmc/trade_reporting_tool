@@ -104,3 +104,61 @@ input.real-file-input {
   .buttons { margin: 20px 0; }
   .button { padding: 9px 30px; }
 }
+
+.annual-report-upload {
+  margin-bottom: 10px;
+}
+
+.upload-summary {
+  color: $main-green;
+  text-decoration: underline;
+}
+
+#in_progress_uploads {
+  margin-bottom: 40px;
+}
+
+.in-progress-upload {
+  a.delete-upload {
+    color: $main-green;
+    text-decoration: underline;
+    float: right;
+  }
+}
+
+.past-upload {
+  i {
+    display: block;
+    color: $grey;
+  }
+  margin-bottom: 10px;
+}
+
+.paginator {
+  border-top: 1px solid $light-grey;
+  color: $grey;
+  text-align: center;
+  padding-top: 10px;
+}
+
+.paginator-link {
+  color: $main-green;
+  text-decoration: underline;
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.current-page {
+  position: relative;
+  top: 2px;
+  background: $main-blue;
+  border-left: 7px solid $main-blue;
+  border-right: 7px solid $main-blue;
+  border-top: 3px solid $main-blue;
+  border-radius: 100px;
+  span {
+    color: white;
+    position: relative;
+    top: -2px;
+  }
+}

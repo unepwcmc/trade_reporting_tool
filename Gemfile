@@ -36,6 +36,8 @@ gem 'devise'
 gem 'react-rails'
 gem 'active_model_serializers'
 
+gem 'will_paginate', '~> 3.1.0'
+
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
 
