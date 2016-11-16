@@ -1,13 +1,15 @@
 module Sapi
   class Trade::AnnualReportUpload < Sapi::Base
+    self.per_page = 10
     self.table_name = 'trade_annual_report_uploads'
 
-    belongs_to :trading_country, class_name: Sapi::GeoEntity,
-      foreign_key: :trading_country_id
-    belongs_to :epix_creator, class_name: Epix::User,
-      foreign_key: :epix_created_by_id
-    belongs_to :epix_updater, class_name: Epix::User,
-      foreign_key: :epix_updated_by_id
+    belongs_to :trading_country, class_name: Sapi::GeoEntity, foreign_key: :trading_country_id
+    belongs_to :epix_creator, class_name: Epix::User, foreign_key: :epix_created_by_id, optional: true
+    belongs_to :sapi_creator, class_name: Sapi::User, foreign_key: :created_by_id, optional: true
+    belongs_to :epix_submitter, class_name: Epix::User, foreign_key: :epix_submitted_by_id, optional: true
+    belongs_to :sapi_submitter, class_name: Sapi::User, foreign_key: :submitted_by_id, optional: true
+    belongs_to :epix_updater, class_name: Epix::User, foreign_key: :epix_updated_by_id, optional: true
+    belongs_to :sapi_updater, class_name: Sapi::User, foreign_key: :updated_by_id, optional: true
 
     scope :created_by, -> (user_id) { where(epix_created_by_id: user_id) if user_id }
     scope :submitted, -> { where("submitted_at IS NOT NULL") }

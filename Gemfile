@@ -40,6 +40,8 @@ gem 'wash_out'
 gem 'savon'
 gem 'httpi'
 
+gem 'will_paginate', '~> 3.1.0'
+
 # Configuration
 gem 'dotenv-rails', '~> 2.1.1'
 
