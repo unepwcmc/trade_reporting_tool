@@ -8,6 +8,7 @@ class CitesReportFromWS
     @aru.epix_updated_by_id = epix_user.id
     @aru.epix_created_at = Time.now
     @aru.epix_updated_at = @aru.epix_created_at
+    @aru.is_from_web_service = true
     @submitted_data = submitted_data
   end
 
