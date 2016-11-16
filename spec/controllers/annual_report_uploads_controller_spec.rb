@@ -4,7 +4,7 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
-      @epix_upload = FactoryGirl.create(:annual_report_upload, epix_created_by_id: @epix_user.id)
+      @epix_upload = FactoryGirl.create(:annual_report_upload, epix_creator: @epix_user)
       2.times {
         FactoryGirl.create(
           :annual_report_upload,

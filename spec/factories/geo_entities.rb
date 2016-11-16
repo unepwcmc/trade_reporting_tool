@@ -9,4 +9,9 @@ FactoryGirl.define do
     sequence(:iso_code2) { |n| [n, n + 1].map { |i| (65 + i % 26).chr }.join }
     is_current true
   end
+
+  factory :country, class: Epix::Country do
+    name 'Wonderland'
+    iso_code2 'WW'
+  end
 end

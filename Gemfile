@@ -5,7 +5,8 @@ source 'https://rubygems.org'
 gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 # Use postgres as the database for Active Record
 gem 'pg'
-gem 'secondbase'
+gem 'secondbase' # for handling 2 DB connections
+gem 'bulk_insert' # for inserting shipments into sandbox
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -35,6 +36,9 @@ gem 'jbuilder', '~> 2.5'
 gem 'devise'
 gem 'react-rails'
 gem 'active_model_serializers'
+gem 'wash_out'
+gem 'savon'
+gem 'httpi'
 
 gem 'will_paginate', '~> 3.1.0'
 
