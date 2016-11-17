@@ -63,3 +63,5 @@ set :passenger_restart_with_touch, false
 
 set :scm, :git
 set :git_strategy, Capistrano::Git::SubmoduleStrategy
+
+require 'appsignal/capistrano'
