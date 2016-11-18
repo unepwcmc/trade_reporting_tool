@@ -5,13 +5,13 @@ window.ValidationErrors = class ValidationErrors extends React.Component
     @state = {
       data: @props.validationErrors
     }
+    @toggleBox = @toggleBox.bind(@)
 
   render: ->
     div(
       { className: 'validation-errors-box' }
       @renderHeader()
-      @renderInfoBox()
-      @renderValidationErrors()
+      @renderBody()
     )
 
   renderHeader: ->
@@ -22,9 +22,19 @@ window.ValidationErrors = class ValidationErrors extends React.Component
         "Validation errors (#{@state.data.length})"
       )
       a(
-        { className: 'toggle-errors button' }
+        {
+          className: 'toggle-errors button'
+          onClick: @toggleBox
+        }
         i({ className: 'fa fa-angle-up' })
       )
+    )
+
+  renderBody: ->
+    div(
+      { className: 'validation-errors-body' }
+      @renderInfoBox()
+      @renderValidationErrors()
     )
 
   renderInfoBox: ->
@@ -46,5 +56,10 @@ window.ValidationErrors = class ValidationErrors extends React.Component
         }
       )
 
+  toggleBox: ->
+    $('.validation-errors-body').slideToggle();
+    $('.validation-errors-header').toggleClass('border-btm');
+    $('.toggle-errors').find('i').toggleClass('fa-angle-up')
+    $('.toggle-errors').find('i').toggleClass('fa-angle-down')
 
 
