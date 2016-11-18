@@ -8,9 +8,9 @@ class CitesReportFromWS
     @aru = Trade::AnnualReportUpload.new({
       is_from_web_service: true,
       point_of_view: (@type_of_report == 'E' ? 'E' : 'I'),
-      trading_country_id: sapi_country.id,
-      epix_created_by_id: epix_user.id,
-      epix_updated_by_id: epix_user.id,
+      trading_country_id: sapi_country.try(:id),
+      epix_created_by_id: epix_user.try(:id),
+      epix_updated_by_id: epix_user.try(:id),
       epix_created_at: Time.now,
       epix_updated_at: Time.now
     })

@@ -23,6 +23,7 @@ class Trade::AnnualReportUpload < Sapi::Base
 
   validates :trading_country_id, :epix_created_by_id, :epix_created_at,
     :epix_updated_by_id, :epix_updated_at, presence: true
+  validates :point_of_view, inclusion: { in: ['E', 'I'] }
 
   attr_reader :primary_validation_errors, :secondary_validation_errors
 
