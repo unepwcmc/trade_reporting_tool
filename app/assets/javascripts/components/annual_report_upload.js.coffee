@@ -24,7 +24,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         unless @state.sandbox_enabled
           @renderWithDownload()
         else
-          @renderWithSandbox()
+          @renderWithSandbox(@state.annualReportUpload)
         a(
           {className: 'delete-upload', href: '#'}
           i({className: 'fa fa-times'})
@@ -44,9 +44,12 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       @summary()
     )
 
-  renderWithSandbox: ->
+  renderWithSandbox: (aru) ->
     a(
-      { className: 'upload-summary', href: '#sandbox' }
+      {
+        className: 'upload-summary',
+        href: "annual_report_uploads/#{aru.id} "
+      }
       @summary()
     )
 

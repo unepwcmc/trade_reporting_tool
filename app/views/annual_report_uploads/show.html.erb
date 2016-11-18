@@ -1,0 +1,17 @@
+<div class="sandbox-header">
+  <h1 class="sandbox-title">Annual Report Upload <span>SANDBOX</span></h1>
+  <h3 class="sandbox-upload-summary">
+    <%= @annual_report_upload.summary %>
+  </h3>
+</div>
+
+<div class="sandbox-body">
+  <%= download_and_submit %>
+
+  <%=
+    react_component 'ValidationErrorsContainer',
+      {
+        validationErrors: @annual_report_upload.errors
+      }
+  %>
+</div>
