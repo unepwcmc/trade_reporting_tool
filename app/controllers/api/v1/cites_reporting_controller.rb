@@ -23,8 +23,11 @@ class Api::V1::CitesReportingController < ApplicationController
     @cites_report = CitesReportFromWS.new(
       @sapi_country,
       @user,
-      params[:TypeOfReport],
-      params[:SubmittedData]
+      {
+        type_of_report: params[:TypeOfReport],
+        submitted_data: params[:SubmittedData],
+        force_submit: params[:ForceSubmitWithWarnings]
+      }
     )
     result = @cites_report.save
     render xml: result

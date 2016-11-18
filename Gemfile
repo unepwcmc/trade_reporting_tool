@@ -7,6 +7,7 @@ gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 gem 'pg'
 gem 'secondbase' # for handling 2 DB connections
 gem 'bulk_insert' # for inserting shipments into sandbox
+gem 'nested-hstore' # for storing validation rules data as nested hstore
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -39,6 +40,7 @@ gem 'active_model_serializers'
 gem 'wash_out'
 gem 'savon'
 gem 'httpi'
+gem 'sidekiq'
 
 gem 'will_paginate', '~> 3.1.0'
 
@@ -68,6 +70,7 @@ group :development do
   gem 'capistrano-bundler', '~> 1.1', require: false
   gem 'capistrano-rvm', '~> 0.1', require: false
   gem 'capistrano-passenger', '~> 0.2.0', require: false
+  gem 'capistrano-sidekiq', require: false
 end
 
 group :test do

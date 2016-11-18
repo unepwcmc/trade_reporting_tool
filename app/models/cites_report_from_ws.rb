@@ -1,24 +1,27 @@
 class CitesReportFromWS
 
-  def initialize(sapi_country, epix_user, type_of_report, submitted_data)
-    @aru = Sapi::Trade::AnnualReportUpload.new
-    @aru.trading_country_id = sapi_country.id
-    @aru.point_of_view = (type_of_report == 'E' ? 'E' : 'I')
-    @aru.epix_created_by_id = epix_user.id
-    @aru.epix_updated_by_id = epix_user.id
-    @aru.epix_created_at = Time.now
-    @aru.epix_updated_at = @aru.epix_created_at
-    @aru.is_from_web_service = true
-    @submitted_data = submitted_data
+  def initialize(sapi_country, epix_user, data)
+    @type_of_report = data[:type_of_report]
+    @submitted_data = data[:submitted_data]
+    @force_submit = data[:force_submit]
+    # TODO: store force_submit in aru table
+    @aru = Trade::AnnualReportUpload.new({
+      is_from_web_service: true,
+      point_of_view: (@type_of_report == 'E' ? 'E' : 'I'),
+      trading_country_id: sapi_country.try(:id),
+      epix_created_by_id: epix_user.try(:id),
+      epix_updated_by_id: epix_user.try(:id),
+      epix_created_at: Time.now,
+      epix_updated_at: Time.now
+    })
   end
 
   def save
     result = {}
     Sapi::Base.transaction do
       if @aru.save
-        @sandbox ||= Sapi::Trade::Sandbox.new(@aru)
-        @sandbox.copy_data(@submitted_data)
-        @aru.update_attribute(:number_of_rows, @sandbox.shipments.size)
+        @aru.sandbox.copy_data(@submitted_data)
+        @aru.update_attribute(:number_of_rows, @aru.sandbox.shipments.count)
         result[:Status] = 'SUCCESS'
         result[:Message] = 'Data queued for validation'
         result[:CITESReportId] = @aru.id
@@ -28,7 +31,10 @@ class CitesReportFromWS
         result[:Details] = @aru.errors
       end
     end
+    if result[:Status] == 'SUCCESS'
+      # needs to happen after transaction committed
+      CitesReportValidationJob.perform_later(@aru.id, @force_submit)
+    end
     result
   end
-
 end

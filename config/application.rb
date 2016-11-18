@@ -13,6 +13,8 @@ module TradeReportingTool
     # -- all .rb files in that directory are automatically loaded.
     config.active_record.schema_format = :sql
 
+    config.active_job.queue_adapter = :sidekiq
+
     # Load shared assets from epix_frontend
     config.assets.paths << "#{Rails.root}/app/assets/shared/stylesheets"
     config.assets.paths << "#{Rails.root}/app/assets/shared/javascripts"
