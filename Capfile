@@ -4,6 +4,13 @@ require "capistrano/setup"
 # Include default deployment tasks
 require "capistrano/deploy"
 
+# Require dotenv
+require "dotenv"
+# Make sure dotenv data is loaded into the environment
+Dotenv.load
+# Activate the appsignal capistrano integration
+require "appsignal/capistrano"
+
 # Include tasks from other gems included in your Gemfile
 #
 # For documentation on these, see for example:
