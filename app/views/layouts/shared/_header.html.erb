@@ -2,14 +2,12 @@
 <header class="row desktop-header">
   <div class="container">
     <nav id='logo' class="col-xs-2 col-md-2 col-lg-2 navbar">
-      <%= image_tag("") %>
+      <%= image_tag("trt_logo_blue") %>
     </nav>
     <nav id='nav_bar' class="col-xs-6 col-md-6 col-lg-6 navbar">
       <ul id='main_nav' class="nav navbar-nav">
         <li class="nav-elem">
-          <%= link_to t('home'), root_path,
-            class: (current_page?(root_path) ? 'active' : nil)
-          %>
+          <%= home_path %>
         </li>
         <li class="nav-elem">
           <%= link_to t('annual_report_upload'), annual_report_uploads_path,

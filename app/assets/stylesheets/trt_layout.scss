@@ -1,0 +1,23 @@
+footer .footer-row {
+  display: flex;
+}
+
+footer .footer-container .border-lft {
+  height: 75px;
+}
+
+footer .footer-container .logo-col {
+  height: 75px;
+  img {
+    width: 165px;
+    float: right;
+    margin-right: 10px;
+    position: relative;
+    top: 12%;
+  }
+}
+
+footer .footer-container .epix-col {
+  height: 75px;
+  top: 12%;
+}
