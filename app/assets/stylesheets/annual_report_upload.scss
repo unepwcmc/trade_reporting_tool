@@ -163,6 +163,15 @@ input.real-file-input {
   }
 }
 
+.submit-aru {
+  padding: 6px 30px;
+}
+
+.submit-disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .info-box {
   display: flex;
   align-items: center;
