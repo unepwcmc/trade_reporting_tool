@@ -2,17 +2,23 @@
 window.ValidationError = class ValidationError extends React.Component
   constructor: (props, context) ->
     super(props, context)
-    @state = { data: props.data }
+    @state = {
+      data: props.data
+      type: if props.data.is_primary then "primary" else "secondary"
+    }
 
   render: ->
     div(
       { className: 'validation-error' }
       div(
-        { className: 'error-type' }
-        if @state.data.is_primary then "Primary" else "Secondary"
+        { className: "error-type #{@state.type}" }
+        i({}, @state.type)
       )
       div(
         { className: 'error-message' }
-        @state.data.error_message
+        a(
+          { href: '#' }
+          @state.data.error_message
+        )
       )
     )
