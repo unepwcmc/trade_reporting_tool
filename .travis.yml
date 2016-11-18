@@ -5,6 +5,9 @@ rvm:
 
 addons:
   postgresql: 9.4
+  code_climate:
+    repo_token:
+      secure: "QyqdyY7tLLz2mJ0+Je8KYRUDVpRKE/21smdj95NyCqr1RXExsJyhKgxOUOzKE/aA9PRuIRAMwc5mo/Qq5YFuMa+DkLdGrUmVRR1haklOqOBnCA7LsVdhFIKix283rR5f37DM5KW/k4FuxZAeZ4JGz223XqEkE+EfI764/CJf22vZpID1V9OPtWJ/Uc1ZwRdjomKYmnfv3xy5Yb9HpPtBG/87hOpLi4DOhxl2Qx7IFkbXvb45gp2wzgodtXj7TW7qkZtHJitaYOx1X8FpIWUM8VXPwxXbFnkFZewNne8n7ziuuhTkJVX2rTWvZKJ4o7ZV+4T8n0dI5COa2JnXJZS+npdT+f+SMjgxdqrrVw7oeOceHLsmLWiJWKObsPHHj9TW+7AGgOQ0vrjEcFc5hLtzkQaQSB9xCtqjQe9ea3MP1VJVFTDVLXp6Oj8B5Jj7vYKXEczsQ3Lmso14WUQI5fk0RK/2KOd0ceamffq6DPLFrMKDEGSydDifBJUd3itZF5GP4LThiRBZDGbQe/T+VLyyno411YbccBPeOdJPpLu4Dnv4irwKL7NOzcMuI3Ul6yG2UXoy0Aoou/4y4L2gZMnr3PAv5Q0ob4QcKJXTLDcIb2zUXKOWjhgYowIWdu+Bo3R0ZyB+4owkEc/kEan14i95jxBMAIPkEnBA3WO79sIUNMo="
 
 before_script:
   - psql -c 'create database epix_test' -U postgres
