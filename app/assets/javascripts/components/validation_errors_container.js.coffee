@@ -9,6 +9,7 @@ window.ValidationErrorsContainer = class ValidationErrorsContainer extends React
       { className: 'validation-errors-container' }
       React.createElement(ValidationErrors,
         {
+          key: 'validation_errors'
           validationErrors: @props.validationErrors
         }
       )
@@ -20,6 +21,7 @@ window.ValidationErrorsContainer = class ValidationErrorsContainer extends React
   renderIgnoredErrors: (props) ->
     React.createElement(ValidationErrors,
       {
+        key: 'ignored_errors'
         validationErrors: props.ignoredValidationErrors
         ignored: true
       }

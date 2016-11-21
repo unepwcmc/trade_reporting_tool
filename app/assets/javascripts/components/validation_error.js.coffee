@@ -6,6 +6,7 @@ window.ValidationError = class ValidationError extends React.Component
       data: props.data
       type: if props.data.is_primary then "primary" else "secondary"
     }
+    @ignoreValidationError = @ignoreError.bind(@)
 
   render: ->
     div(
@@ -21,4 +22,17 @@ window.ValidationError = class ValidationError extends React.Component
           @state.data.error_message
         )
       )
+      @renderIgnore() if @state.type == 'secondary'
     )
+
+  renderIgnore: ->
+    span(
+      {
+        className: 'ignore-button button'
+        onClick: @ignoreValidationError
+      }
+      "Ignore"
+    )
+
+  ignoreError: ->
+

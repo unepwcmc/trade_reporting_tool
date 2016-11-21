@@ -113,3 +113,13 @@ h3.sandbox-upload-summary {
   color: $main-green;
   i { margin: 0 5px 20px 0; }
 }
+
+.ignore-button {
+  background: white;
+  color: $main-green;
+  border: 2px solid $main-green;
+  margin: 0 20px;
+  padding: 2px 30px;
+  cursor: pointer;
+  &:hover { color: $main-green; }
+}
