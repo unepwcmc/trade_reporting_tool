@@ -54,7 +54,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
 
   renderInfoBox: ->
     div(
-      { className: 'info-box' }
+      { className: 'info-box validation-errors-info' }
       i({ className: 'fa fa-info-circle' })
       span(
         {}
