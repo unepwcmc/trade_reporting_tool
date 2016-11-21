@@ -6,6 +6,8 @@ window.ValidationErrors = class ValidationErrors extends React.Component
       data: @props.validationErrors,
       numToShow: 5
       showAll: false
+      hideAll: false
+      ignored: @props.ignored
     }
     @toggleBox = @toggleBox.bind(@)
     @showMoreErrors = @showMore.bind(@)
@@ -19,27 +21,35 @@ window.ValidationErrors = class ValidationErrors extends React.Component
     )
 
   renderHeader: ->
+    borderBottom = if @state.hideAll then '' else 'border-btm'
+    errors = if @state.ignored then 'Ignored validation errors' else 'Validation errors'
     div(
-      { className: 'validation-errors-header border-btm' }
+      { className: "validation-errors-header #{borderBottom}" }
       span(
         { className: 'errors-count bold' }
-        "Validation errors (#{@state.data.length})"
+        "#{errors} (#{@state.data.length})"
       )
       a(
         {
           className: 'toggle-errors button'
           onClick: @toggleBox
         }
-        i({ className: 'fa fa-angle-up' })
+        if @state.hideAll
+          i({ className: 'fa fa-angle-down' })
+        else
+          i({ className: 'fa fa-angle-up'})
       )
     )
 
   renderBody: ->
     div(
       { className: 'validation-errors-body' }
-      @renderInfoBox()
-      @renderValidationErrors()
-      if @state.showAll then @renderShowLess() else @renderShowMore()
+      unless @state.hideAll
+        [
+          @renderInfoBox()
+          @renderValidationErrors()
+          if @state.showAll then @renderShowLess() else @renderShowMore()
+        ]
     )
 
   renderInfoBox: ->
@@ -85,10 +95,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
 
 
   toggleBox: ->
-    $('.validation-errors-body').slideToggle();
-    $('.validation-errors-header').toggleClass('border-btm')
-    $('.toggle-errors').find('i').toggleClass('fa-angle-up')
-    $('.toggle-errors').find('i').toggleClass('fa-angle-down')
+    @setState({ hideAll: !@state.hideAll})
 
   showMore: ->
     @setState({ showAll: true })

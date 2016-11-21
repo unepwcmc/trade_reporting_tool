@@ -12,4 +12,14 @@ window.ValidationErrorsContainer = class ValidationErrorsContainer extends React
           validationErrors: @props.validationErrors
         }
       )
+      div({className: 'border-btm'})
+      @renderIgnoredErrors(@props) if @props.ignoredValidationErrors
+    )
+
+  renderIgnoredErrors: (props) ->
+    React.createElement(ValidationErrors,
+      {
+        validationErrors: props.ignoredValidationErrors
+        ignored: true
+      }
     )

@@ -26,8 +26,10 @@ class AnnualReportUploadsController < ApplicationController
   end
 
   def show
-    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
-    @annual_report_upload.process_validation_rules
+    annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    annual_report_upload.process_validation_rules
+    @annual_report_upload =
+      ShowAnnualReportUploadSerializer.new(annual_report_upload)
   end
 
   private

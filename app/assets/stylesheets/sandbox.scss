@@ -38,8 +38,11 @@ h3.sandbox-upload-summary {
 
 .validation-errors-container {
   margin: 20px 0;
-  padding: 0 10px;
   border: 1px solid $light-grey;
+}
+
+.validation-errors-box {
+  padding: 0 10px;
 }
 
 .validation-errors-header {
@@ -52,4 +55,9 @@ h3.sandbox-upload-summary {
     font-size: 20px;
     padding: 2px 10px;
   }
+}
+.show-more {
+  cursor: pointer;
+  color: $main-green;
+  i { margin: 0 5px 20px 0; }
 }
