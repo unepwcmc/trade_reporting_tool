@@ -3,9 +3,13 @@ window.ValidationErrors = class ValidationErrors extends React.Component
   constructor: (props, context) ->
     super(props, context)
     @state = {
-      data: @props.validationErrors
+      data: @props.validationErrors,
+      numToShow: 5
+      showAll: false
     }
     @toggleBox = @toggleBox.bind(@)
+    @showMoreErrors = @showMore.bind(@)
+    @showLessErrors = @showLess.bind(@)
 
   render: ->
     div(
@@ -35,6 +39,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
       { className: 'validation-errors-body' }
       @renderInfoBox()
       @renderValidationErrors()
+      if @state.showAll then @renderShowLess() else @renderShowMore()
     )
 
   renderInfoBox: ->
@@ -48,18 +53,46 @@ window.ValidationErrors = class ValidationErrors extends React.Component
     )
 
   renderValidationErrors: ->
-    for validationError in @state.data
-      React.createElement(ValidationError,
-        {
-          key: validationError.id
-          data: validationError
-        }
-      )
+    for validationError, idx in @state.data
+      hidden = if @state.showAll then false else idx >= @state.numToShow
+      unless hidden
+        React.createElement(ValidationError,
+          {
+            key: validationError.id
+            data: validationError
+          }
+        )
+
+  renderShowMore: ->
+    span(
+      {
+        className: 'show-more'
+        onClick: @showMoreErrors
+      }
+      i({ className: 'fa fa-plus-circle' })
+      "Show more errors"
+    )
+
+  renderShowLess: ->
+    span(
+      {
+        className: 'show-more'
+        onClick: @showLessErrors
+      }
+      i({ className: 'fa fa-minus-circle' })
+      "Show less errors"
+    )
+
 
   toggleBox: ->
     $('.validation-errors-body').slideToggle();
-    $('.validation-errors-header').toggleClass('border-btm');
+    $('.validation-errors-header').toggleClass('border-btm')
     $('.toggle-errors').find('i').toggleClass('fa-angle-up')
     $('.toggle-errors').find('i').toggleClass('fa-angle-down')
 
+  showMore: ->
+    @setState({ showAll: true })
+
+  showLess: ->
+    @setState({ showAll: false })
 

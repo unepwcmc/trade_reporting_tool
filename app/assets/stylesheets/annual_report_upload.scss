@@ -211,3 +211,9 @@ input.real-file-input {
     text-decoration: underline;
   }
 }
+
+.show-more {
+  cursor: pointer;
+  color: $main-green;
+  i { margin: 0 5px 10px 0; }
+}
