@@ -24,7 +24,7 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
 
   def created_by
     if object.epix_creator
-      object.epix_creator.first_name + ' ' + object.epix_creator.last_name
+      object.epix_creator.name
     elsif object.sapi_creator
       object.sapi_creator.name
     else
@@ -34,7 +34,7 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
 
   def updated_by
     if object.epix_updater
-      object.epix_updater.first_name + ' ' + object.epix_updater.last_name
+      object.epix_updater.name
     elsif object.sapi_updater
       object.sapi_updater.name
     else
@@ -54,7 +54,7 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
 
   def submitted_by
     if object.epix_submitter
-      object.epix_submitter.first_name + ' ' +object.epix_submitter.last_name
+      object.epix_submitter.name
     elsif object.sapi_submitter
       object.sapi_submitter.name
     else

@@ -27,8 +27,24 @@ class Trade::AnnualReportUpload < Sapi::Base
 
   attr_reader :primary_validation_errors, :secondary_validation_errors
 
+  def file_name
+    csv_source_file.try(:path) && File.basename(csv_source_file.path)
+  end
+
+  def summary
+    _created_at = (epix_created_at || created_at).strftime("%d/%m/%y")
+    _created_by = (epix_creator || sapi_creator).name
+    trading_country.name_en + ' (' + point_of_view + '), ' +
+      number_of_rows.to_s + ' shipments' + ' uploaded on ' + _created_at +
+      ' by ' + _created_by + ' ('  + (file_name || '') + ')'
+  end
   # object that represents the particular sandbox table linked to this annual
   # report upload
+
+  def validation_errors
+    @primary_validation_errors || @secondary_validation_errors
+  end
+
   def sandbox
     return nil if is_submitted?
     @sandbox ||= Trade::Sandbox.new(self)

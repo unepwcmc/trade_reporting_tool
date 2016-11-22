@@ -25,6 +25,13 @@ class AnnualReportUploadsController < ApplicationController
       current_epix_user.organisation.trade_error_correction_in_sandbox_enabled
   end
 
+  def show
+    annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    annual_report_upload.process_validation_rules
+    @annual_report_upload =
+      ShowAnnualReportUploadSerializer.new(annual_report_upload)
+  end
+
   private
 
   def authenticate_user!
