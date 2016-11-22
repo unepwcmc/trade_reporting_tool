@@ -28,7 +28,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         a(
           {className: 'delete-upload', href: '#'}
           i({className: 'fa fa-times'})
-          "Delete"
+          I18n.t('delete')
         )
       )
 
@@ -56,8 +56,8 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
   summary: ->
     upload = @state.annualReportUpload
     upload.trading_country + ' (' + upload.point_of_view + '), ' +
-      upload.number_of_rows + ' shipments' + ' uploaded on ' +
-      upload.created_at + ' by ' + upload.created_by + ' (' +
+      upload.number_of_rows + " #{I18n.t('shipments')} " + " #{I18n.t('uploaded_on')} " +
+      upload.created_at + " #{I18n.t('by')} " + upload.created_by + ' (' +
       upload.file_name + ')'
 
   displaySubmissions: ->
@@ -67,12 +67,12 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         {className: 'bold'}
         @state.annualReportUpload.number_of_rows_submitted
       )
-      ' records submitted by '
+      " #{I18n.t('records_submitted_by')} "
       span(
         {className: 'bold'}
         @state.annualReportUpload.submitted_by
       )
-      ' the '
+      " #{I18n.t('the')} "
       span(
         {className: 'bold'}
         @state.annualReportUpload.submitted_at
