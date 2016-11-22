@@ -42,7 +42,6 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
       data: props.pageName + "=" + props.page
       dataType: 'json'
       success: (response) =>
-        console.log("Success")
         data = response.annual_report_uploads
         @setState({data: data[props.pageName]})
       error: (response) ->
