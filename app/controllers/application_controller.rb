@@ -8,7 +8,7 @@ class ApplicationController < ActionController::Base
                     new_epix_user_session_url
                   else
                     new_sapi_user_session_url
-                  end
+                  end.split('?').first
     referer_index = if request.referer.index('?')
                       request.referer.index('?') - 1
                     else
