@@ -48,7 +48,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     a(
       {
         className: 'upload-summary',
-        href: "annual_report_uploads/#{aru.id} "
+        href: "annual_report_uploads/#{aru.id}?locale=#{I18n.locale}"
       }
       @summary()
     )
