@@ -43,9 +43,15 @@
               <i class="fa fa-caret-down"></i>
             </button>
             <ul class="dropdown-menu">
-              <li><a href=<%= "#{request.path}?locale=en" %>><%= t('language', locale: 'en') %></a></li>
-              <li><a href=<%= "#{request.path}?locale=fr" %>><%= t('language', locale: 'fr') %></a></li>
-              <li><a href=<%= "#{request.path}?locale=es" %>><%= t('language', locale: 'es') %></a></li>
+              <li class='locale-item' data-locale='en'>
+                <a href=<%= "#{request.path}?locale=en" %>><%= t('language', locale: 'en') %></a>
+              </li>
+              <li class='locale-item' data-locale='fr'>
+                <a href=<%= "#{request.path}?locale=fr" %>><%= t('language', locale: 'fr') %></a>
+              </li>
+              <li class='locale-item' data-locale='es'>
+                <a href=<%= "#{request.path}?locale=es" %>><%= t('language', locale: 'es') %></a>
+              </li>
             </ul>
           </div>
         </li>

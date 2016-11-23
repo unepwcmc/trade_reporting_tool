@@ -31,7 +31,7 @@ window.ValidationError = class ValidationError extends React.Component
         className: 'ignore-button button'
         onClick: @ignoreValidationError
       }
-      "Ignore"
+      "#{I18n.t('ignore')}"
     )
 
   ignoreError: ->

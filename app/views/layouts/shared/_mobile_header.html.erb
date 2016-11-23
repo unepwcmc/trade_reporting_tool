@@ -27,17 +27,17 @@
         <% end %>
       </ul>
       <ul class="mobile-languages-list">
-        <li class="mobile-language-elem">
+        <li class="mobile-language-elem locale-item" data-locale='en'>
           <a href=<%= "#{request.path}?locale=en" %> class=<%= 'active' if I18n.locale == :en %>>
             <%= t('language', locale: 'en') %>
           </a>
         </li>
-        <li class="mobile-language-elem">
+        <li class="mobile-language-elem locale-item" data-locale='fr'>
           <a href=<%= "#{request.path}?locale=fr" %> class=<%= 'active' if I18n.locale == :fr %>>
             <%= t('language', locale: 'fr') %>
           </a>
         </li>
-        <li class="mobile-language-elem">
+        <li class="mobile-language-elem locale-item" data-locale='es'>
           <a href=<%= "#{request.path}?locale=es" %> class=<%= 'active' if I18n.locale == :es %>>
             <%= t('language', locale: 'es') %>
           </a>

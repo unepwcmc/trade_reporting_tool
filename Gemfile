@@ -52,6 +52,9 @@ gem 'capistrano-git-submodule-strategy', '~> 0.1', :github => 'ekho/capistrano-g
 # Logging'n'tracking
 gem 'appsignal', '~> 1.1.9'
 
+# Internationalisation for javascript
+gem "i18n-js", ">= 3.0.0.rc11"
+
 
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console

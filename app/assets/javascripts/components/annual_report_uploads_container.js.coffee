@@ -40,18 +40,18 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
           className: 'paginator-link',
           onClick: @firstPage
         }
-        '|< First'
+        "|< #{I18n.t('first')}"
       )
       a(
         {
           className: 'paginator-link',
           onClick: @decrementPage
         }
-        '<< Previous'
+        "<< #{I18n.t('previous')}"
       )
       span(
         {}
-        "Page "
+        "#{I18n.t('page')} "
         span(
           { className: 'current-page' }
           span(
@@ -61,7 +61,7 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
         )
         span(
           {}
-          " of " + @state.totalPages
+          " #{I18n.t('of')} " + @state.totalPages
         )
       )
       a(
@@ -69,14 +69,14 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
           className: 'paginator-link',
           onClick: @incrementPage
         }
-        'Next >>'
+        "#{I18n.t('next')} >>"
       )
       a(
         {
           className: 'paginator-link',
           onClick: @lastPage
         }
-        'Last >|'
+        "#{I18n.t('last')} >|"
       )
     )
 

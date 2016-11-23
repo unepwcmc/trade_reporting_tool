@@ -22,7 +22,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
 
   renderHeader: ->
     borderBottom = if @state.hideAll then '' else 'border-btm'
-    errors = if @state.ignored then 'Ignored validation errors' else 'Validation errors'
+    errors = if @state.ignored then I18n.t('ignored_validation_errors') else I18n.t('validation_errors')
     div(
       { className: "validation-errors-header #{borderBottom}" }
       span(
@@ -58,7 +58,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
       i({ className: 'fa fa-info-circle' })
       span(
         {}
-        "Once all primary errors corrected, you may have to correct secondary errors."
+        I18n.t('errors_info')
       )
     )
 
@@ -80,7 +80,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
         onClick: @showMoreErrors
       }
       i({ className: 'fa fa-plus-circle' })
-      "Show more errors"
+      I18n.t('show_more_errors')
     )
 
   renderShowLess: ->
@@ -90,7 +90,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
         onClick: @showLessErrors
       }
       i({ className: 'fa fa-minus-circle' })
-      "Show less errors"
+      I18n.t('show_less_errors')
     )
 
 

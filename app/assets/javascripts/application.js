@@ -17,5 +17,14 @@
 //= require react
 //= require react_ujs
 //= require components
+//= require i18n/translations
 //= require_tree ../shared/javascripts/
 //= require_tree .
+
+$(document).ready(function() {
+  I18n.locale = $('#locale').attr('value');
+
+  $(document).on('click', '.locale-item', function() {
+    I18n.locale = $(this).data('locale');
+  });
+});

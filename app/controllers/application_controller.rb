@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
+  before_action :set_locale
   helper_method :current_user, :destroy_user
 
   def after_sign_in_path_for(resource)
@@ -7,7 +8,7 @@ class ApplicationController < ActionController::Base
                     new_epix_user_session_url
                   else
                     new_sapi_user_session_url
-                  end
+                  end.split('?').first
     referer_index = if request.referer.index('?')
                       request.referer.index('?') - 1
                     else
@@ -30,5 +31,13 @@ class ApplicationController < ActionController::Base
     elsif current_sapi_user
       destroy_sapi_user_session_path
     end
+  end
+
+  def set_locale
+    I18n.locale = params[:locale] || I18n.default_locale
+  end
+
+  def default_url_options
+    { locale: I18n.locale }
   end
 end
