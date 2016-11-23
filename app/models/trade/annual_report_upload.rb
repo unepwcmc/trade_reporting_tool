@@ -67,6 +67,10 @@ class Trade::AnnualReportUpload < Sapi::Base
     end
   end
 
+  def submit
+    # TODO
+  end
+
   private
 
   # Expects a relation object
