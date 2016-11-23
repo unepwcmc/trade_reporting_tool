@@ -56,7 +56,7 @@ class Api::V1::CITESReportResultBuilder
     [
       'Successfully submitted to CITES TradeDB',
       'on', @aru.submitted_at,
-      'by', @aru.epix_submitter.name || @aru.sapi_submitter.name
+      'by', (@aru.epix_submitter || @aru.sapi_submitter).name
     ].join(' ')
   end
 
@@ -83,16 +83,16 @@ class Api::V1::CITESReportResultBuilder
     [
       'Successfully uploaded to EPIX',
       'on', @aru.created_at,
-      'by', @aru.epix_creator.name || @aru.sapi_creator.name,
+      'by', (@aru.epix_creator || @aru.sapi_creator).name,
       'pending validation.'
     ].join(' ')
-  end   
+  end
 
   def upload_failed_message
     [
       'Failed to upload to EPIX',
       'on', @aru.created_at,
-      'by', @aru.epix_creator.name || @aru.sapi_creator.name
+      'by', (@aru.epix_creator || @aru.sapi_creator).name
     ].join(' ')
   end
 end
