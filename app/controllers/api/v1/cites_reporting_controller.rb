@@ -34,6 +34,19 @@ class Api::V1::CitesReportingController < ApplicationController
     render xml: result
   end
 
+  soap_action :get_cites_report_status,
+              as: 'GetCitesReportStatusRequest',
+              args: {
+                CITESReportId: :integer
+              },
+              return: {CITESReportResult: Api::V1::CITESReportResult}
+
+  def get_cites_report_status
+    @aru = Trade::AnnualReportUpload.find(params[:CITESReportId])
+    result = Api::V1::CITESReportResultBuilder.new(@aru).result
+    render xml: result
+  end
+
   private
 
   # this is where we get when XML was completely invalid
