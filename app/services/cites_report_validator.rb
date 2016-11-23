@@ -36,11 +36,7 @@ class CitesReportValidator
 
   def self.generate_validation_report(aru)
     records = aru.sandbox.shipments
-    errors = if aru.persisted_validation_errors.primary.any?
-      aru.persisted_validation_errors.primary
-    else
-      aru.persisted_validation_errors.secondary
-    end
+    errors = aru.persisted_validation_errors
     validation_report = {}
     errors.each do |error|
       matching_records = error.validation_rule.matching_records_for_aru_and_error(aru, error)

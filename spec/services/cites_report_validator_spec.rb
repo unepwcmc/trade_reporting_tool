@@ -168,12 +168,7 @@ RSpec.describe CitesReportValidator do
     }
     before(:each) do
       allow(aru).to(
-        receive_message_chain(:sandbox, :shipments).and_return(
-          [shipment]
-        )
-      )
-      allow(aru).to(
-        receive_message_chain(:persisted_validation_errors, :primary).and_return(
+        receive_message_chain(:persisted_validation_errors).and_return(
           [validation_error]
         )
       )
