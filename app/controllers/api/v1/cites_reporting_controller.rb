@@ -17,7 +17,7 @@ class Api::V1::CitesReportingController < ApplicationController
                 SubmittedData: Api::V1::CitesReport,
                 ForceSubmitWithWarnings: :boolean
               },
-              return: Api::V1::CITESReportResult
+              return: {CITESReportResult: Api::V1::CITESReportResult}
 
   def submit_cites_report
     @cites_report = CitesReportFromWS.new(
@@ -29,7 +29,21 @@ class Api::V1::CitesReportingController < ApplicationController
         force_submit: params[:ForceSubmitWithWarnings]
       }
     )
-    result = @cites_report.save
+    @cites_report.save
+    result = Api::V1::CITESReportResultBuilder.new(@cites_report.aru).result
+    render xml: result
+  end
+
+  soap_action :get_cites_report_status,
+              as: 'GetCitesReportStatusRequest',
+              args: {
+                CITESReportId: :integer
+              },
+              return: {CITESReportResult: Api::V1::CITESReportResult}
+
+  def get_cites_report_status
+    @aru = Trade::AnnualReportUpload.find(params[:CITESReportId])
+    result = Api::V1::CITESReportResultBuilder.new(@aru).result
     render xml: result
   end
 

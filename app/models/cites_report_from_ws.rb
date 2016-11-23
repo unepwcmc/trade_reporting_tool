@@ -1,11 +1,12 @@
 class CitesReportFromWS
+  attr_reader :aru
 
   def initialize(sapi_country, epix_user, data)
     @type_of_report = data[:type_of_report]
     @submitted_data = data[:submitted_data]
     @force_submit = data[:force_submit]
-    # TODO: store force_submit in aru table
     @aru = Trade::AnnualReportUpload.new({
+      force_submit: @force_submit,
       is_from_web_service: true,
       point_of_view: (@type_of_report == 'E' ? 'E' : 'I'),
       trading_country_id: sapi_country.try(:id),
@@ -17,24 +18,18 @@ class CitesReportFromWS
   end
 
   def save
-    result = {}
     Sapi::Base.transaction do
       if @aru.save
         @aru.sandbox.copy_data(@submitted_data)
         @aru.update_attribute(:number_of_rows, @aru.sandbox.shipments.count)
-        result[:Status] = 'SUCCESS'
-        result[:Message] = 'Data queued for validation'
-        result[:CITESReportId] = @aru.id
-      else
-        result[:Status] = 'ERROR'
-        result[:Message] = 'Failed to queue data for validation'
-        result[:Details] = @aru.errors
       end
     end
-    if result[:Status] == 'SUCCESS'
+    if @aru.errors.any?
+      false
+    else
       # needs to happen after transaction committed
-      CitesReportValidationJob.perform_later(@aru.id, @force_submit)
+      CitesReportValidationJob.perform_later(@aru.id)
+      true
     end
-    result
   end
 end
