@@ -57,7 +57,7 @@ RSpec.describe CitesReportFromWS, :type => :model do
           force_submit: false
         }
       )
-      expect(cr.save[:Status]).to eq('SUCCESS')
+      expect(cr.save).to be(true)
     end
     it 'is not successful when trading country missing' do
       cr = CitesReportFromWS.new(
@@ -69,7 +69,7 @@ RSpec.describe CitesReportFromWS, :type => :model do
           force_submit: false
         }
       )
-      expect(cr.save[:Status]).to eq('ERROR')
+      expect(cr.save).to be(false)
     end
   end
 end
