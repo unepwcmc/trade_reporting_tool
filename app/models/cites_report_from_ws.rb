@@ -4,8 +4,8 @@ class CitesReportFromWS
     @type_of_report = data[:type_of_report]
     @submitted_data = data[:submitted_data]
     @force_submit = data[:force_submit]
-    # TODO: store force_submit in aru table
     @aru = Trade::AnnualReportUpload.new({
+      force_submit: @force_submit,
       is_from_web_service: true,
       point_of_view: (@type_of_report == 'E' ? 'E' : 'I'),
       trading_country_id: sapi_country.try(:id),
@@ -33,7 +33,7 @@ class CitesReportFromWS
     end
     if result[:Status] == 'SUCCESS'
       # needs to happen after transaction committed
-      CitesReportValidationJob.perform_later(@aru.id, @force_submit)
+      CitesReportValidationJob.perform_later(@aru.id, @aru.force_submit)
     end
     result
   end

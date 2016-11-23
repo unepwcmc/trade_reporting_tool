@@ -6,5 +6,6 @@ FactoryGirl.define do
     epix_creator
     epix_updated_at { Time.now }
     epix_updater
+    force_submit false
   end
 end
