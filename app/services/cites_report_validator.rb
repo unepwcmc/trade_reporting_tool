@@ -1,6 +1,6 @@
 class CitesReportValidator
 
-  def self.call(aru_id, force_submit)
+  def self.call(aru_id)
     begin
       aru = Trade::AnnualReportUpload.find(aru_id)
     rescue ActiveRecord::RecordNotFound => e

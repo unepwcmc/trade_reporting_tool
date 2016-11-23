@@ -4,7 +4,7 @@ RSpec.describe CitesReportValidationJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:aru){ FactoryGirl.create(:annual_report_upload) }
-  subject(:job) { described_class.perform_later(aru.id, false) }
+  subject(:job) { described_class.perform_later(aru.id) }
 
   it 'queues the job' do
     expect { job }
@@ -16,7 +16,7 @@ RSpec.describe CitesReportValidationJob, type: :job do
   end
 
   it 'executes perform' do
-    expect(CitesReportValidator).to receive(:call).with(aru.id, false)
+    expect(CitesReportValidator).to receive(:call).with(aru.id)
     perform_enqueued_jobs { job }
   end
 end

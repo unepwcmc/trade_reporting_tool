@@ -28,7 +28,7 @@ class CitesReportFromWS
       false
     else
       # needs to happen after transaction committed
-      CitesReportValidationJob.perform_later(@aru.id, @aru.force_submit)
+      CitesReportValidationJob.perform_later(@aru.id)
       true
     end
   end
