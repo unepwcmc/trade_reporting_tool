@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :annual_report_uploads, only: [:index]
+      resources :shipments, only: [:index]
     end
   end
 
