@@ -2,12 +2,25 @@
 window.ShipmentsTable = class ShipmentsTable extends React.Component
   constructor: (props, context) ->
     super(props, context)
+    @state = {
+      pageName: props.pageName,
+      totalPages: props.totalPages,
+      page: 1
+    }
+    @incrementPage = @changePage.bind(@, 1)
+    @decrementPage = @changePage.bind(@, -1)
+    @firstPage = @changePage.bind(@, 'first')
+    @lastPage = @changePage.bind(@, 'last')
 
   render: ->
-    table(
-      { className: 'shipments-table' }
-      @renderHead()
-      @renderBody()
+    div(
+      {}
+      table(
+        { className: 'shipments-table' }
+        @renderHead()
+        @renderBody()
+      )
+      @renderPaginator() if @state.totalPages > 1
     )
 
   renderHead: ->
@@ -40,25 +53,42 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
         th({},
           div({}, 'Purpose-')
           div({}, 'Source-')
-          div({}, 'Year-')
+          div({}, 'Year')
         )
         th({}, 'Actions')
       )
     )
 
   renderBody: ->
-    tbody({},
-      tr({},
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-        td({}, 1)
-      )
+    React.createElement(Shipments,
+      {
+        key: @state.pageName,
+        pageName: @state.pageName,
+        page: @state.page
+      }
     )
+
+  renderPaginator: ->
+    React.createElement(Paginator,
+      {
+        key: 'shipments_paginator'
+        page: @state.page
+        totalPages: @state.totalPages
+        firstPage: @firstPage
+        lastPage: @lastPage
+        decrementPage: @decrementPage
+        incrementPage: @incrementPage
+      }
+    )
+
+  changePage: (page) ->
+    if page == 'first'
+      @setState({page: 1})
+    else if page == 'last'
+      @setState({page: @state.totalPages})
+    else
+      newPage = @state.page + page
+      unless newPage < 1 || newPage > @state.totalPages
+        @setState({page: @state.page + page})
+
+

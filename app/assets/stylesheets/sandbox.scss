@@ -124,6 +124,10 @@ h3.sandbox-upload-summary {
   &:hover { color: $main-green; }
 }
 
+.back-to-shipments {
+  margin: 20px 0;
+}
+
 .shipments-title {
   display: flex;
   align-items: center;
@@ -158,6 +162,17 @@ h3.sandbox-upload-summary {
     th { padding: 10px 15px 0; }
     th.permit-th {
       padding: 0 0 10px;
+    }
+  }
+
+  tbody {
+    color: $grey;
+    td { padding: 20px 15px; }
+    .even { background: $lightest-grey; }
+    .odd { background: white; }
+    i.fa { text-decoration: underline; }
+    .actions-col {
+      div { padding: 0 0 5px 0; }
     }
   }
 }

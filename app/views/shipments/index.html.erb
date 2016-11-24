@@ -12,4 +12,10 @@
   <%= link_to t('edit_all_errors'), '', class: 'green-link-underlined' %>
 </div>
 
-<%= react_component 'ShipmentsTable', {} %>
+<%=
+  react_component 'ShipmentsTable',
+    {
+      pageName: 'shipments',
+      totalPages: @total_pages
+    }
+%>

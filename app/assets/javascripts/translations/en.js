@@ -17,6 +17,7 @@ I18n.translations["en"] = I18n.extend((I18n.translations["en"] || {}),
     "ignored_validation_errors": "Ignored validation errors",
     "errors_info": "Once all primary errors corrected, you may have to correct secondary errors.",
     "show_more_errors": "Show more errors",
-    "show_less_errors": "Show less errors"
+    "show_less_errors": "Show less errors",
+    "edit": "Edit"
   }
 )
