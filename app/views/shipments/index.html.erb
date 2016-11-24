@@ -1,0 +1,15 @@
+<div class='back-to-shipments'>
+  <i class='fa fa-long-arrow-left green'></i>
+  <%= link_to t('back_to_shipments'), '', class: 'green-link-underlined' %>
+</div>
+
+<div class='selected-error'>
+  <span><%= t('selected_error') %>:</span><span class='bold'> Placeholder</span>
+</div>
+
+<div class='shipments-title border-btm-3'>
+  <h1 class="sandbox-title bold">Sandbox</h1>
+  <%= link_to t('edit_all_errors'), '', class: 'green-link-underlined' %>
+</div>
+
+<%= react_component 'ShipmentsTable', {} %>
