@@ -1,5 +1,6 @@
 class Trade::SandboxTemplate < Sapi::Base
 
+  self.per_page = 10
   self.table_name = :trade_sandbox_template
 
   COLUMNS_IN_CSV_ORDER = [
@@ -30,7 +31,7 @@ class Trade::SandboxTemplate < Sapi::Base
         end
 
         def self.sanitize(id = nil)
-          updates = 
+          updates =
             'appendix = UPPER(SQUISH_NULL(appendix)),
             year = SQUISH_NULL(year),
             term_code = UPPER(SQUISH_NULL(term_code)),

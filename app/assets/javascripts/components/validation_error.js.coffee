@@ -18,7 +18,7 @@ window.ValidationError = class ValidationError extends React.Component
       div(
         { className: 'error-message' }
         a(
-          { href: '#' }
+          { href: '/shipments/' }
           @state.data.error_message
         )
       )

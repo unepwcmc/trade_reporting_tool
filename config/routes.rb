@@ -19,12 +19,14 @@ Rails.application.routes.draw do
   end
 
   resources :annual_report_uploads, only: [:index, :show]
+  resources :shipments, only: [:index]
 
   wash_out "api/v1/cites_reporting"
 
   namespace :api do
     namespace :v1 do
       resources :annual_report_uploads, only: [:index]
+      resources :shipments, only: [:index]
     end
   end
 

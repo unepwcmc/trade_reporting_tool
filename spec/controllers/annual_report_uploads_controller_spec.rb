@@ -1,6 +1,7 @@
 require 'rails_helper'
 
 RSpec.describe AnnualReportUploadsController, type: :controller do
+  describe "GET index" do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
@@ -49,4 +50,5 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
       end
     end
+  end
 end

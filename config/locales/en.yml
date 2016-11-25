@@ -40,3 +40,6 @@ en:
   change_sandbox_settings: 'If you would like to correct these existing errors by using the app sandbox please update the relevant settings on <a href="#" class="bold">your admin account page.</a>'
   download_report_on_errors: "Download report on existing errors"
   submit_shipments: "Submit shipments"
+  back_to_shipments: "Back to shipments' list"
+  selected_error: "Selected error"
+  edit_all_errors: "Edit all affected errors"

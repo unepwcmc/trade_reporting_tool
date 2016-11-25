@@ -33,51 +33,16 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
     )
 
   renderPaginator: ->
-    div(
-      { className: 'paginator' }
-      a(
-        {
-          className: 'paginator-link',
-          onClick: @firstPage
-        }
-        "|< #{I18n.t('first')}"
-      )
-      a(
-        {
-          className: 'paginator-link',
-          onClick: @decrementPage
-        }
-        "<< #{I18n.t('previous')}"
-      )
-      span(
-        {}
-        "#{I18n.t('page')} "
-        span(
-          { className: 'current-page' }
-          span(
-            {}
-            @state.page
-          )
-        )
-        span(
-          {}
-          " #{I18n.t('of')} " + @state.totalPages
-        )
-      )
-      a(
-        {
-          className: 'paginator-link',
-          onClick: @incrementPage
-        }
-        "#{I18n.t('next')} >>"
-      )
-      a(
-        {
-          className: 'paginator-link',
-          onClick: @lastPage
-        }
-        "#{I18n.t('last')} >|"
-      )
+    React.createElement(Paginator,
+      {
+        key: 'aru_paginator'
+        page: @state.page
+        totalPages: @state.totalPages
+        firstPage: @firstPage
+        lastPage: @lastPage
+        decrementPage: @decrementPage
+        incrementPage: @incrementPage
+      }
     )
 
   changePage: (page) ->
