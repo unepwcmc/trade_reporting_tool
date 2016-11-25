@@ -179,12 +179,13 @@ h3.sandbox-upload-summary {
 
 .batch-edit-container {
   .row {
-    margin: 10px 0;
+    margin: 20px 0;
     padding-bottom: 20px;
   }
 }
 
-.shipments-dropdown {
+.shipments-dropdown, .shipments-input-box {
+  color: $grey;
   div { margin: 5px 0 0; }
   &.disabled {
     opacity: 0.3;
@@ -200,4 +201,10 @@ h3.sandbox-upload-summary {
     width: 100%;
   }
   input { margin: 0 10px 0 0; }
+  input[type='text'] { width: 100%; }
+  ul.dropdown-menu {
+    width: 255px;
+    margin: 0 0 0 15px;
+    top: inherit;
+  }
 }

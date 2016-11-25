@@ -13,7 +13,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Appendix',
+          title: 'Taxon name',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -25,7 +25,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Appendix',
+          title: 'Term',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -35,7 +35,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Appendix',
+          title: 'Quantity <span>(Qty)</span>',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -45,7 +45,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Appendix',
+          title: 'Unit',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -55,7 +55,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Appendix',
+          title: 'Trading partner',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -67,7 +67,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Appendix',
+          title: 'Origin',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -75,10 +75,31 @@
       %>
     </div>
     <div class="col col-sm-3 col-md-3 col-lg-3">
+      <%= react_component("InputBox",
+        {
+          title: 'Import Permit',
+          enabled: true,
+          blankCheckbox: true
+        })
+      %>
     </div>
     <div class="col col-sm-3 col-md-3 col-lg-3">
+      <%= react_component("InputBox",
+        {
+          title: 'Export Permit',
+          enabled: false,
+          blankCheckbox: true
+        })
+      %>
     </div>
     <div class="col col-sm-3 col-md-3 col-lg-3">
+      <%= react_component("InputBox",
+        {
+          title: 'Origin Permit',
+          enabled: true,
+          blankCheckbox: true
+        })
+      %>
     </div>
   </div>
   <div class="row border-btm">
@@ -104,6 +125,12 @@
       %>
     </div>
     <div class="col col-sm-3 col-md-3 col-lg-3">
+      <%= react_component("InputBox",
+        {
+          title: 'Year',
+          enabled: true,
+        })
+      %>
     </div>
   </div>
 

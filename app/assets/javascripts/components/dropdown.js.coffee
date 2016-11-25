@@ -16,7 +16,7 @@ window.Dropdown = class Dropdown extends React.Component
     disabled_class = if @state.enabled then '' else 'disabled'
     div(
       { className: "shipments-dropdown #{disabled_class}" }
-      span({}, @state.title)
+      span({ className: 'bold' }, @state.title)
       @renderDropdown()
       @renderCheckbox() if @state.blankCheckbox
     )
@@ -41,9 +41,7 @@ window.Dropdown = class Dropdown extends React.Component
   renderCheckbox: ->
     div(
       { className: 'blank-checkbox' }
-      input(
-        { type: 'checkbox' }
-      )
+      input({ type: 'checkbox' })
       span({}, 'Set blank')
     )
 
