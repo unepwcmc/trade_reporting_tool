@@ -29,9 +29,10 @@ class CitesReportValidator
     end
 
     validation_report = Api::V1::CITESReportResultBuilder.new(aru).result
+    validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
 
     NotificationMailer.validation_result(
-      aru.epix_creator || aru.sapi_creator, aru, validation_report
+      aru.epix_creator || aru.sapi_creator, aru, validation_report, validation_report_csv_file
     ).deliver
 
     validation_report

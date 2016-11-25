@@ -56,6 +56,10 @@ class Trade::AnnualReportUpload < Sapi::Base
     submitted_at.present?
   end
 
+  def reported_by_exporter?
+    point_of_view == 'E'
+  end
+
   def process_validation_rules
     @primary_validation_errors = run_validations(
       Trade::ValidationRule.where(is_primary: true)
