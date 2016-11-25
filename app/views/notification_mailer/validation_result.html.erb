@@ -1,0 +1,8 @@
+<h1>Dear <%= @user.name %></h1>
+<p>
+  The processing of your CITES Report submission <%= @aru.id %> has completed.<br>
+</p>
+<%= @validation_report %>
+<p>
+  To login to the site, just follow this link: <%= annual_report_uploads_url %>.
+</p>
