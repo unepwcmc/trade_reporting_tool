@@ -38,11 +38,12 @@ class Api::V1::CITESReportResultBuilder
       }
     }
     if @validation_report
-      result[:CITESReportResult][:ErrorReport] = @validation_report.keys.each_with_index.map do |record_id, index|
+      result[:CITESReportResult][:ErrorReport] = @validation_report.each.map do |index, data_and_errors|
           {
             CITESReportRowResult: {
               RowIndex: index,
-              Errors: @validation_report[record_id]
+              Data: data_and_errors['data'],
+              Errors: data_and_errors['errors']
             }
           }
       end

@@ -191,7 +191,9 @@ RSpec.describe CitesReportValidator do
     it "should return a validation report structure" do
       expect(
         CitesReportValidator.generate_validation_report(aru)
-      ).to eq({shipment.id => ['XXX']})
+      ).to eq(
+        {0 => {data: shipment.attributes, errors: ['XXX']}}
+      )
     end
   end
 end
