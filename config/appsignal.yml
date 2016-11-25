@@ -18,6 +18,10 @@ development:
   <<: *defaults
   active: false
 
+test:
+  <<: *defaults
+  active: false
+
 production:
   <<: *defaults
   active: true
