@@ -28,8 +28,13 @@ class CitesReportValidator
       end
     end
 
-    Api::V1::CITESReportResultBuilder.new(aru).result
-    # TODO here be notification logic
+    validation_report = Api::V1::CITESReportResultBuilder.new(aru).result
+
+    NotificationMailer.validation_result(
+      aru.epix_creator || aru.sapi_creator, aru, validation_report
+    ).deliver
+
+    validation_report
   end
 
   private

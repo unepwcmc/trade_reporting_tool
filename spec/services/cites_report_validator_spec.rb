@@ -91,6 +91,11 @@ RSpec.describe CitesReportValidator do
             CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
           ).to eq('PENDING')
         end
+        it "sends an email" do
+          expect { CitesReportValidator.call(aru.id)[:CITESReportResult][:Status] }.to(
+            change { ActionMailer::Base.deliveries.count }.by(1)
+          )
+        end
       end
 
       context 'when secondary errors' do
@@ -106,6 +111,11 @@ RSpec.describe CitesReportValidator do
           expect(
             CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
           ).to eq('VALIDATION_FAILED')
+        end
+        it "sends an email" do
+          expect { CitesReportValidator.call(aru.id)[:CITESReportResult][:Status] }.to(
+            change { ActionMailer::Base.deliveries.count }.by(1)
+          )
         end
       end
 
