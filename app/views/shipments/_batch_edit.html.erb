@@ -35,7 +35,7 @@
     <div class="col col-sm-3 col-md-3 col-lg-3">
       <%= react_component("Dropdown",
         {
-          title: 'Quantity <span>(Qty)</span>',
+          title: 'Quantity (Qty)',
           placeholder: "Please select appendix value",
           data: ['a', 'b', 'c'],
           enabled: true
@@ -134,6 +134,8 @@
     </div>
   </div>
 
-  <div class="buttons right">
+  <div class="buttons align-right">
+    <%= link_to t('cancel'), '', class: "button btn-scnd" %>
+    <%= link_to t('update_selection'), '', class: "button" %>
   </div>
 </div>

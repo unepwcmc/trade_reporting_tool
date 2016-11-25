@@ -43,3 +43,5 @@ en:
   back_to_shipments: "Back to shipments' list"
   selected_error: "Selected error"
   edit_all_errors: "Edit all affected errors"
+  cancel: 'Cancel'
+  update_selection: 'Update selection'
