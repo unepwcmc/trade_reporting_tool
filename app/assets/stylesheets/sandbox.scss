@@ -176,3 +176,28 @@ h3.sandbox-upload-summary {
     }
   }
 }
+
+.batch-edit-container {
+  .row {
+    margin: 10px 0;
+    padding-bottom: 20px;
+  }
+}
+
+.shipments-dropdown {
+  div { margin: 5px 0 0; }
+  &.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    i { color: $main-green; }
+    border: 1px solid $extralight-grey;
+    width: 100%;
+  }
+  input { margin: 0 10px 0 0; }
+}

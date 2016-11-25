@@ -12,6 +12,8 @@
   <%= link_to t('edit_all_errors'), '', class: 'green-link-underlined' %>
 </div>
 
+<%= render "batch_edit" %>
+
 <%=
   react_component 'ShipmentsTable',
     {
