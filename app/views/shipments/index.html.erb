@@ -7,12 +7,13 @@
   <span><%= t('selected_error') %>:</span><span class='bold'> Placeholder</span>
 </div>
 
-<div class='shipments-title border-btm-3'>
-  <h1 class="sandbox-title bold">Sandbox</h1>
-  <%= link_to t('edit_all_errors'), '', class: 'green-link-underlined' %>
-</div>
+<%= react_component 'BatchEdit', {}, {class: 'align-right'} %>
 
 <%= render "batch_edit" %>
+
+<div class='shipments-title'>
+  <h1 class="sandbox-title bold">Sandbox</h1>
+</div>
 
 <%=
   react_component 'ShipmentsTable',

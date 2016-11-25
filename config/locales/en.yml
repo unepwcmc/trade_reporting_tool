@@ -42,6 +42,6 @@ en:
   submit_shipments: "Submit shipments"
   back_to_shipments: "Back to shipments' list"
   selected_error: "Selected error"
-  edit_all_errors: "Edit all affected errors"
+  edit_all_errors: "Edit all errors"
   cancel: 'Cancel'
   update_selection: 'Update selection'
