@@ -63,6 +63,11 @@ RSpec.describe CitesReportValidator do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
           )
+          allow(CitesReportValidator).to(
+            receive(:generate_validation_report).and_return(
+              {'0' => {'data' => {}, 'errors' => []}}
+            )
+          )
         end
         it "should return error" do
           expect(
@@ -126,6 +131,11 @@ RSpec.describe CitesReportValidator do
           )
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
+          )
+          allow(CitesReportValidator).to(
+            receive(:generate_validation_report).and_return(
+              {'0' => {'data' => {}, 'errors' => []}}
+            )
           )
         end
         it "should return error" do

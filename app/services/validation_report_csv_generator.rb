@@ -7,7 +7,6 @@ class ValidationReportCsvGenerator
     else
       Trade::SandboxTemplate::IMPORTER_COLUMNS
     end
-    Rails.logger.debug Dir.pwd
     tempfile = Tempfile.new(["validation_report_#{aru.id}", ".csv"], Rails.root.join('tmp'))
     CSV.open(tempfile, 'w', headers: true) do |csv|
       csv << data_columns + ['ERRORS']
@@ -17,7 +16,6 @@ class ValidationReportCsvGenerator
         end
         errors = data_and_errors['errors'] || []
         csv << data + errors
-
       end
     end
     tempfile
