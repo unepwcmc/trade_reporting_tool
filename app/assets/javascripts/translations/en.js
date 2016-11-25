@@ -19,6 +19,7 @@ I18n.translations["en"] = I18n.extend((I18n.translations["en"] || {}),
     "show_more_errors": "Show more errors",
     "show_less_errors": "Show less errors",
     "edit": "Edit",
-    "edit_all_errors": "Edit all affected errors"
+    "edit_all_errors": "Edit all affected errors",
+    "close": "Close"
   }
 )
