@@ -1,0 +1,22 @@
+<h1>Dear <%= @user.name %></h1>
+<p>
+  The processing of your CITES Report submission <%= @aru.id %> has completed.<br>
+</p>
+<dl>
+  <dt>Status:</dt>
+  <dd><%= @status %></dd>
+  <dt>Message:</dt>
+  <dd><%= @message %></dd>
+</dl>
+<p>
+<% if @has_errors %>
+  Further details can be found in the attached error output.
+<% end %>
+<% unless @aru.is_submitted? %>
+  To view your submission online, please follow this link: <%= link_to annual_report_upload_url(@aru), annual_report_upload_url(@aru) %>.
+<% end %>
+</p>
+<p>
+  Best regards,
+  the Trade Reporting Tool team
+<p>

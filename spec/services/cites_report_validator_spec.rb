@@ -63,6 +63,11 @@ RSpec.describe CitesReportValidator do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
           )
+          allow(CitesReportValidator).to(
+            receive(:generate_validation_report).and_return(
+              {'0' => {'data' => {}, 'errors' => []}}
+            )
+          )
         end
         it "should return error" do
           expect(
@@ -91,6 +96,11 @@ RSpec.describe CitesReportValidator do
             CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
           ).to eq('PENDING')
         end
+        it "sends an email" do
+          expect { CitesReportValidator.call(aru.id)[:CITESReportResult][:Status] }.to(
+            change { ActionMailer::Base.deliveries.count }.by(1)
+          )
+        end
       end
 
       context 'when secondary errors' do
@@ -107,6 +117,11 @@ RSpec.describe CitesReportValidator do
             CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
           ).to eq('VALIDATION_FAILED')
         end
+        it "sends an email" do
+          expect { CitesReportValidator.call(aru.id)[:CITESReportResult][:Status] }.to(
+            change { ActionMailer::Base.deliveries.count }.by(1)
+          )
+        end
       end
 
       context 'when primary errors' do
@@ -116,6 +131,11 @@ RSpec.describe CitesReportValidator do
           )
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
+          )
+          allow(CitesReportValidator).to(
+            receive(:generate_validation_report).and_return(
+              {'0' => {'data' => {}, 'errors' => []}}
+            )
           )
         end
         it "should return error" do
@@ -181,7 +201,9 @@ RSpec.describe CitesReportValidator do
     it "should return a validation report structure" do
       expect(
         CitesReportValidator.generate_validation_report(aru)
-      ).to eq({shipment.id => ['XXX']})
+      ).to eq(
+        {0 => {data: shipment.attributes, errors: ['XXX']}}
+      )
     end
   end
 end

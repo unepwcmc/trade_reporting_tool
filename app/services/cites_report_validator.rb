@@ -28,8 +28,14 @@ class CitesReportValidator
       end
     end
 
-    Api::V1::CITESReportResultBuilder.new(aru).result
-    # TODO here be notification logic
+    validation_report = Api::V1::CITESReportResultBuilder.new(aru).result
+    validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
+
+    NotificationMailer.validation_result(
+      aru.epix_creator || aru.sapi_creator, aru, validation_report, validation_report_csv_file
+    ).deliver
+
+    validation_report
   end
 
   private
@@ -37,16 +43,26 @@ class CitesReportValidator
   def self.generate_validation_report(aru)
     records = aru.sandbox.shipments
     errors = aru.persisted_validation_errors
-    validation_report = {}
+    errors_by_record = {}
     errors.each do |error|
       matching_records = error.validation_rule.matching_records_for_aru_and_error(aru, error)
       matching_records.each do |record|
         record_id = record['id']
-        validation_report[record_id] ||= []
-        validation_report[record_id] << error.error_message
+        errors_by_record[record_id] ||= []
+        errors_by_record[record_id] << error.error_message
       end
     end
-    validation_report
+    Hash[
+      records.each_with_index.map do |record, index|
+        [
+          index,
+          {
+            data: record.attributes,
+            errors: errors_by_record[record['id']]
+          }
+        ]
+    end
+    ]
   end
 
 end
