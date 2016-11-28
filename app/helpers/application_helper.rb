@@ -1,5 +1,13 @@
 module ApplicationHelper
 
+  def logo_image_tag
+    if current_sapi_user
+      image_tag("trt_logo_blue.jpg")
+    else
+      image_tag("epix_white_logo.png")
+    end
+  end
+
   def home_link
     home_url = if current_sapi_user
                 Rails.application.secrets.trade_admin_url
