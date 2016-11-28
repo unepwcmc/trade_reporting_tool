@@ -1,22 +1,15 @@
 module ApplicationHelper
-  def home_path
-    home =
-      case Rails.env
-      when 'staging'
-        if current_sapi_user
-          Rails.application.secrets.sapi_staging_path
-        elsif current_epix_user
-          Rails.application.secrets.epix_staging_path
-        end
-      when 'production'
-        if current_sapi_user
-          Rails.application.secrets.sapi_production_path
-        elsif current_epix_user
-          Rails.application.secrets.epix_production_path
-        end
-      else
-        '/'
-      end
-    link_to t('home'), home
+
+  def home_link
+    home_url = if current_sapi_user
+                Rails.application.secrets.trade_admin_url
+              elsif current_epix_user
+                Rails.application.secrets.epix_url
+              end
+    if current_epix_user
+      link_to t('back_to_epix'), home_url
+    else
+      link_to t('back_to_speciesplus'), home_url
+    end
   end
 end
