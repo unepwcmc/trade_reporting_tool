@@ -193,6 +193,9 @@ h3.sandbox-upload-summary {
     border: 1px solid $extralight-grey;
     width: 100%;
   }
+  @-moz-document url-prefix() {
+    button { min-height: 28px; }
+  }
   input { margin: 0 10px 0 0; }
   input[type='text'] { width: 100%; }
   ul.dropdown-menu {
