@@ -26,7 +26,7 @@ window.Dropdown = class Dropdown extends React.Component
       {}
       button(
         { "data-toggle": 'dropdown' }
-        @state.selection
+        span({},@state.selection)
         i({ className: 'fa fa-caret-down'})
       )
       ul(

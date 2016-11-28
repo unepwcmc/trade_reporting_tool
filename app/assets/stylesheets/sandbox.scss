@@ -186,10 +186,9 @@ h3.sandbox-upload-summary {
     pointer-events: none;
   }
   button {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    min-height: 25px;
     background: white;
+    span { margin-right: 60px; }
     i { color: $main-green; }
     border: 1px solid $extralight-grey;
     width: 100%;
