@@ -18,6 +18,8 @@ I18n.translations["en"] = I18n.extend((I18n.translations["en"] || {}),
     "errors_info": "Once all primary errors corrected, you may have to correct secondary errors.",
     "show_more_errors": "Show more errors",
     "show_less_errors": "Show less errors",
-    "edit": "Edit"
+    "edit": "Edit",
+    "edit_all_errors": "Edit all affected errors",
+    "close": "Close"
   }
 )
