@@ -3,6 +3,8 @@ class Trade::SandboxTemplate < Sapi::Base
   self.per_page = 10
   self.table_name = :trade_sandbox_template
 
+  has_paper_trail
+
   COLUMNS_IN_CSV_ORDER = [
     "appendix", "species_name", "term_code", "quantity", "unit_code",
     "trading_partner", "country_of_origin", "import_permit", "export_permit",
