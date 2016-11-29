@@ -2,6 +2,14 @@
 <h3 class="sandbox-upload-summary no-border">
   <%= @annual_report_upload.summary %>
 </h3>
+<div class="align-right batch-edit-link">
+  <i class="fa fa-download green"></i>
+  <%=
+    link_to t('download_changes_history'),
+    '',
+    class: 'green-link-underlined'
+  %>
+</div>
 <h1 class="sandbox-title">Changes History</h1>
 
 <%=
