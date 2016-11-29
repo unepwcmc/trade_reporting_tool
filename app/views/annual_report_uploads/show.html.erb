@@ -1,9 +1,18 @@
 <div class="sandbox-header">
   <h1 class="sandbox-title"><%= t('annual_report_upload') %> <span>SANDBOX</span></h1>
-  <h3 class="sandbox-upload-summary">
-    <%= @annual_report_upload.summary %>
-  </h3>
 </div>
+
+<div class="align-right changes-link">
+  <%=
+    link_to t('see_changes_history'),
+      changes_history_path(@annual_report_upload.object.id),
+      class: 'green-link-underlined'
+  %>
+</div>
+
+<h3 class="sandbox-upload-summary">
+  <%= @annual_report_upload.summary %>
+</h3>
 
 <div class="sandbox-body">
   <%= download_and_submit %>

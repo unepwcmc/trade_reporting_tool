@@ -1,18 +1,20 @@
 {div, a, i, tr, td} = React.DOM
-window.Shipment = class Shipment extends React.Component
+window.ShipmentVersion = class ShipmentVersion extends React.Component
   constructor: (props, context) ->
     super(props, context)
     @state = {
       shipment: props.shipment
+      changes: props.changes
       rowType: props.rowType
-      changesHistory: props.changesHistory
     }
 
   render: ->
     data = @state.shipment
     tr({ className: @state.rowType },
-      if @state.changesHistory
-        td({}, '')
+      td({}
+        div({}, data.updated_at)
+        div({}, Object.keys(@state.changes).length + " changes")
+      )
       td({}, data.appendix)
       td({},
         div(
@@ -31,23 +33,4 @@ window.Shipment = class Shipment extends React.Component
       td({}
         data.purpose_code + ' - ' + data.source_code + ' - ' + data.year
       )
-      unless @state.changesHistory
-        td({ className: 'actions-col' },
-          div(
-            {}
-            a(
-              { className: 'green-link-underlined' }
-              i({ className: 'fa fa-pencil-square-o'})
-              " #{I18n.t('edit')}"
-            )
-          )
-          div(
-            {}
-            a(
-              { className: 'green-link-underlined' }
-              i({ className: 'fa fa-times' })
-              " #{I18n.t('delete')}"
-            )
-          )
-        )
     )
