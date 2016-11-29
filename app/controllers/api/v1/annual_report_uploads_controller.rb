@@ -30,7 +30,7 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
     ).uniq
     @shipments = shipments.paginate(
       page: params[:shipments]).map do |shipment|
-        SandboxShipmentSerializer.new(shipment)
+        SandboxShipmentChangesSerializer.new(shipment)
       end
 
     render json: {
