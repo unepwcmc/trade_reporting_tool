@@ -1,0 +1,14 @@
+<%= render "shared/back_to_shipments" %>
+<h3 class="sandbox-upload-summary no-border">
+  <%= @annual_report_upload.summary %>
+</h3>
+<h1 class="sandbox-title">Changes History</h1>
+
+<%=
+  react_component 'ShipmentsTable',
+    {
+      pageName: 'shipments',
+      totalPages: @total_pages,
+      annualReportUploadId: @annual_report_upload.id,
+    }
+%>

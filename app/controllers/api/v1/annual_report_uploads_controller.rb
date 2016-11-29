@@ -23,6 +23,21 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
     }
   end
 
+  # TODO get shipments by Annual Report Upload
+  def changes_history
+    shipments = Trade::SandboxTemplate.all.joins(
+      "JOIN versions v ON v.item_id = trade_sandbox_template.id"
+    ).uniq
+    @shipments = shipments.paginate(
+      page: params[:shipments]).map do |shipment|
+        SandboxShipmentSerializer.new(shipment)
+      end
+
+    render json: {
+      shipments: @shipments
+    }
+  end
+
   private
 
   def authenticate_user!
