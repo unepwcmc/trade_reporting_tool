@@ -1,32 +1,33 @@
 <div class="annual-report-upload-container row">
-  <h1 class="bold"><%= t('annual_report_upload') %></h1>
-  <div class="new-upload-form col col-sm-3 col-md-3 col-lg-3">
-    <h4 class="bold"><%= t('new_upload') %> </h4>
-    <%= form_tag("", method: 'get') do %>
-      <% if current_sapi_user %>
+  <h1 class="bold"><%= t('annual_report_uploads') %></h1>
+  <% if current_sapi_user %>
+    <div class="new-upload-form col col-sm-3 col-md-3 col-lg-3">
+      <h4 class="bold"><%= t('new_upload') %> </h4>
+      <%= form_tag("", method: 'get') do %>
+        <% if current_sapi_user %>
+          <div class="form-group">
+            <%= label_tag(:trading_country, t('trading_country'), class: 'bold') %>
+            <%= select_tag(
+              :country,
+              options_for_select(@countries.map { |c| [c.name_en, c.iso_code2] }),
+              class: 'form-control'
+            ) %>
+          </div>
+        <% end %>
+        <%= report_radio_buttons %>
         <div class="form-group">
-          <%= label_tag(:trading_country, t('trading_country'), class: 'bold') %>
-          <%= select_tag(
-            :country,
-            options_for_select(@countries.map { |c| [c.name_en, c.iso_code2] }),
-            class: 'form-control'
-          ) %>
+          <%= label_tag(:csv_file, t('upload_file'), class: 'bold') %>
+          <%= file_field_tag :csv_file, class: 'real-file-input' %>
+          <div class='file-upload-container'>
+            <%= link_to t('choose_file'), '#', class: 'fake-file-input btn' %>
+            <i class='fa fa-upload'></i>
+          </div>
         </div>
+        <div class="border-btm"></div>
+        <%= submit_tag(t('upload'), class: 'button upload-button') %>
       <% end %>
-      <%= report_radio_buttons %>
-      <div class="form-group">
-        <%= label_tag(:csv_file, t('upload_file'), class: 'bold') %>
-        <%= file_field_tag :csv_file, class: 'real-file-input' %>
-        <div class='file-upload-container'>
-          <%= link_to t('choose_file'), '#', class: 'fake-file-input btn' %>
-          <i class='fa fa-upload'></i>
-        </div>
-      </div>
-      <div class="border-btm"></div>
-      <%= submit_tag(t('upload'), class: 'button upload-button') %>
-    <% end %>
-  </div>
-
+    </div>
+  <% end %>
   <div class="uploads-lists col col-sm-9 col-md-9 col-lg-9">
     <h4 class="bold"><%= t('uploads_in_progress') %></h4>
       <%=
