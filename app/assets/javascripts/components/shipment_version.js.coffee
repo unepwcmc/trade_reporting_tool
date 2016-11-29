@@ -11,10 +11,11 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
   render: ->
     data = @state.shipment
     keys = Object.keys(@state.changes)
+    changes = if keys.length > 1 then ' changes' else ' change'
     tr({ className: @state.rowType },
       td({}
-        div({}, data.updated_at)
-        div({}, keys.length + " changes")
+        div({ className: 'bold' }, data.updated_at)
+        div({ className: 'italic' }, keys.length + changes)
       )
       td({}, span({ className: 'appendix' }, data.appendix))
       td({},
