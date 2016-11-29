@@ -21,7 +21,8 @@
 
 en:
   home: 'Home'
-  annual_report_upload: 'CITES Reports'
+  annual_report_uploads: 'CITES Reports'
+  annual_report_upload: 'CITES Report'
   validation_rules: 'Validation rules'
   stats: 'Stats'
   language: 'English'
