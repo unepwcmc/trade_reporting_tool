@@ -173,6 +173,10 @@ h3.sandbox-upload-summary {
     .actions-col {
       div { padding: 0 0 5px 0; }
     }
+    span.changed {
+      background: $pink;
+      padding: 5px 7px;
+    }
   }
 }
 

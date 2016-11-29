@@ -1,4 +1,4 @@
-{div, a, i, tr, td} = React.DOM
+{div, a, i, tr, td, span} = React.DOM
 window.ShipmentVersion = class ShipmentVersion extends React.Component
   constructor: (props, context) ->
     super(props, context)
@@ -10,27 +10,41 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
 
   render: ->
     data = @state.shipment
+    keys = Object.keys(@state.changes)
     tr({ className: @state.rowType },
       td({}
         div({}, data.updated_at)
-        div({}, Object.keys(@state.changes).length + " changes")
+        div({}, keys.length + " changes")
       )
-      td({}, data.appendix)
+      td({}, span({ className: 'appendix' }, data.appendix))
       td({},
         div(
-          { className: 'bold' }
+          { className: 'taxon_name bold' }
           data.taxon_name
         )
-        div({}, data.taxon_name) # Replace with accepted_name
+        div({ className: 'accepted-name' }, data.taxon_name) # Replace with accepted_name
       )
-      td({}, data.term)
-      td({}, data.quantity)
-      td({}, data.trading_partner)
-      td({}, data.country_of_origin)
-      td({}, data.import_permit)
-      td({}, data.export_permit)
-      td({}, data.origin_permit)
+      td({}, span({ className: 'term' }, data.term))
+      td({}, span({ className: 'quantity' }, data.quantity))
+      td({}, span({ className: 'trading_partner' }, data.trading_partner))
+      td({}, span({ className: 'country_of_origin' }, data.country_of_origin))
+      td({}, span({ className: 'import_permit' }, data.import_permit))
+      td({}, span({ className: 'export_permit' }, data.export_permit))
+      td({}, span({ className: 'origin_permit' }, data.origin_permit))
       td({}
-        data.purpose_code + ' - ' + data.source_code + ' - ' + data.year
+        span({ className: 'purpose_code'}, data.purpose_code)
+        ' - '
+        span({ className: 'source_code' }, data.source_code)
+        ' - '
+        span({ className: 'year' }, + data.year)
       )
     )
+
+  componentDidMount: ->
+    keys = Object.keys(@state.changes)
+    for key in keys
+      regex = new RegExp(".*#{key}.*")
+      $('td span').filter( ->
+        if $(@).attr('class') && $(@).attr('class').match(regex)
+          $(@).addClass('changed')
+      )
