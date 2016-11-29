@@ -21,7 +21,7 @@ class SandboxShipmentChangesSerializer < ActiveModel::Serializer
 
   def changes
     object.versions.map(&:changeset).each do |changes|
-      changes.delete("updated_at")
+      changes.delete("updated_at") if changes.present?
     end
   end
 
