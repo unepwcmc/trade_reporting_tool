@@ -5,6 +5,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     @state = {
       annualReportUpload: props.annualReportUpload
       submitted: !!props.annualReportUpload.submitted_at
+      sandboxEnabled: !!props.sandboxEnabled
     }
     @changeFile = @updateModal.bind(@, @summary())
 
@@ -21,7 +22,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     else
       div(
         {className: 'in-progress-upload'}
-        unless @state.sandbox_enabled
+        unless @state.sandboxEnabled
           @renderWithDownload()
         else
           @renderWithSandbox(@state.annualReportUpload)
