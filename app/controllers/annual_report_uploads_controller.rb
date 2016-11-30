@@ -32,11 +32,11 @@ class AnnualReportUploadsController < ApplicationController
       ShowAnnualReportUploadSerializer.new(annual_report_upload)
   end
 
-  # TODO get shipments by Annual Report Uploads
   def changes_history
     @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
-    shipments = Trade::SandboxTemplate.joins(
-      "JOIN versions v on v.item_id = trade_sandbox_template.id"
+    ar_klass = @annual_report_upload.sandbox.ar_klass
+    shipments = ar_klass.joins(
+      "JOIN versions v on v.item_id = #{ar_klass.table_name}.id"
     ).uniq
     per_page = Trade::SandboxTemplate.per_page
     @total_pages = (shipments.count / per_page.to_f).ceil

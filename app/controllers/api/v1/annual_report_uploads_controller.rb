@@ -23,10 +23,11 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
     }
   end
 
-  # TODO get shipments by Annual Report Upload
   def changes_history
-    shipments = Trade::SandboxTemplate.all.joins(
-      "JOIN versions v ON v.item_id = trade_sandbox_template.id"
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    ar_klass = @annual_report_upload.sandbox.ar_klass
+    shipments = ar_klass.joins(
+      "JOIN versions v on v.item_id = #{ar_klass.table_name}.id"
     ).uniq
     @shipments = shipments.paginate(
       page: params[:shipments]).map do |shipment|

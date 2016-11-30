@@ -3,8 +3,6 @@ class Trade::SandboxTemplate < Sapi::Base
   self.per_page = 10
   self.table_name = :trade_sandbox_template
 
-  has_paper_trail
-
   COLUMNS_IN_CSV_ORDER = [
     "appendix", "species_name", "term_code", "quantity", "unit_code",
     "trading_partner", "country_of_origin", "import_permit", "export_permit",
@@ -25,6 +23,7 @@ class Trade::SandboxTemplate < Sapi::Base
       klass = Class.new(Sapi::Base) do
         self.table_name = table_name
         include ActiveModel::ForbiddenAttributesProtection
+        has_paper_trail
         # belongs_to :taxon_concept
         # belongs_to :reported_taxon_concept, :class_name => TaxonConcept
 
