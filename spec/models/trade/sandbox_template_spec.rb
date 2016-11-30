@@ -1,23 +1,39 @@
 require "rails_helper"
 
 RSpec.describe Trade::SandboxTemplate, type: :model do
-  let(:sandbox_template) {
-    FactoryGirl.create(:sandbox_template, year: '2016')
+  let(:aru){ FactoryGirl.create(:annual_report_upload) }
+  let(:shipment){
+    sandbox = aru.sandbox
+    sandbox.copy_data({
+      CITESReport: [
+        {
+          CITESReportRow:  {
+            TradingPartnerId:  "FR",
+            Year:  2016,
+            ScientificName:  "Alligator mississipiensis",
+            Appendix:  nil,
+            TermCode:  "SKI",
+            Quantity:  5.0,
+            UnitCode:  "KIL",
+            SourceCode:  "W",
+            PurposeCode:  "Z",
+            OriginCountryId:  "US",
+            OriginPermitId:  nil,
+            ExportPermitId:  "CH123",
+            ImportPermitId:  nil
+          }
+        }
+      ]
+    })
+    sandbox.ar_klass.first
   }
-
-  describe :create do
-    it "generates a version with create event", versioning: true do
-      expect(sandbox_template.versions.size).to eq(1)
-      expect(sandbox_template.versions.last.event).to eq('create')
-    end
-  end
 
   describe :update do
     it "generates a version with update", versioning: true do
-      sandbox_template.update_attributes(year: '2015')
+      shipment.update_attributes(year: '2015')
 
-      expect(sandbox_template.versions.size).to eq(2)
-      expect(sandbox_template.versions.last.event).to eq('update')
+      expect(shipment.versions.size).to eq(1)
+      expect(shipment.versions.last.event).to eq('update')
     end
   end
 end

@@ -92,7 +92,30 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
           submitted_at: DateTime.now
         )
       }
-      @sanbox_template = FactoryGirl.create(:sandbox_template)
+      sandbox = @epix_upload.sandbox
+      sandbox.copy_data({
+        CITESReport: [
+          {
+            CITESReportRow:  {
+              TradingPartnerId:  "FR",
+              Year:  2016,
+              ScientificName:  "Alligator mississipiensis",
+              Appendix:  nil,
+              TermCode:  "SKI",
+              Quantity:  5.0,
+              UnitCode:  "KIL",
+              SourceCode:  "W",
+              PurposeCode:  "Z",
+              OriginCountryId:  "US",
+              OriginPermitId:  nil,
+              ExportPermitId:  "CH123",
+              ImportPermitId:  nil
+            }
+          }
+        ]
+      })
+      @sandbox_template = sandbox.ar_klass.first
+      @sandbox_template.update_attributes(year: 2015)
     end
 
     context "Initialise variables" do
