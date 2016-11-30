@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
     if request.referer.slice(0..(referer_index)) == sign_in_url
       annual_report_uploads_path
     else
-      stored_location_for(resource) || request.referer || root_path
+      stored_location_for(resource) || root_path
     end
   end
 
