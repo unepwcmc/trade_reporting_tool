@@ -68,19 +68,41 @@ RSpec.describe Api::V1::AnnualReportUploadsController, type: :controller do
           submitted_at: DateTime.now
         )
       }
-      @sandbox_template = FactoryGirl.create(:sandbox_template, year: '2016')
-      @sandbox_template.update_attributes!(year: '2015')
+      sandbox = @epix_upload.sandbox
+      sandbox.copy_data({
+        CITESReport: [
+          {
+            CITESReportRow:  {
+              TradingPartnerId:  "FR",
+              Year:  2016,
+              ScientificName:  "Alligator mississipiensis",
+              Appendix:  nil,
+              TermCode:  "SKI",
+              Quantity:  5.0,
+              UnitCode:  "KIL",
+              SourceCode:  "W",
+              PurposeCode:  "Z",
+              OriginCountryId:  "US",
+              OriginPermitId:  nil,
+              ExportPermitId:  "CH123",
+              ImportPermitId:  nil
+            }
+          }
+        ]
+      })
+      @sandbox_template = sandbox.ar_klass.first
+      @sandbox_template.update_attributes(year: 2015)
     end
 
-    #context "Retrieve shipments" do
-    #  it "should get shipments with changes only", versioning: true do
-    #    @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
-    #    sign_in @sapi_user
+    context "Retrieve shipments" do
+      it "should get shipments with changes only", versioning: true do
+        @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
+        sign_in @sapi_user
 
-    #    get :changes_history, id: @epix_upload.id
+        get :changes_history, id: @epix_upload.id
 
-    #    expect(assigns(:shipments).size).to eq(1)
-    #  end
-    #end
+        expect(assigns(:shipments).size).to eq(1)
+      end
+    end
   end
 end
