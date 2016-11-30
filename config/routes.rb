@@ -19,6 +19,7 @@ Rails.application.routes.draw do
   end
 
   resources :annual_report_uploads, only: [:index, :show]
+  get 'annual_report_uploads/:id/changes_history', to: 'annual_report_uploads#changes_history', as: 'changes_history'
   resources :shipments, only: [:index]
 
   wash_out "api/v1/cites_reporting"
@@ -26,6 +27,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :annual_report_uploads, only: [:index]
+      get 'annual_report_uploads/:id/changes_history', to: 'annual_report_uploads#changes_history'
       resources :shipments, only: [:index]
     end
   end

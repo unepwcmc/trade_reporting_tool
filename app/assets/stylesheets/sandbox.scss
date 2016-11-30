@@ -1,5 +1,6 @@
 .sandbox-header {
-  margin: 35px 0;
+  margin: 35px 0 0;
+  h1.sandbox-title { border: 0; }
 }
 h1.sandbox-title {
   span {
@@ -10,10 +11,15 @@ h1.sandbox-title {
   margin: 0;
 }
 h3.sandbox-upload-summary {
+  margin: 0 0 35px 0;
   border-bottom: 3px solid $light-grey;
   font-weight: normal;
-  margin: 0;
   color: $main-blue;
+  &.no-border {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 .sandbox-body {
@@ -149,7 +155,7 @@ h3.sandbox-upload-summary {
       margin: 0 0 10px;
     }
     .permit-col-name { padding: 0 30px 0 0; }
-    .accepted-name { font-weight: normal; }
+    .subtitle { font-weight: normal; }
     .empty-col { padding: 0 0 40px 0; }
     tr { vertical-align: top; }
     th { padding: 10px 15px 0; }
@@ -166,6 +172,10 @@ h3.sandbox-upload-summary {
     i.fa { text-decoration: underline; }
     .actions-col {
       div { padding: 0 0 5px 0; }
+    }
+    span.changed {
+      background: $pink;
+      padding: 5px 7px;
     }
   }
 }
@@ -209,3 +219,5 @@ h3.sandbox-upload-summary {
   position: relative;
   top: 32px;
 }
+
+.changes-link { height: 0; }

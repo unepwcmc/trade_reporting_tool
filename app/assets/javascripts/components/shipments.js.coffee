@@ -5,7 +5,8 @@ window.Shipments = class Shipments extends React.Component
     @state = {
       data: [],
       pageName: props.pageName,
-      page: props.page
+      page: props.page,
+      annualReportUploadId: props.annualReportUploadId
     }
 
   render: ->
@@ -22,18 +23,38 @@ window.Shipments = class Shipments extends React.Component
   getShipments: ->
     return '' unless @state.data
     for shipment, idx in @state.data
-      React.createElement(Shipment,
-        {
-          key: shipment.id
-          shipment: shipment
-          rowType: if idx % 2 == 0 then 'even' else 'odd'
-        }
-      )
+      rowType = if idx % 2 == 0 then 'even' else 'odd'
+      [
+        React.createElement(Shipment,
+          {
+            key: shipment.id
+            shipment: shipment
+            rowType: rowType
+            changesHistory: !!@state.annualReportUploadId
+          }
+        )
+        if @state.annualReportUploadId
+          for version, v_idx in shipment.versions
+            React.createElement(ShipmentVersion,
+              {
+                key: "#{shipment.id}_#{v_idx}"
+                shipment: version
+                changes: shipment.changes[v_idx]
+                rowType: rowType
+              }
+            )
+      ]
 
   getData: (props) ->
     props = props || @props
+    url = window.location.origin
+    aru_id = @state.annualReportUploadId
+    if aru_id
+      url = url + "/api/v1/annual_report_uploads/#{aru_id}/changes_history"
+    else
+      url = url + '/api/v1/shipments'
     $.ajax({
-      url: window.location.origin + '/api/v1/shipments'
+      url: url
       data: props.pageName + "=" + props.page
       dataType: 'json'
       success: (response) =>

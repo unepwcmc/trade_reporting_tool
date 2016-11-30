@@ -23,6 +23,22 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
     }
   end
 
+  def changes_history
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    ar_klass = @annual_report_upload.sandbox.ar_klass
+    shipments = ar_klass.joins(
+      "JOIN versions v on v.item_id = #{ar_klass.table_name}.id"
+    ).uniq
+    @shipments = shipments.paginate(
+      page: params[:shipments]).map do |shipment|
+        SandboxShipmentChangesSerializer.new(shipment)
+      end
+
+    render json: {
+      shipments: @shipments
+    }
+  end
+
   private
 
   def authenticate_user!

@@ -23,6 +23,7 @@ class Trade::SandboxTemplate < Sapi::Base
       klass = Class.new(Sapi::Base) do
         self.table_name = table_name
         include ActiveModel::ForbiddenAttributesProtection
+        has_paper_trail
         # belongs_to :taxon_concept
         # belongs_to :reported_taxon_concept, :class_name => TaxonConcept
 

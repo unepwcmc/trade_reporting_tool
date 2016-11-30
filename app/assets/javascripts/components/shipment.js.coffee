@@ -2,10 +2,17 @@
 window.Shipment = class Shipment extends React.Component
   constructor: (props, context) ->
     super(props, context)
+    @state = {
+      shipment: props.shipment
+      rowType: props.rowType
+      changesHistory: props.changesHistory
+    }
 
   render: ->
-    data = @props.shipment
-    tr({ className: @props.rowType},
+    data = @state.shipment
+    tr({ className: @state.rowType },
+      if @state.changesHistory
+        td({}, '')
       td({}, data.appendix)
       td({},
         div(
@@ -24,22 +31,23 @@ window.Shipment = class Shipment extends React.Component
       td({}
         data.purpose_code + ' - ' + data.source_code + ' - ' + data.year
       )
-      td({ className: 'actions-col' },
-        div(
-          {}
-          a(
-            { className: 'green-link-underlined' }
-            i({ className: 'fa fa-pencil-square-o'})
-            " #{I18n.t('edit')}"
+      unless @state.changesHistory
+        td({ className: 'actions-col' },
+          div(
+            {}
+            a(
+              { className: 'green-link-underlined' }
+              i({ className: 'fa fa-pencil-square-o'})
+              " #{I18n.t('edit')}"
+            )
+          )
+          div(
+            {}
+            a(
+              { className: 'green-link-underlined' }
+              i({ className: 'fa fa-times' })
+              " #{I18n.t('delete')}"
+            )
           )
         )
-        div(
-          {}
-          a(
-            { className: 'green-link-underlined' }
-            i({ className: 'fa fa-times' })
-            " #{I18n.t('delete')}"
-          )
-        )
-      )
     )

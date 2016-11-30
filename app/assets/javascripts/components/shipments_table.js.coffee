@@ -5,7 +5,8 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
     @state = {
       pageName: props.pageName,
       totalPages: props.totalPages,
-      page: 1
+      page: 1,
+      annualReportUploadId: props.annualReportUploadId
     }
     @incrementPage = @changePage.bind(@, 1)
     @decrementPage = @changePage.bind(@, -1)
@@ -26,10 +27,15 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
   renderHead: ->
     thead({},
       tr({},
+        if @state.annualReportUploadId
+          th({}
+            div({}, 'Reference')
+            div({ className: 'subtitle' }, 'Change time')
+          )
         th({}, 'Appendix')
         th({},
           div({}, 'Taxon Name')
-          div({ className: 'accepted-name' }, 'Accepted Taxon Name')
+          div({ className: 'subtitle' }, 'Accepted Taxon Name')
         )
         th({}, 'Term')
         th({}, 'Qty')
@@ -55,16 +61,18 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
           div({}, 'Source-')
           div({}, 'Year')
         )
-        th({}, 'Actions')
+        unless @state.annualReportUploadId
+          th({}, 'Actions')
       )
     )
 
   renderBody: ->
     React.createElement(Shipments,
       {
-        key: @state.pageName,
-        pageName: @state.pageName,
+        key: @state.pageName
+        pageName: @state.pageName
         page: @state.page
+        annualReportUploadId: @state.annualReportUploadId
       }
     )
 
