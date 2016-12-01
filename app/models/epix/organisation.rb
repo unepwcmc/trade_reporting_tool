@@ -5,6 +5,8 @@ module Epix
     SYSTEM_MANAGERS = 'System Managers'
     OTHER = 'Other'
 
+    AUTHORISED = [CITES_MA, SYSTEM_MANAGERS]
+
     belongs_to :country
   end
 end
