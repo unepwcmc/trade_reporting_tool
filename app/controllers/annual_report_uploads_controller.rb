@@ -53,6 +53,14 @@ class AnnualReportUploadsController < ApplicationController
     redirect_to annual_report_uploads_path
   end
 
+  def download_error_report
+    aru = Trade::AnnualReportUpload.find(params[:id])
+    validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
+    data = File.read(validation_report_csv_file)
+
+    send_data data, type: 'text/csv', filename: "validation_report_#{aru.id}.csv"
+  end
+
   private
 
   def authenticate_user!
