@@ -60,6 +60,20 @@ class Trade::AnnualReportUpload < Sapi::Base
     point_of_view == 'E'
   end
 
+  def creator
+    sapi_creator || epix_creator
+  end
+
+  def user_authorised_to_destroy?(user)
+    if creator.is_a?(Epix::User)
+      return false if user.is_a?(Sapi::User)
+      return (user.id == creator.id ||
+        (user.organisation.id == creator.organisation.id && user.is_admin))
+    else
+      return user.is_a?(Sapi::User) && user.role == 'admin'
+    end
+  end
+
   def process_validation_rules
     @primary_validation_errors = run_validations(
       Trade::ValidationRule.where(is_primary: true)

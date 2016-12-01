@@ -42,9 +42,25 @@ class AnnualReportUploadsController < ApplicationController
     @total_pages = (shipments.count / per_page.to_f).ceil
   end
 
+  def destroy
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    deleted = true
+    unless @annual_report_upload.user_authorised_to_destroy?(current_user)
+      deleted = false
+    else
+      unless @annual_report_upload.submitted_at.present?
+        deleted = @annual_report_upload.sandbox.try(:destroy) &&
+          @annual_report_upload.destroy
+      end
+    end
+    deleted ? flash[:notice] = t('aru_deleted') : flash[:alert] = t('aru_not_deleted')
+    redirect_to annual_report_uploads_path
+  end
+
   private
 
   def authenticate_user!
     render "unauthorised" unless (current_epix_user || current_sapi_user).present?
   end
+
 end
