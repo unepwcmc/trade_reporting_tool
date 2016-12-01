@@ -138,4 +138,129 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
       expect(assigns(:total_pages)).to eq(1)
     end
   end
+
+  describe "DELETE destroy" do
+    context "when current user is admin from SAPI" do
+      before(:each) do
+        @epix_user = FactoryGirl.create(:epix_user)
+        @sapi_user = FactoryGirl.create(:sapi_user)
+        @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
+        sign_in @sapi_user
+      end
+      context "when aru created by another SAPI user" do
+        before(:each) do
+          @another_sapi_user = FactoryGirl.create(:sapi_user)
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            created_by_id: @another_sapi_user.id
+          )
+        end
+        it "should destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(-1)
+        end
+      end
+      context "when aru created by EPIX user" do
+        before(:each) do
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            epix_created_by_id: @epix_user.id
+          )
+        end
+        it "should not destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(0)
+        end
+      end
+    end
+    context "when current user is admin from EPIX" do
+      before(:each) do
+        @epix_user = FactoryGirl.create(:epix_user, is_admin: true)
+        @sapi_user = FactoryGirl.create(:sapi_user)
+        @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+        sign_in @epix_user
+      end
+      context "when aru created by EPIX user from same organisation" do
+        before(:each) do
+          @organisation = @epix_user.organisation
+          @another_epix_user = FactoryGirl.create(:epix_user, organisation: @organisation)
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            epix_created_by_id: @another_epix_user.id
+          )
+        end
+        it "should destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(-1)
+        end
+      end
+      context "when aru created by EPIX user from another organisation" do
+        before(:each) do
+          @another_epix_user = FactoryGirl.create(:epix_user)
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            epix_created_by_id: @another_epix_user.id
+          )
+        end
+        it "should destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(0)
+        end
+      end
+    end
+    context "when current user is not an admin from EPIX" do
+      before(:each) do
+        @epix_user = FactoryGirl.create(:epix_user, is_admin: false)
+        @sapi_user = FactoryGirl.create(:sapi_user)
+        @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+        sign_in @epix_user
+      end
+      context "when aru created by the same EPIX user" do
+        before(:each) do
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            epix_created_by_id: @epix_user.id
+          )
+        end
+        it "should destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(-1)
+        end
+      end
+      context "when aru created by EPIX user from same organisation" do
+        before(:each) do
+          @organisation = @epix_user.organisation
+          @another_epix_user = FactoryGirl.create(:epix_user, organisation: @organisation)
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            epix_created_by_id: @another_epix_user.id
+          )
+        end
+        it "should destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(0)
+        end
+      end
+      context "when aru created by EPIX user from another organisation" do
+        before(:each) do
+          @another_epix_user = FactoryGirl.create(:epix_user)
+          @aru = FactoryGirl.create(
+            :annual_report_upload,
+            epix_created_by_id: @another_epix_user.id
+          )
+        end
+        it "should destroy aru" do
+          expect {
+            delete :destroy, id: @aru.id
+          }.to change(Trade::AnnualReportUpload, :count).by(0)
+        end
+      end
+    end
+  end
 end
