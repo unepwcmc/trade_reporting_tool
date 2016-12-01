@@ -3,7 +3,7 @@ module SandboxHelper
     content_tag(:div, nil, class: 'download-and-submit') do
       content_tag(:div, nil, class: 'download-report') do
         content_tag(:i, nil, class: 'fa fa-download') +
-        link_to(t('download_report_on_errors'), '#', class: 'bold')
+        link_to(t('download_report_on_errors'), download_error_report_path, class: 'bold')
       end +
       content_tag(:div, nil, class: 'submit-shipments') do
         validation_errors = @annual_report_upload.validation_errors
