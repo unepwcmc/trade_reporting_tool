@@ -27,7 +27,11 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         else
           @renderWithSandbox(@state.annualReportUpload)
         a(
-          {className: 'delete-upload', href: '#'}
+          {
+            className: 'delete-upload',
+            href: "/annual_report_uploads/#{@state.annualReportUpload.id}",
+            "data-method": 'delete'
+          }
           i({className: 'fa fa-times'})
           I18n.t('delete')
         )
