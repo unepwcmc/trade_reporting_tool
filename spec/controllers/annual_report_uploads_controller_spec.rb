@@ -140,6 +140,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
   end
 
   describe "DELETE destroy" do
+    before(:each) do
+      request.env['HTTP_REFERER'] = 'http://example.com'
+    end
     context "when current user is admin from SAPI" do
       before(:each) do
         @epix_user = FactoryGirl.create(:epix_user)
