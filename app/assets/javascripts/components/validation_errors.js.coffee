@@ -5,7 +5,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
     @state = {
       data: @props.validationErrors,
       numToShow: 5
-      showAll: false
+      showAllErrors: false
       hideAll: false
       ignored: @props.ignored
     }
@@ -48,7 +48,8 @@ window.ValidationErrors = class ValidationErrors extends React.Component
         [
           @renderInfoBox()
           @renderValidationErrors()
-          if @state.showAll then @renderShowLess() else @renderShowMore()
+          if @state.data.length > @state.numToShow
+            if @state.showAllErrors then @renderShowLess() else @renderShowMore()
         ]
     )
 
@@ -64,7 +65,7 @@ window.ValidationErrors = class ValidationErrors extends React.Component
 
   renderValidationErrors: ->
     for validationError, idx in @state.data
-      hidden = if @state.showAll then false else idx >= @state.numToShow
+      hidden = if @state.showAllErrors then false else idx >= @state.numToShow
       unless hidden
         React.createElement(ValidationError,
           {
@@ -98,8 +99,8 @@ window.ValidationErrors = class ValidationErrors extends React.Component
     @setState({ hideAll: !@state.hideAll})
 
   showMore: ->
-    @setState({ showAll: true })
+    @setState({ showAllErrors: true })
 
   showLess: ->
-    @setState({ showAll: false })
+    @setState({ showAllErrors: false })
 
