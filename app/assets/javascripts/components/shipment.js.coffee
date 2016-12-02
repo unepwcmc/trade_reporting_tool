@@ -5,6 +5,7 @@ window.Shipment = class Shipment extends React.Component
     @state = {
       shipment: props.shipment
       rowType: props.rowType
+      annualReportUploadId: props.annualReportUploadId
       changesHistory: props.changesHistory
     }
 
@@ -44,7 +45,11 @@ window.Shipment = class Shipment extends React.Component
           div(
             {}
             a(
-              { className: 'green-link-underlined' }
+              {
+                className: 'green-link-underlined'
+                href: "/annual_report_uploads/#{@state.annualReportUploadId}/shipments/#{@state.shipment.id}"
+                "data-method": 'delete'
+              }
               i({ className: 'fa fa-times' })
               " #{I18n.t('delete')}"
             )

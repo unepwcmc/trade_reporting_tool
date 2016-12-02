@@ -7,6 +7,7 @@ window.Shipments = class Shipments extends React.Component
       pageName: props.pageName,
       page: props.page,
       annualReportUploadId: props.annualReportUploadId
+      changesHistory: props.changesHistory
     }
 
   render: ->
@@ -30,10 +31,11 @@ window.Shipments = class Shipments extends React.Component
             key: shipment.id
             shipment: shipment
             rowType: rowType
-            changesHistory: !!@state.annualReportUploadId
+            annualReportUploadId: @state.annualReportUploadId
+            changesHistory: @state.changesHistory
           }
         )
-        if @state.annualReportUploadId
+        if @state.changesHistory
           for version, v_idx in shipment.versions
             React.createElement(ShipmentVersion,
               {
@@ -49,7 +51,7 @@ window.Shipments = class Shipments extends React.Component
     props = props || @props
     url = window.location.origin
     aru_id = @state.annualReportUploadId
-    if aru_id
+    if @state.changesHistory
       url = url + "/api/v1/annual_report_uploads/#{aru_id}/changes_history"
     else
       url = url + '/api/v1/shipments'
