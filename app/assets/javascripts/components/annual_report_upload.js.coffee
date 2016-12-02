@@ -11,9 +11,15 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
 
   updateModal: (filename) ->
     $('#download_modal .file-to-download').html(filename)
-    $('#download_modal .download-button').attr('href',
+    download_button = $('#download_modal .download-button')
+    download_button.attr('href',
       "/annual_report_uploads/#{@state.annualReportUpload.id}/download_error_report"
     )
+    if @state.annualReportUpload.has_validation_report
+      download_button.removeClass('disabled')
+    else
+      download_button.addClass('disabled')
+
 
   render: ->
     if @state.submitted
