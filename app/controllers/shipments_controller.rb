@@ -8,7 +8,10 @@ class ShipmentsController < ApplicationController
   end
 
   def destroy
-    @shipment = Trade::SandboxTemplate.find(params[:id])
+    @annual_report_upload =
+      Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
+    @shipment = @annual_report_upload.sandbox.ar_klass.find(params[:id])
     @shipment.destroy
+    redirect_to annual_report_upload_shipments_path(@annual_report_upload)
   end
 end
