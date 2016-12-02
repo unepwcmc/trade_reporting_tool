@@ -18,7 +18,7 @@ Rails.application.routes.draw do
     }
   end
 
-  resources :annual_report_uploads, only: [:index, :show]
+  resources :annual_report_uploads, only: [:index, :show, :destroy]
   get 'annual_report_uploads/:id/changes_history', to: 'annual_report_uploads#changes_history', as: 'changes_history'
   resources :shipments, only: [:index]
 

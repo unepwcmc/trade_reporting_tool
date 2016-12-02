@@ -49,3 +49,5 @@ en:
   back_to_epix: 'Back to EPIX'
   back_to_speciesplus: 'Back to Species+'
   unauthorised: "You are not authorised to access this resource."
+  aru_deleted: 'Annual Report Upload successfully deleted.'
+  aru_not_deleted: 'Cannot delete Annual Report Upload.'

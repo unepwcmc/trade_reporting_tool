@@ -60,6 +60,19 @@ class Trade::AnnualReportUpload < Sapi::Base
     point_of_view == 'E'
   end
 
+  def creator
+    sapi_creator || epix_creator
+  end
+
+  def destroy_with_sandbox
+    destroyed = false
+    self.transaction do
+      self.sandbox.try(:destroy)
+      destroyed = self.destroy
+    end
+    destroyed
+  end
+
   def process_validation_rules
     @primary_validation_errors = run_validations(
       Trade::ValidationRule.where(is_primary: true)
