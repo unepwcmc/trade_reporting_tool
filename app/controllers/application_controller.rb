@@ -33,11 +33,34 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def default_url_options
+    { locale: I18n.locale }
+  end
+
+  private
+
   def set_locale
     I18n.locale = params[:locale] || I18n.default_locale
   end
 
-  def default_url_options
-    { locale: I18n.locale }
+  def authorise_edit
+    aru_id = params[:annual_report_upload_id] || params[:id]
+    aru = Trade::AnnualReportUpload.find(aru_id)
+    creator = aru.creator
+    authorised = true
+    if creator.is_a?(Epix::User)
+      if current_user.is_a?(Sapi::User)
+        flash[:alert] = t('action_unauthorised')
+        redirect_to request.referer and return true
+      end
+      authorised = (current_user.id == creator.id ||
+        (current_user.organisation.id == creator.organisation.id && current_user.is_admin))
+    else
+      authorised = current_user.is_a?(Sapi::User) && current_user.role == Sapi::User::MANAGER
+    end
+    if !authorised || aru.submitted_at.present?
+      flash[:alert] = t('action_unauthorised')
+      redirect_to request.referer
+    end
   end
 end
