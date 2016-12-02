@@ -20,6 +20,8 @@ I18n.translations["en"] = I18n.extend((I18n.translations["en"] || {}),
     "show_less_errors": "Show less errors",
     "edit": "Edit",
     "edit_all_errors": "Edit all affected errors",
-    "close": "Close"
+    "close": "Close",
+    "submitted_at_info_box": "This report has been submitted by",
+    "change_sandbox_settings": 'If you would like to correct these existing errors by using the app sandbox please update the relevant settings on <a href="#" class="bold">your admin account page.</a>'
   }
 )

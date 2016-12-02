@@ -7,11 +7,13 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       submitted: !!props.annualReportUpload.submitted_at
       sandboxEnabled: !!props.sandboxEnabled
     }
-    @changeFile = @updateModal.bind(@, @summary())
+    @updateModal = @updateModal.bind(@, @summary())
 
   updateModal: (filename) ->
     $('#download_modal .file-to-download').html(filename)
     download_button = $('#download_modal .download-button')
+    modal_content = $('#download_modal .modal-content')
+    info_text = $('#download_modal .info-text')
     download_button.attr('href',
       "/annual_report_uploads/#{@state.annualReportUpload.id}/download_error_report"
     )
@@ -19,6 +21,16 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       download_button.removeClass('disabled')
     else
       download_button.addClass('disabled')
+    if @state.submitted
+      modal_content.addClass('smaller')
+      text = I18n.t('submitted_at_info_box') + " #{@state.annualReportUpload.submitted_by} "
+      text = text + I18n.t('the') + " #{@state.annualReportUpload.submitted_at}"
+      info_text.html(text)
+    else
+      modal_content.removeClass('smaller')
+      info_text.html(I18n.t('change_sandbox_settings'))
+
+
 
 
   render: ->
@@ -53,7 +65,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         href: '#',
         "data-toggle": "modal",
         "data-target": "#download_modal",
-        onClick: @changeFile,
+        onClick: @updateModal,
       }
       @summary()
     )
