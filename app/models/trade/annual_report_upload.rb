@@ -64,14 +64,13 @@ class Trade::AnnualReportUpload < Sapi::Base
     sapi_creator || epix_creator
   end
 
-  def user_authorised_to_destroy?(user)
-    if creator.is_a?(Epix::User)
-      return false if user.is_a?(Sapi::User)
-      return (user.id == creator.id ||
-        (user.organisation.id == creator.organisation.id && user.is_admin))
-    else
-      return user.is_a?(Sapi::User) && user.role == 'admin'
+  def destroy_with_sandbox
+    destroyed = false
+    self.transaction do
+      self.sandbox.try(:destroy)
+      destroyed = self.destroy
     end
+    destroyed
   end
 
   def process_validation_rules
