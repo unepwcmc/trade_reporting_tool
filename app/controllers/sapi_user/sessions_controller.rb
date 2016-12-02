@@ -10,7 +10,7 @@ class SapiUser::SessionsController < ::Devise::SessionsController
   def is_authorised?
     email = params[:sapi_user][:email]
     user = Sapi::User.find_by_email(email)
-    if user && user.role != 'admin'
+    if user && user.role != Sapi::User::MANAGER
       redirect_to new_sapi_user_session_path, flash: { alert: t('unauthorised') }
     end
   end
