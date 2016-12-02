@@ -49,12 +49,12 @@ window.Shipments = class Shipments extends React.Component
 
   getData: (props) ->
     props = props || @props
-    url = window.location.origin
     aru_id = @state.annualReportUploadId
+    url = window.location.origin + "/api/v1/annual_report_uploads/#{aru_id}"
     if @state.changesHistory
-      url = url + "/api/v1/annual_report_uploads/#{aru_id}/changes_history"
+      url = url + "/changes_history"
     else
-      url = url + '/api/v1/shipments'
+      url = url + '/shipments'
     $.ajax({
       url: url
       data: props.pageName + "=" + props.page

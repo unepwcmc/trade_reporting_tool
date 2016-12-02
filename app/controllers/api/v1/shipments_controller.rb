@@ -2,7 +2,9 @@ class Api::V1::ShipmentsController < ApplicationController
   before_action :authenticate_user!
 
   def index
-    @shipments = Trade::SandboxTemplate.all.paginate(
+    @annual_report_upload =
+      Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
+    @shipments = @annual_report_upload.sandbox.shipments.paginate(
       page: params[:shipments]).map do |shipment|
         SandboxShipmentSerializer.new(shipment)
       end
