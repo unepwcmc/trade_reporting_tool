@@ -5,7 +5,28 @@ RSpec.describe ShipmentsController, type: :controller do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @aru = FactoryGirl.create(:annual_report_upload)
-      @shipment = FactoryGirl.create(:sandbox_template)
+      @aru.sandbox.copy_data({
+        CITESReport: [
+          {
+            CITESReportRow:  {
+              TradingPartnerId:  "FR",
+              Year:  2016,
+              ScientificName:  "Alligator mississipiensis",
+              Appendix:  nil,
+              TermCode:  "SKI",
+              Quantity:  5.0,
+              UnitCode:  "KIL",
+              SourceCode:  "W",
+              PurposeCode:  "Z",
+              OriginCountryId:  "US",
+              OriginPermitId:  nil,
+              ExportPermitId:  "CH123",
+              ImportPermitId:  nil
+            }
+          }
+        ]
+      })
+      @shipment = @aru.sandbox.ar_klass.first
     end
 
     it "should assigns total number of pages" do
