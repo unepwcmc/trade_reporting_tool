@@ -1,7 +1,9 @@
 module SandboxHelper
   def download_and_submit
+    download_disabled =
+      @annual_report_upload.has_validation_report ? '' : 'disabled'
     content_tag(:div, nil, class: 'download-and-submit') do
-      content_tag(:div, nil, class: 'download-report') do
+      content_tag(:div, nil, class: "download-report #{download_disabled}") do
         content_tag(:i, nil, class: 'fa fa-download') +
         link_to(t('download_report_on_errors'), download_error_report_path, class: 'bold')
       end +
