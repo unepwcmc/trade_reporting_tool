@@ -1,5 +1,5 @@
 class ShipmentsController < ApplicationController
-  before_action :authorise_edit, only: [:destroy]
+  before_action :authorise_edit, only: [:edit, :update, :destroy]
 
   def index
     @annual_report_upload =
@@ -11,10 +11,14 @@ class ShipmentsController < ApplicationController
   end
 
   def edit
+    @annual_report_upload =
+      Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
     @shipment = Trade::SandboxTemplate.find(params[:id])
   end
 
   def update
+    @shipment = Trade::SandboxTemplate.find(params[:id])
+    @shipment.update_attributes(shipment_params)
   end
 
   def destroy
@@ -27,5 +31,15 @@ class ShipmentsController < ApplicationController
       flash[:error] = t('shipment_not_deleted')
     end
     redirect_to annual_report_upload_shipments_path(@annual_report_upload)
+  end
+
+  private
+
+  def shipment_params
+    params.require(:trade_sandbox_template).
+      permit(:appendix, :taxon_name, :term_code, :quantity,
+             :unit_code, :trading_partner, :country_of_origin,
+             :import_permit, :export_permit, :origin_permit,
+             :purpose_code, :source_code, :year)
   end
 end

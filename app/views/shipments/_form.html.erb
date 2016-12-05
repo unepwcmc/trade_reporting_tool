@@ -3,10 +3,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Appendix',
+        name: 'appendix',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.appendix)
+        value: (@shipment && @shipment.appendix),
+        form: form.object_name
       })
     %>
   </div>
@@ -14,10 +16,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Taxon name',
+        name: 'taxon_name',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.taxon_name)
+        value: (@shipment && @shipment.taxon_name),
+        form: form.object_name
       })
     %>
   </div>
@@ -27,10 +31,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Term',
+        name: 'term_code',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.term_code)
+        value: (@shipment && @shipment.term_code),
+        form: form.object_name
       })
     %>
   </div>
@@ -38,10 +44,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Quantity (Qty)',
+        name: 'quantity',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.quantity)
+        value: (@shipment && @shipment.quantity),
+        form: form.object_name
       })
     %>
   </div>
@@ -49,10 +57,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Unit',
+        name: 'unit_code',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.unit_code)
+        value: (@shipment && @shipment.unit_code),
+        form: form.object_name
       })
     %>
   </div>
@@ -60,10 +70,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Trading partner',
+        name: 'trading_partner',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.trading_partner)
+        value: (@shipment && @shipment.trading_partner),
+        form: form.object_name
       })
     %>
   </div>
@@ -73,10 +85,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Origin',
+        name: 'country_of_origin',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        value: (@shipment && @shipment.country_of_origin)
+        value: (@shipment && @shipment.country_of_origin),
+        form: form.object_name
       })
     %>
   </div>
@@ -84,9 +98,11 @@
     <%= react_component("InputBox",
       {
         title: 'Import Permit',
+        name: 'import_permit',
         enabled: true,
         blankCheckbox: true,
-        value: (@shipment && @shipment.import_permit)
+        value: (@shipment && @shipment.import_permit),
+        form: form.object_name
       })
     %>
   </div>
@@ -94,9 +110,11 @@
     <%= react_component("InputBox",
       {
         title: 'Export Permit',
+        name: 'export_permit',
         enabled: false,
         blankCheckbox: true,
-        value: (@shipment && @shipment.export_permit)
+        value: (@shipment && @shipment.export_permit),
+        form: form.object_name
       })
     %>
   </div>
@@ -104,9 +122,11 @@
     <%= react_component("InputBox",
       {
         title: 'Origin Permit',
+        name: 'origin_permit',
         enabled: true,
         blankCheckbox: true,
-        value: (@shipment && @shipment.origin_permit)
+        value: (@shipment && @shipment.origin_permit),
+        form: form.object_name
       })
     %>
   </div>
@@ -116,10 +136,12 @@
     <%= react_component("Dropdown",
       {
         title: 'Purpose Code',
+        name: 'purpose_code',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: false,
-        value: (@shipment && @shipment.purpose_code)
+        value: (@shipment && @shipment.purpose_code),
+        form: form.object_name
       })
     %>
   </div>
@@ -127,11 +149,13 @@
     <%= react_component("Dropdown",
       {
         title: 'Source code',
+        name: 'source_code',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
         blankCheckbox: true,
-        value: (@shipment && @shipment.source_code)
+        value: (@shipment && @shipment.source_code),
+        form: form.object_name
       })
     %>
   </div>
@@ -139,8 +163,10 @@
     <%= react_component("InputBox",
       {
         title: 'Year',
+        name: 'year',
         enabled: true,
-        value: (@shipment && @shipment.year)
+        value: (@shipment && @shipment.year),
+        form: form.object_name
       })
     %>
   </div>
@@ -148,5 +174,5 @@
 
 <div class="buttons align-right">
   <%= link_to t('cancel'), '', class: "button btn-scnd" %>
-  <%= link_to t('update_selection'), '', class: "button" %>
+  <%= submit_tag t('update_selection'), class: "button" %>
 </div>

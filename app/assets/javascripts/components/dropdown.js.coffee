@@ -4,12 +4,14 @@ window.Dropdown = class Dropdown extends React.Component
     super(props, context)
     @state = {
       title: props.title,
+      name: props.name,
       placeholder: props.placeholder,
       data: props.data,
       selection: null,
       enabled: props.enabled,
       blankCheckbox: props.blankCheckbox || false
       value: props.value
+      form: props.form
     }
     @processSelection = @processSelection.bind(@)
 
@@ -37,6 +39,15 @@ window.Dropdown = class Dropdown extends React.Component
             a({}, item)
           )
       )
+      input(
+        {
+          className: 'dropdown-input',
+          name: "#{@state.form}[#{@state.name}]",
+          type: 'text',
+          defaultValue: @state.value || ''
+        }
+      )
+
     )
 
   renderCheckbox: ->
@@ -48,5 +59,6 @@ window.Dropdown = class Dropdown extends React.Component
 
   processSelection: (e) ->
     item = $(e.currentTarget).find('a').html()
+    $(e.currentTarget).closest('div').find('input').attr('value', item)
     @setState({selection: item})
 

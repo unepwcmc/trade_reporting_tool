@@ -5,8 +5,11 @@ window.InputBox = class InputBox extends React.Component
     super(props, context)
     @state = {
       title: props.title
+      name: props.name
       enabled: props.enabled
       blankCheckbox: props.blankCheckbox || false
+      value: props.value
+      form: props.form
     }
 
   render: ->
@@ -15,7 +18,13 @@ window.InputBox = class InputBox extends React.Component
       { className: "shipments-input-box #{disabled_class}" }
       span({ className: 'bold' }, @state.title)
       div({},
-        input({ type: 'text' })
+        input(
+          {
+            name: "#{@state.form}[#{@state.name}]",
+            type: 'text'
+            defaultValue: @state.value || ''
+          }
+        )
       )
       @renderCheckbox() if @state.blankCheckbox
     )
