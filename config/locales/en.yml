@@ -51,3 +51,6 @@ en:
   unauthorised: "You are not authorised to access this resource."
   aru_deleted: 'Annual Report Upload successfully deleted.'
   aru_not_deleted: 'Cannot delete Annual Report Upload.'
+  shipment_deleted: 'Shipment successfully deleted.'
+  shipment_not_deleted: 'Cannot delete shipment.'
+  action_unauthorised: 'You are not authorised to perform this action.'

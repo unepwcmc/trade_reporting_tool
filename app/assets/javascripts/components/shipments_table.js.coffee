@@ -7,6 +7,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
       totalPages: props.totalPages,
       page: 1,
       annualReportUploadId: props.annualReportUploadId
+      changesHistory: props.changesHistory
     }
     @incrementPage = @changePage.bind(@, 1)
     @decrementPage = @changePage.bind(@, -1)
@@ -27,7 +28,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
   renderHead: ->
     thead({},
       tr({},
-        if @state.annualReportUploadId
+        if @state.changesHistory
           th({}
             div({}, 'Reference')
             div({ className: 'subtitle' }, 'Change time')
@@ -61,7 +62,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
           div({}, 'Source-')
           div({}, 'Year')
         )
-        unless @state.annualReportUploadId
+        unless @state.changesHistory
           th({}, 'Actions')
       )
     )
@@ -73,6 +74,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
         pageName: @state.pageName
         page: @state.page
         annualReportUploadId: @state.annualReportUploadId
+        changesHistory: @state.changesHistory
       }
     )
 

@@ -3,11 +3,11 @@ window.ValidationErrors = class ValidationErrors extends React.Component
   constructor: (props, context) ->
     super(props, context)
     @state = {
-      data: @props.validationErrors,
+      data: props.validationErrors,
       numToShow: 5
       showAllErrors: false
       hideAll: false
-      ignored: @props.ignored
+      ignored: props.ignored
     }
     @toggleBox = @toggleBox.bind(@)
     @showMoreErrors = @showMore.bind(@)
