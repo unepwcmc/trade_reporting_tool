@@ -11,6 +11,8 @@ window.Shipment = class Shipment extends React.Component
 
   render: ->
     data = @state.shipment
+    base_url =
+      "/annual_report_uploads/#{@state.annualReportUploadId}/shipments/#{@state.shipment.id}"
     tr({ className: @state.rowType },
       if @state.changesHistory
         td({}, '')
@@ -37,7 +39,10 @@ window.Shipment = class Shipment extends React.Component
           div(
             {}
             a(
-              { className: 'green-link-underlined' }
+              {
+                className: 'green-link-underlined'
+                href: base_url + "/edit"
+              }
               i({ className: 'fa fa-pencil-square-o'})
               " #{I18n.t('edit')}"
             )
@@ -47,7 +52,7 @@ window.Shipment = class Shipment extends React.Component
             a(
               {
                 className: 'green-link-underlined'
-                href: "/annual_report_uploads/#{@state.annualReportUploadId}/shipments/#{@state.shipment.id}"
+                href: base_url
                 "data-method": 'delete'
               }
               i({ className: 'fa fa-times' })
