@@ -191,10 +191,6 @@ h3.sandbox-upload-summary {
 .shipments-dropdown, .shipments-input-box {
   color: $grey;
   div { margin: 5px 0 0; }
-  &.disabled {
-    opacity: 0.3;
-    pointer-events: none;
-  }
   button {
     min-height: 25px;
     background: white;

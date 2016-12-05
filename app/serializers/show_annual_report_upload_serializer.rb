@@ -1,7 +1,7 @@
 class ShowAnnualReportUploadSerializer < ActiveModel::Serializer
   attributes :id, :trading_country_id, :point_of_view, :number_of_rows,
   :file_name, :has_primary_errors, :created_at, :updated_at,
-  :created_by, :updated_by, :summary,
+  :created_by, :updated_by, :summary, :has_validation_report,
   :validation_errors, :ignored_validation_errors
 
   def validation_errors
@@ -64,5 +64,9 @@ class ShowAnnualReportUploadSerializer < ActiveModel::Serializer
     object.trading_country.name_en + ' (' + object.point_of_view + '), ' +
       object.number_of_rows.to_s + ' shipments' + ' uploaded on ' + _created_at +
       ' by ' + _created_by + ' ('  + (file_name || '') + ')'
+  end
+
+  def has_validation_report
+    object.validation_report.present?
   end
 end

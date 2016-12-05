@@ -266,4 +266,34 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
       end
     end
   end
+
+  describe "GET download_error_report" do
+    context "when validation report has been generated" do
+      before(:each) do
+        @epix_user = FactoryGirl.create(:epix_user)
+        @aru = FactoryGirl.create(:annual_report_upload)
+        allow(CitesReportValidator).to(
+          receive(:generate_validation_report).and_return(
+            {'0' => {'data' => {"appendix": "II"}, 'errors' => []}}
+          )
+        )
+        allow_any_instance_of(Trade::AnnualReportUpload).to(
+          receive_message_chain(:persisted_validation_errors, :primary).and_return([])
+        )
+        allow_any_instance_of(Trade::AnnualReportUpload).to(
+          receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
+        )
+        CitesReportValidator.call(@aru.id)
+      end
+      it "should download validation report" do
+        @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+        sign_in @epix_user
+
+        get 'download_error_report', id: @aru.id
+
+        expect(response.content_type).to eq('text/csv')
+        expect(response.body).to include("II")
+      end
+    end
+  end
 end
