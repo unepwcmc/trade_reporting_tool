@@ -54,3 +54,4 @@ en:
   shipment_deleted: 'Shipment successfully deleted.'
   shipment_not_deleted: 'Cannot delete shipment.'
   action_unauthorised: 'You are not authorised to perform this action.'
+  edit: 'Edit'

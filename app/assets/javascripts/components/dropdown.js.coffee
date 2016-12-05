@@ -6,9 +6,10 @@ window.Dropdown = class Dropdown extends React.Component
       title: props.title,
       placeholder: props.placeholder,
       data: props.data,
-      selection: props.placeholder,
+      selection: null,
       enabled: props.enabled,
       blankCheckbox: props.blankCheckbox || false
+      value: props.value
     }
     @processSelection = @processSelection.bind(@)
 
@@ -26,7 +27,7 @@ window.Dropdown = class Dropdown extends React.Component
       {}
       button(
         { "data-toggle": 'dropdown' }
-        span({},@state.selection)
+        span({}, (@state.selection || @state.value || @state.placeholder))
         i({ className: 'fa fa-caret-down'})
       )
       ul(

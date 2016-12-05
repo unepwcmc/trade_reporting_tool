@@ -5,7 +5,8 @@
         title: 'Appendix',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.appendix)
       })
     %>
   </div>
@@ -15,7 +16,8 @@
         title: 'Taxon name',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.taxon_name)
       })
     %>
   </div>
@@ -27,7 +29,8 @@
         title: 'Term',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.term_code)
       })
     %>
   </div>
@@ -37,7 +40,8 @@
         title: 'Quantity (Qty)',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.quantity)
       })
     %>
   </div>
@@ -47,7 +51,8 @@
         title: 'Unit',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.unit_code)
       })
     %>
   </div>
@@ -57,7 +62,8 @@
         title: 'Trading partner',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.trading_partner)
       })
     %>
   </div>
@@ -69,7 +75,8 @@
         title: 'Origin',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: true
+        enabled: true,
+        value: (@shipment && @shipment.country_of_origin)
       })
     %>
   </div>
@@ -78,7 +85,8 @@
       {
         title: 'Import Permit',
         enabled: true,
-        blankCheckbox: true
+        blankCheckbox: true,
+        value: (@shipment && @shipment.import_permit)
       })
     %>
   </div>
@@ -87,7 +95,8 @@
       {
         title: 'Export Permit',
         enabled: false,
-        blankCheckbox: true
+        blankCheckbox: true,
+        value: (@shipment && @shipment.export_permit)
       })
     %>
   </div>
@@ -96,7 +105,8 @@
       {
         title: 'Origin Permit',
         enabled: true,
-        blankCheckbox: true
+        blankCheckbox: true,
+        value: (@shipment && @shipment.origin_permit)
       })
     %>
   </div>
@@ -105,21 +115,23 @@
   <div class="col col-sm-3 col-md-3 col-lg-3">
     <%= react_component("Dropdown",
       {
-        title: 'Appendix',
+        title: 'Purpose Code',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
-        enabled: false
+        enabled: false,
+        value: (@shipment && @shipment.purpose_code)
       })
     %>
   </div>
   <div class="col col-sm-3 col-md-3 col-lg-3">
     <%= react_component("Dropdown",
       {
-        title: 'Appendix',
+        title: 'Source code',
         placeholder: "Please select appendix value",
         data: ['a', 'b', 'c'],
         enabled: true,
-        blankCheckbox: true
+        blankCheckbox: true,
+        value: (@shipment && @shipment.source_code)
       })
     %>
   </div>
@@ -128,6 +140,7 @@
       {
         title: 'Year',
         enabled: true,
+        value: (@shipment && @shipment.year)
       })
     %>
   </div>

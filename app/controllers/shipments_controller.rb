@@ -10,6 +10,13 @@ class ShipmentsController < ApplicationController
     @total_pages = (shipments.count / per_page.to_f).ceil
   end
 
+  def edit
+    @shipment = Trade::SandboxTemplate.find(params[:id])
+  end
+
+  def update
+  end
+
   def destroy
     @annual_report_upload =
       Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
