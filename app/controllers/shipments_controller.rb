@@ -4,7 +4,8 @@ class ShipmentsController < ApplicationController
   def index
     @annual_report_upload =
       Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
-    shipments = @annual_report_upload.sandbox.shipments
+    @validation_error = Trade::ValidationError.find_by_id(params[:validation_error_id])
+    shipments = @annual_report_upload.sandbox.shipments(@validation_error)
     per_page = Trade::SandboxTemplate.per_page
     @total_pages = (shipments.count / per_page.to_f).ceil
   end
