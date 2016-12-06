@@ -1,6 +1,6 @@
 class CitesReportValidator
 
-  def self.call(aru_id)
+  def self.call(aru_id, send_email=true)
     begin
       aru = Trade::AnnualReportUpload.find(aru_id)
     rescue ActiveRecord::RecordNotFound => e
@@ -28,12 +28,14 @@ class CitesReportValidator
       end
     end
 
-    validation_report = Api::V1::CITESReportResultBuilder.new(aru).result
-    validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
+    if send_email
+      validation_report = Api::V1::CITESReportResultBuilder.new(aru).result
+      validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
 
-    NotificationMailer.validation_result(
-      aru.epix_creator || aru.sapi_creator, aru, validation_report, validation_report_csv_file
-    ).deliver
+      NotificationMailer.validation_result(
+        aru.epix_creator || aru.sapi_creator, aru, validation_report, validation_report_csv_file
+      ).deliver
+    end
 
     validation_report
   end
