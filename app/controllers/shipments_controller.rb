@@ -17,8 +17,15 @@ class ShipmentsController < ApplicationController
   end
 
   def update
+    @annual_report_upload =
+      Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
     @shipment = Trade::SandboxTemplate.find(params[:id])
-    @shipment.update_attributes(shipment_params)
+    if @shipment.update_attributes(shipment_params)
+      flash[:notice] = t('shipment_updated')
+    else
+      flash[:error] = t('shipment_not_updated')
+    end
+    redirect_to annual_report_upload_shipments_path(@annual_report_upload)
   end
 
   def destroy
