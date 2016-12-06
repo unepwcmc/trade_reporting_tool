@@ -48,10 +48,12 @@ class ApplicationController < ActionController::Base
     aru = Trade::AnnualReportUpload.find(aru_id)
     creator = aru.creator
     authorised = true
-    if creator.is_a?(Epix::User)
+    if !current_user
+      authorised = false
+    elsif creator.is_a?(Epix::User)
       if current_user.is_a?(Sapi::User)
         flash[:alert] = t('action_unauthorised')
-        redirect_to request.referer and return true
+        redirect_to (request.referer || root_path) and return true
       end
       authorised = (current_user.id == creator.id ||
         (current_user.organisation.id == creator.organisation.id && current_user.is_admin))
@@ -60,7 +62,7 @@ class ApplicationController < ActionController::Base
     end
     if !authorised || aru.submitted_at.present?
       flash[:alert] = t('action_unauthorised')
-      redirect_to request.referer
+      redirect_to (request.referer || root_path)
     end
   end
 end
