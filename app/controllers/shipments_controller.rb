@@ -24,6 +24,7 @@ class ShipmentsController < ApplicationController
     @shipment = @annual_report_upload.sandbox.shipments.
       find_by_id(params[:id])
     if @shipment.update_attributes(shipment_params)
+      CitesReportValidationJob.perform_later(@annual_report_upload.id, false)
       flash[:notice] = t('shipment_updated')
     else
       flash[:error] = t('shipment_not_updated')
@@ -36,6 +37,7 @@ class ShipmentsController < ApplicationController
       Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
     @shipment = @annual_report_upload.sandbox.ar_klass.find(params[:id])
     if @shipment.destroy
+      CitesReportValidationJob.perform_later(@annual_report_upload.id, false)
       flash[:notice] = t('shipment_deleted')
     else
       flash[:error] = t('shipment_not_deleted')
