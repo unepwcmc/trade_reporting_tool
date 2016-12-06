@@ -1,6 +1,6 @@
 <%= render "shared/back_to_shipments" %>
-<div class='selected-error'>
-  <span><%= t('selected_error') %>:</span><span class='bold'> Placeholder</span>
+<div class='top-info-box'>
+  <span><%= t('selected_error') %>:</span><span class='bold'> <%= @error %></span>
 </div>
 
 <%= react_component 'BatchEdit', {}, {class: 'align-right'} %>
