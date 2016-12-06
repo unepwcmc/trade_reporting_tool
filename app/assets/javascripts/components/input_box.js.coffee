@@ -14,13 +14,14 @@ window.InputBox = class InputBox extends React.Component
 
   render: ->
     disabled_class = if @state.enabled then '' else 'disabled'
+    name = if @state.form then "#{@state.form}[#{@state.name}]" else @state.name
     div(
       { className: "shipments-input-box #{disabled_class}" }
       span({ className: 'bold' }, @state.title)
       div({},
         input(
           {
-            name: "#{@state.form}[#{@state.name}]",
+            name: name,
             type: 'text'
             defaultValue: @state.value || ''
           }

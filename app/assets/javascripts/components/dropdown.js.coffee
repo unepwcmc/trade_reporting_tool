@@ -25,6 +25,7 @@ window.Dropdown = class Dropdown extends React.Component
     )
 
   renderDropdown: ->
+    name = if @state.form then "#{@state.form}[#{@state.name}]" else @state.name
     div(
       {}
       button(
@@ -42,7 +43,7 @@ window.Dropdown = class Dropdown extends React.Component
       input(
         {
           className: 'dropdown-input',
-          name: "#{@state.form}[#{@state.name}]",
+          name: name
           type: 'text',
           defaultValue: @state.value || ''
         }
