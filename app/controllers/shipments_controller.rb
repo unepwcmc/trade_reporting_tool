@@ -8,18 +8,21 @@ class ShipmentsController < ApplicationController
     shipments = @annual_report_upload.sandbox.shipments(@validation_error)
     per_page = Trade::SandboxTemplate.per_page
     @total_pages = (shipments.count / per_page.to_f).ceil
+    @error = params[:error]
   end
 
   def edit
     @annual_report_upload =
       Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
-    @shipment = Trade::SandboxTemplate.find(params[:id])
+    @shipment = @annual_report_upload.sandbox.shipments.
+      find_by_id(params[:id])
   end
 
   def update
     @annual_report_upload =
       Trade::AnnualReportUpload.find(params[:annual_report_upload_id])
-    @shipment = Trade::SandboxTemplate.find(params[:id])
+    @shipment = @annual_report_upload.sandbox.shipments.
+      find_by_id(params[:id])
     if @shipment.update_attributes(shipment_params)
       flash[:notice] = t('shipment_updated')
     else
@@ -43,7 +46,8 @@ class ShipmentsController < ApplicationController
   private
 
   def shipment_params
-    params.require(:trade_sandbox_template).
+    param = "trade_trade_sandbox#{params[:annual_report_upload_id]}"
+    params.require(param).
       permit(:appendix, :taxon_name, :term_code, :quantity,
              :unit_code, :trading_partner, :country_of_origin,
              :import_permit, :export_permit, :origin_permit,
