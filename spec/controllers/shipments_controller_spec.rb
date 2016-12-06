@@ -105,6 +105,17 @@ RSpec.describe ShipmentsController, type: :controller do
         @shipment.reload
         expect(@shipment.year).to eq('2011')
       end
+
+      it "should run validation job" do
+        expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+        patch :update, {
+          annual_report_upload_id: @aru.id,
+          id: @shipment.id,
+          "trade_trade_sandbox#{@aru.id}": {
+            year: '2011'
+          }
+        }
+      end
     end
 
     context "when a different type of user tries to access" do
@@ -154,6 +165,10 @@ RSpec.describe ShipmentsController, type: :controller do
             delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
+        it "should run validation job" do
+          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+        end
       end
       context "when aru created by EPIX user" do
         before(:each) do
@@ -194,6 +209,10 @@ RSpec.describe ShipmentsController, type: :controller do
             delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
+        it "should run validation job" do
+          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+        end
       end
       context "when aru created by EPIX user from another organisation" do
         before(:each) do
@@ -205,7 +224,7 @@ RSpec.describe ShipmentsController, type: :controller do
           @aru.sandbox.copy_data(CITES_REPORT)
           @shipment = @aru.sandbox.ar_klass.first
         end
-        it "should destroy shipment" do
+        it "should not destroy shipment" do
           expect {
             delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
@@ -233,6 +252,10 @@ RSpec.describe ShipmentsController, type: :controller do
             delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
+        it "should run validation job" do
+          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+        end
       end
       context "when aru created by EPIX user from same organisation" do
         before(:each) do
@@ -245,7 +268,7 @@ RSpec.describe ShipmentsController, type: :controller do
           @aru.sandbox.copy_data(CITES_REPORT)
           @shipment = @aru.sandbox.ar_klass.first
         end
-        it "should destroy shipment" do
+        it "should not destroy shipment" do
           expect {
             delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
@@ -261,7 +284,7 @@ RSpec.describe ShipmentsController, type: :controller do
           @aru.sandbox.copy_data(CITES_REPORT)
           @shipment = @aru.sandbox.ar_klass.first
         end
-        it "should destroy shipment" do
+        it "should not destroy shipment" do
           expect {
             delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
