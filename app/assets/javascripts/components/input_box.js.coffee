@@ -11,6 +11,7 @@ window.InputBox = class InputBox extends React.Component
       value: props.value
       form: props.form
     }
+    @setBlank = @setBlank.bind(@)
 
   render: ->
     disabled_class = if @state.enabled then '' else 'disabled'
@@ -24,6 +25,7 @@ window.InputBox = class InputBox extends React.Component
             name: name,
             type: 'text'
             defaultValue: @state.value || ''
+            ref: 'textInput'
           }
         )
       )
@@ -33,8 +35,16 @@ window.InputBox = class InputBox extends React.Component
   renderCheckbox: ->
     div(
       { className: 'blank-checkbox' }
-      input({ type: 'checkbox' })
+      input(
+        { type: 'checkbox', onClick: @setBlank }
+      )
       span({}, 'Set blank')
     )
+
+  setBlank: ->
+    @setState({value: ' '})
+
+  componentWillUpdate: (nextProps, nextState)->
+    @refs.textInput.value = nextState.value
 
 
