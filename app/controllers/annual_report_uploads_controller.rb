@@ -1,5 +1,6 @@
 class AnnualReportUploadsController < ApplicationController
   before_action :authorise_edit, only: [:destroy]
+  before_action :fetch_shipments, only: [:changes_history, :changes_history_pdf]
   respond_to :json
 
   def index
@@ -33,13 +34,20 @@ class AnnualReportUploadsController < ApplicationController
   end
 
   def changes_history
-    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
-    ar_klass = @annual_report_upload.sandbox.ar_klass
-    shipments = ar_klass.joins(
-      "JOIN versions v on v.item_id = #{ar_klass.table_name}.id"
-    ).uniq
-    per_page = Trade::SandboxTemplate.per_page
-    @total_pages = (shipments.count / per_page.to_f).ceil
+  end
+
+  def changes_history_pdf
+    cookie = cookies.to_h['_trade_reporting_tool_session']
+    respond_to do |format|
+      format.html
+      format.pdf do
+        rasterizer = Rails.root.join("vendor/assets/javascripts/rasterize.js")
+        url = changes_history_pdf_url
+        dest_pdf = Rails.root.join("tmp/changes_history.pdf").to_s
+        `phantomjs #{rasterizer} '#{url}' #{dest_pdf} #{cookie} #{request.domain}`
+        send_file dest_pdf, type: 'application/pdf'
+      end
+    end
   end
 
   def destroy
@@ -58,6 +66,16 @@ class AnnualReportUploadsController < ApplicationController
     data = File.read(validation_report_csv_file)
 
     send_data data, type: 'text/csv', filename: "validation_report_#{aru.id}.csv"
+  end
+
+  def fetch_shipments
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    ar_klass = @annual_report_upload.sandbox.ar_klass
+    shipments = ar_klass.joins(
+      "JOIN versions v on v.item_id = #{ar_klass.table_name}.id"
+    ).uniq
+    per_page = Trade::SandboxTemplate.per_page
+    @total_pages = (shipments.count / per_page.to_f).ceil
   end
 
 end
