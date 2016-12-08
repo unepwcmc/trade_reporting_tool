@@ -12,12 +12,4 @@
 </div>
 <h1 class="sandbox-title">Changes History</h1>
 
-<%=
-  react_component 'ShipmentsTable',
-    {
-      pageName: 'shipments',
-      totalPages: @total_pages,
-      annualReportUploadId: @annual_report_upload.id,
-      changesHistory: true
-    }
-%>
+<%= render partial: 'shared/shipments_table', locals: { changesHistory: true } %>
