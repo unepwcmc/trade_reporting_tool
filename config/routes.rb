@@ -20,6 +20,8 @@ Rails.application.routes.draw do
 
   get 'annual_report_uploads/:id/changes_history',
     to: 'annual_report_uploads#changes_history', as: 'changes_history'
+  get 'annual_report_uploads/:id/changes_history_pdf',
+    to: 'annual_report_uploads#changes_history_pdf', as: 'changes_history_pdf'
   get 'annual_report_uploads/:id/download_error_report',
     to: 'annual_report_uploads#download_error_report', as: 'download_error_report'
   resources :annual_report_uploads, only: [:index, :show, :destroy] do
