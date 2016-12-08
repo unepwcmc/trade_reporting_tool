@@ -6,7 +6,7 @@
   <i class="fa fa-download green"></i>
   <%=
     link_to t('download_changes_history'),
-    '',
+    changes_history_pdf_path(@annual_report_upload, format: :pdf),
     class: 'green-link-underlined'
   %>
 </div>
