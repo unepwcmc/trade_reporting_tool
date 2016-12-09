@@ -169,6 +169,10 @@ RSpec.describe ShipmentsController, type: :controller do
           expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
           delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
+        it "should set whodunnit correctly", versioning: true do
+          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          expect(PaperTrail::Version.last.whodunnit).to eq("Sapi:#{@sapi_user.id}")
+        end
       end
       context "when aru created by EPIX user" do
         before(:each) do
@@ -213,6 +217,10 @@ RSpec.describe ShipmentsController, type: :controller do
           expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
           delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
+        it "should set whodunnit correctly", versioning: true do
+          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          expect(PaperTrail::Version.last.whodunnit).to eq("Epix:#{@epix_user.id}")
+        end
       end
       context "when aru created by EPIX user from another organisation" do
         before(:each) do
@@ -255,6 +263,10 @@ RSpec.describe ShipmentsController, type: :controller do
         it "should run validation job" do
           expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
           delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+        end
+        it "should set whodunnit correctly", versioning: true do
+          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          expect(PaperTrail::Version.last.whodunnit).to eq("Epix:#{@epix_user.id}")
         end
       end
       context "when aru created by EPIX user from same organisation" do

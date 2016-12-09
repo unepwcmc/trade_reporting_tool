@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_action :set_locale
+  before_action :set_paper_trail_whodunnit
   helper_method :current_user, :destroy_user
 
   def after_sign_in_path_for(resource)
@@ -64,5 +65,9 @@ class ApplicationController < ActionController::Base
       flash[:alert] = t('action_unauthorised')
       redirect_to (request.referer || root_path)
     end
+  end
+
+  def user_for_paper_trail
+    current_user.is_a?(Epix::User) ? "Epix:#{current_user.id}" : "Sapi:#{current_user.id}"
   end
 end
