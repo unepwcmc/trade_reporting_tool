@@ -7,6 +7,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
       totalPages: props.totalPages,
       page: 1,
       annualReportUploadId: props.annualReportUploadId
+      validationErrorId: props.validationErrorId
       changesHistory: props.changesHistory
     }
     @incrementPage = @changePage.bind(@, 1)
@@ -74,6 +75,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
         pageName: @state.pageName
         page: @state.page
         annualReportUploadId: @state.annualReportUploadId
+        validationErrorId: @state.validationErrorId
         changesHistory: @state.changesHistory
       }
     )

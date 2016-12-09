@@ -9,6 +9,7 @@ window.ValidationError = class ValidationError extends React.Component
     @ignoreValidationError = @ignoreError.bind(@)
 
   render: ->
+    base_url = "/annual_report_uploads/#{@state.data.annual_report_upload_id}"
     div(
       { className: 'validation-error' }
       div(
@@ -18,7 +19,7 @@ window.ValidationError = class ValidationError extends React.Component
       div(
         { className: 'error-message' }
         a(
-          { href: "/annual_report_uploads/#{@state.data.annual_report_upload_id}/shipments/" }
+          { href: base_url + "/validation_errors/#{@state.data.id}/shipments" }
           @state.data.error_message
         )
       )

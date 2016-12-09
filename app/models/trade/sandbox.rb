@@ -68,8 +68,14 @@ class Trade::Sandbox
     )
   end
 
-  def shipments
-    @ar_klass.order(:id).all
+  def shipments(validation_error=nil)
+    if validation_error
+      validation_error.validation_rule.
+        matching_records_for_aru_and_error(@annual_report_upload, validation_error).
+        order(:id)
+    else
+      @ar_klass.order(:id).all
+    end
   end
 
   def shipments=(new_shipments)

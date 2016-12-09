@@ -24,6 +24,7 @@ Rails.application.routes.draw do
     to: 'annual_report_uploads#download_error_report', as: 'download_error_report'
   resources :annual_report_uploads, only: [:index, :show, :destroy] do
     resources :shipments, only: [:index, :destroy]
+    get 'validation_errors/:validation_error_id/shipments', to: 'shipments#index', as: 'shipment_with_errors'
   end
 
   wash_out "api/v1/cites_reporting"
@@ -33,6 +34,7 @@ Rails.application.routes.draw do
       get 'annual_report_uploads/:id/changes_history', to: 'annual_report_uploads#changes_history'
       resources :annual_report_uploads, only: [:index] do
         resources :shipments, only: [:index]
+        get 'validation_errors/:validation_error_id/shipments', to: 'shipments#index', as: 'shipment_with_errors'
       end
     end
   end
