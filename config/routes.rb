@@ -23,7 +23,7 @@ Rails.application.routes.draw do
   get 'annual_report_uploads/:id/download_error_report',
     to: 'annual_report_uploads#download_error_report', as: 'download_error_report'
   resources :annual_report_uploads, only: [:index, :show, :destroy] do
-    resources :shipments, only: [:index, :destroy]
+    resources :shipments, only: [:index, :edit, :update, :destroy]
     get 'validation_errors/:validation_error_id/shipments', to: 'shipments#index', as: 'shipment_with_errors'
   end
 

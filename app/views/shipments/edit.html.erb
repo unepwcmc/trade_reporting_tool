@@ -1,0 +1,10 @@
+<%= render "shared/back_to_shipments" %>
+<h1 class="bold"><%= t('edit') %></h1>
+<div class="edit-container">
+  <%=
+    form_for(@shipment,
+      url: annual_report_upload_shipment_path(@annual_report_upload, @shipment)) do |f|
+   %>
+   <%= render partial: "form", locals: { form: f } %>
+  <% end %>
+</div>

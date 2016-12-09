@@ -4,13 +4,16 @@ window.Dropdown = class Dropdown extends React.Component
     super(props, context)
     @state = {
       title: props.title,
+      name: props.name,
       placeholder: props.placeholder,
       data: props.data,
-      selection: props.placeholder,
       enabled: props.enabled,
       blankCheckbox: props.blankCheckbox || false
+      value: props.value
+      form: props.form
     }
     @processSelection = @processSelection.bind(@)
+    @setBlank = @setBlank.bind(@)
 
   render: ->
     disabled_class = if @state.enabled then '' else 'disabled'
@@ -22,11 +25,12 @@ window.Dropdown = class Dropdown extends React.Component
     )
 
   renderDropdown: ->
+    name = if @state.form then "#{@state.form}[#{@state.name}]" else @state.name
     div(
       {}
       button(
         { "data-toggle": 'dropdown' }
-        span({},@state.selection)
+        span({}, (@state.value || @state.placeholder))
         i({ className: 'fa fa-caret-down'})
       )
       ul(
@@ -36,16 +40,34 @@ window.Dropdown = class Dropdown extends React.Component
             a({}, item)
           )
       )
+      input(
+        {
+          className: 'dropdown-input',
+          name: name
+          type: 'text',
+          defaultValue: @state.value || ''
+          ref: 'textInput'
+        }
+      )
+
     )
 
   renderCheckbox: ->
     div(
       { className: 'blank-checkbox' }
-      input({ type: 'checkbox' })
+      input(
+        { type: 'checkbox', onClick: @setBlank }
+      )
       span({}, 'Set blank')
     )
 
   processSelection: (e) ->
     item = $(e.currentTarget).find('a').html()
-    @setState({selection: item})
+    @setState({value: item})
+
+  setBlank: ->
+    @setState({value: ' '})
+
+  componentWillUpdate: (nextProps, nextState)->
+    @refs.textInput.value = nextState.value
 

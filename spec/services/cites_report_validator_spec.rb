@@ -81,7 +81,7 @@ RSpec.describe CitesReportValidator do
       let(:aru){
         FactoryGirl.create(:annual_report_upload)
       }
-    
+
       context 'when no secondary errors' do
         before(:each) do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
@@ -97,7 +97,7 @@ RSpec.describe CitesReportValidator do
           ).to eq('PENDING')
         end
         it "sends an email" do
-          expect { CitesReportValidator.call(aru.id)[:CITESReportResult][:Status] }.to(
+          expect { CitesReportValidator.call(aru.id) }.to(
             change { ActionMailer::Base.deliveries.count }.by(1)
           )
         end
@@ -118,7 +118,7 @@ RSpec.describe CitesReportValidator do
           ).to eq('VALIDATION_FAILED')
         end
         it "sends an email" do
-          expect { CitesReportValidator.call(aru.id)[:CITESReportResult][:Status] }.to(
+          expect { CitesReportValidator.call(aru.id) }.to(
             change { ActionMailer::Base.deliveries.count }.by(1)
           )
         end
