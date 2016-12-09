@@ -17,7 +17,7 @@
       pageName: 'shipments',
       totalPages: @total_pages,
       annualReportUploadId: @annual_report_upload.id,
-      validationErrorId: @validation_error.id,
+      validationErrorId: @validation_error && @validation_error.id,
       changesHistory: false
     }
 %>
