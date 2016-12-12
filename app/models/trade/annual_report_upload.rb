@@ -98,8 +98,34 @@ class Trade::AnnualReportUpload < Sapi::Base
     end
   end
 
+  def run_primary_validations
+    @validation_errors = run_validations(
+      Trade::ValidationRule.where(:is_primary => true)
+    )
+  end
+
   def submit
-    # TODO
+    run_primary_validations
+    unless @validation_errors.count == 0
+      self.errors[:base] << "Submit failed, primary validation errors present."
+      return false
+    end
+    return false unless sandbox.copy_from_sandbox_to_shipments
+    # remove uploaded file
+    #store_dir = csv_source_file.store_dir
+    #remove_csv_source_file!
+    #puts '### removing uploads dir ###'
+    #puts Rails.root.join('public', store_dir)
+    #FileUtils.remove_dir(Rails.root.join('public', store_dir), :force => true)
+
+    # remove sandbox table
+    sandbox.destroy
+
+    # clear downloads cache
+    #DownloadsCacheCleanupJob.perform_async(:shipments)
+
+    # flag as submitted
+    update_attribute(:submitted_at, DateTime.now)
   end
 
   private

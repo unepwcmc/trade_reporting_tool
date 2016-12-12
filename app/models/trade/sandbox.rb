@@ -44,7 +44,7 @@ class Trade::Sandbox
 
   def copy_from_sandbox_to_shipments
     success = true
-    Trade::Shipment.transaction do
+    Trade::SandboxTemplate.transaction do
       pg_result = Trade::SandboxTemplate.connection.execute(
         Trade::SandboxTemplate.send(:sanitize_sql_array, [
           'SELECT * FROM copy_transactions_from_sandbox_to_shipments(?)',
