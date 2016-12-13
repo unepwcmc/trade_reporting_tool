@@ -21,6 +21,7 @@ class Trade::SandboxTemplate < Sapi::Base
       "Trade::#{klass_name}".constantize
     rescue NameError
       klass = Class.new(Sapi::Base) do
+        self.per_page = 10
         self.table_name = table_name
         include ActiveModel::ForbiddenAttributesProtection
         has_paper_trail
