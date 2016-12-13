@@ -36,10 +36,10 @@ if (system.args.length < 3 || system.args.length > 5) {
 
     if (system.args.length > 4) {
         //page.zoomFactor = system.args[4];
-        var cookie = system.args[3]
-        var domain = system.args[4]
-        if !cookie || !domain {
-          console.log("Wrong session arguments")
+        var cookie = system.args[3];
+        var domain = system.args[4];
+        if (!cookie || !domain) {
+          console.log("Wrong session arguments");
         }
         else {
           phantom.addCookie({
@@ -60,8 +60,6 @@ if (system.args.length < 3 || system.args.length > 5) {
       height: page.viewportSize.height,
       margin: '1.5cm'
     };
-
-    // end of custom setup
 
     page.open(address, function (status) {
         if (status !== 'success') {
