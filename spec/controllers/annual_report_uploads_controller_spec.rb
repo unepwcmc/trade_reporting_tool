@@ -283,6 +283,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         allow_any_instance_of(Trade::AnnualReportUpload).to(
           receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
         )
+        allow_any_instance_of(Trade::AnnualReportUpload).to(
+          receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
+        )
         CitesReportValidator.call(@aru.id)
       end
       it "should download validation report" do

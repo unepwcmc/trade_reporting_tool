@@ -32,6 +32,9 @@ RSpec.describe CitesReportValidationJob, type: :job do
       allow_any_instance_of(Trade::AnnualReportUpload).to(
         receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
       )
+      allow_any_instance_of(Trade::AnnualReportUpload).to(
+        receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
+      )
       allow(CitesReportValidator).to(
         receive(:generate_validation_report).and_return(
           {'0' => {'data' => {}, 'errors' => []}}

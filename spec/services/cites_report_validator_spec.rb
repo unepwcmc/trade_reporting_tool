@@ -31,6 +31,9 @@ RSpec.describe CitesReportValidator do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
           )
+          allow_any_instance_of(Trade::AnnualReportUpload).to(
+            receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
+          )
         end
         it "should return success" do
           expect(
@@ -46,6 +49,9 @@ RSpec.describe CitesReportValidator do
           )
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([Trade::ValidationError.new])
+          )
+          allow_any_instance_of(Trade::AnnualReportUpload).to(
+            receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
           )
         end
         it "should return success" do
@@ -89,6 +95,9 @@ RSpec.describe CitesReportValidator do
           )
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
+          )
+          allow_any_instance_of(Trade::AnnualReportUpload).to(
+            receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
           )
         end
         it "should return success" do
