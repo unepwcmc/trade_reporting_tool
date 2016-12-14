@@ -52,6 +52,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
             className: 'delete-upload',
             href: "/annual_report_uploads/#{@state.annualReportUpload.id}",
             "data-method": 'delete'
+            "data-confirm": 'Are you sure you want to delete this report?'
           }
           i({className: 'fa fa-times'})
           I18n.t('delete')

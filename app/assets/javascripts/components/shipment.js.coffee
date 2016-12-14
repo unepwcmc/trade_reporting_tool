@@ -54,6 +54,7 @@ window.Shipment = class Shipment extends React.Component
                 className: 'green-link-underlined'
                 href: base_url
                 "data-method": 'delete'
+                "data-confirm": 'Are you sure you want to delete this shipment?'
               }
               i({ className: 'fa fa-times' })
               " #{I18n.t('delete')}"
