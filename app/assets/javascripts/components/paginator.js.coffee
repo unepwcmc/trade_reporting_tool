@@ -37,6 +37,7 @@ window.Paginator = class Paginator extends React.Component
       )
       a(
         {
+          id: 'next_page',
           className: 'paginator-link',
           onClick: @props.incrementPage
         }
