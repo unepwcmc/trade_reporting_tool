@@ -1,7 +1,7 @@
 "use strict";
 var page = require('webpage').create(),
     system = require('system'),
-    address, output, size;
+    address, cookie, domain, npages, size;
 
 function next_page(index, npages) {
   if (index == npages + 1) {
@@ -35,11 +35,9 @@ function handle_page(index, npages) {
 }
 
 address = system.args[1];
-output = system.args[2];
-
-var cookie = system.args[3];
-var domain = system.args[4];
-var npages = parseInt(system.args[5]);
+cookie = system.args[2];
+domain = system.args[3];
+npages = parseInt(system.args[4]);
 
 if (!cookie || !domain) {
   console.log("Wrong session arguments.");
