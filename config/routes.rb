@@ -34,6 +34,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get 'annual_report_uploads/:id/changes_history', to: 'annual_report_uploads#changes_history'
+      get 'annual_report_uploads/:id/changes_history_pdf',
+        to: 'annual_report_uploads#changes_history_pdf', as: 'changes_history_pdf'
       resources :annual_report_uploads, only: [:index] do
         resources :shipments, only: [:index]
         get 'validation_errors/:validation_error_id/shipments', to: 'shipments#index', as: 'shipment_with_errors'

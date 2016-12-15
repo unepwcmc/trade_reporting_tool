@@ -39,4 +39,17 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
     }
   end
 
+  def changes_history_pdf
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    shipments = @annual_report_upload.shipments_with_versions(params[:shipments])
+
+    @shipments = shipments.map do |shipment|
+      SandboxShipmentChangesSerializer.new(shipment)
+    end
+
+    render json: {
+      shipments: @shipments
+    }
+  end
+
 end
