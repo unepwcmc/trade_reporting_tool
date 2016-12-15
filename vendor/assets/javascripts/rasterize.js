@@ -1,14 +1,14 @@
 "use strict";
 var page = require('webpage').create(),
     system = require('system'),
-    address, cookie, domain, npages, size;
+    address, cookie, domain, npages, dir;
 
 function next_page(index, npages) {
   if (index == npages + 1) {
     console.log('Done!');
     phantom.exit();
   }
-  var file = "/Users/leviathan/Desktop/Projects/trade_reporting_tool/changes_history_" + index + ".pdf";
+  var file = dir + "changes_history_" + index + ".pdf";
   page.evaluate(function() {
     document.getElementById('next_page').click();
   });
@@ -19,7 +19,7 @@ function next_page(index, npages) {
 }
 
 function handle_page(index, npages) {
-  var file = "/Users/leviathan/Desktop/Projects/trade_reporting_tool/changes_history_" + index + ".pdf";
+  var file = dir + "changes_history_" + index + ".pdf";
   page.open(address, function(status) {
     if (status !== 'success') {
       console.log('Unable to load the address!');
@@ -38,6 +38,7 @@ address = system.args[1];
 cookie = system.args[2];
 domain = system.args[3];
 npages = parseInt(system.args[4]);
+dir = system.args[5]
 
 if (!cookie || !domain) {
   console.log("Wrong session arguments.");

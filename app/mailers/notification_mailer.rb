@@ -12,10 +12,10 @@ class NotificationMailer < ApplicationMailer
     mail(to: @user.email, subject: 'CITES Report validation result')
   end
 
-  def changes_history_pdf(user, pdf)
+  def changes_history_pdf(user, file)
     @user = user
-    attachments["changes_history_pdf.pdf"] = File.read(pdf)
-    mail(to: @user.email, subject: 'Changes history pdf')
+    attachments["changes_history.zip"] = File.read(file)
+    mail(to: @user.email, subject: 'Changes history log')
   end
 
 end
