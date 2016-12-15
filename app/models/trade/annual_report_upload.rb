@@ -2,6 +2,8 @@ class Trade::AnnualReportUpload < Sapi::Base
   self.per_page = 10
   self.table_name = 'trade_annual_report_uploads'
 
+  SHIPMENTS_LIMIT = 10
+
   has_many :persisted_validation_errors, class_name: Trade::ValidationError,
     foreign_key: :annual_report_upload_id
   belongs_to :trading_country, class_name: Sapi::GeoEntity,
@@ -50,6 +52,18 @@ class Trade::AnnualReportUpload < Sapi::Base
   def sandbox
     return nil if is_submitted?
     @sandbox ||= Trade::Sandbox.new(self)
+  end
+
+  def shipments_with_versions(page=nil)
+    return [] unless sandbox
+    shipments = ar_klass = sandbox.ar_klass
+    if page
+      offset = SHIPMENTS_LIMIT * (page.to_i - 1)
+      shipments = shipments.limit(SHIPMENTS_LIMIT).offset(offset)
+    end
+    shipments.joins(
+      "JOIN versions v on v.item_id = #{ar_klass.table_name}.id"
+    ).uniq
   end
 
   def is_submitted?
