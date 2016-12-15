@@ -9,6 +9,7 @@ window.Shipments = class Shipments extends React.Component
       annualReportUploadId: props.annualReportUploadId
       validationErrorId: props.validationErrorId
       changesHistory: props.changesHistory
+      format: props.format
     }
 
   render: ->
@@ -54,7 +55,10 @@ window.Shipments = class Shipments extends React.Component
     validation_error_id = @state.validationErrorId
     url = window.location.origin + "/api/v1/annual_report_uploads/#{aru_id}"
     if @state.changesHistory
-      url = url + "/changes_history"
+      if @state.format == 'pdf'
+        url = url + "/changes_history_pdf"
+      else
+        url = url + "/changes_history"
     else
       if validation_error_id
         url = url + "/validation_errors/#{validation_error_id}/shipments"

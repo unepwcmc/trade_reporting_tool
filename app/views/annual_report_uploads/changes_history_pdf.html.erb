@@ -1,4 +1,4 @@
 <h3 class="sandbox-upload-summary no-border">
   <%= @annual_report_upload.summary %>
 </h3>
-<%= render partial: 'shared/shipments_table', locals: { changesHistory: true } %>
+<%= render partial: 'shared/shipments_table', locals: { changesHistory: true, format: 'pdf' } %>
