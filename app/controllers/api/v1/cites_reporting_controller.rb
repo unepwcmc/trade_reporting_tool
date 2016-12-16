@@ -58,7 +58,7 @@ class Api::V1::CitesReportingController < ActionController::Base
 
   def log_error(exception)
     if Rails.env.production? || Rails.env.staging?
-      # TODO: Appsignal.add_exception(exception) if defined? Appsignal
+      Appsignal.add_exception(exception) if defined? Appsignal
     else
       Rails.logger.error exception.message
       Rails.logger.error exception.backtrace.join("\n")
