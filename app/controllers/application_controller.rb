@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery with: :exception
   before_action :set_locale
+  before_action :authenticate_user!
   before_action :set_paper_trail_whodunnit
   helper_method :current_user, :destroy_user
 
@@ -44,6 +45,10 @@ class ApplicationController < ActionController::Base
     I18n.locale = params[:locale] || I18n.default_locale
   end
 
+  def authenticate_user!
+    render "annual_report_uploads/unauthorised" unless (current_epix_user || current_sapi_user).present?
+  end
+
   def authorise_edit
     aru_id = params[:annual_report_upload_id] || params[:id]
     aru = Trade::AnnualReportUpload.find(aru_id)
@@ -65,6 +70,10 @@ class ApplicationController < ActionController::Base
       flash[:alert] = t('action_unauthorised')
       redirect_to (request.referer || root_path)
     end
+  end
+
+  def paper_trail_enabled_for_controller
+    !(is_a? ::Devise::SessionsController)
   end
 
   def user_for_paper_trail

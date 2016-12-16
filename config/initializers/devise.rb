@@ -277,3 +277,7 @@ Devise.setup do |config|
 
 
 end
+
+Rails.application.config.to_prepare do
+  Devise::SessionsController.skip_before_filter :authenticate_user!
+end
