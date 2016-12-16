@@ -1,5 +1,5 @@
 class EpixUser::SessionsController < Devise::SessionsController
- before_action :is_authorised?, only: [:create]
+  before_action :is_authorised?, only: [:create]
 
   def new
     @email = params[:user]
