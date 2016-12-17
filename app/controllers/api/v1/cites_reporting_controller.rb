@@ -1,11 +1,11 @@
-class Api::V1::CitesReportingController < ApplicationController
+class Api::V1::CitesReportingController < ActionController::Base
+  protect_from_forgery with: :null_session
   soap_service namespace: 'urn:CitesReporting/v1/', wsse_auth_callback: -> (email, password) {
     user = Epix::User.includes(:organisation).
       where(email: email, 'organisations.role' => Epix::Organisation::CITES_MA).
       first
     return user.present? && user.valid_password?(password)
   }
-
   before_action :load_user_and_organisation, except: :_generate_wsdl
 
   rescue_from NoMethodError, with: :handle_no_method_error
@@ -58,7 +58,7 @@ class Api::V1::CitesReportingController < ApplicationController
 
   def log_error(exception)
     if Rails.env.production? || Rails.env.staging?
-      # TODO: Appsignal.add_exception(exception) if defined? Appsignal
+      Appsignal.add_exception(exception) if defined? Appsignal
     else
       Rails.logger.error exception.message
       Rails.logger.error exception.backtrace.join("\n")

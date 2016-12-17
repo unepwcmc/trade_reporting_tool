@@ -1,5 +1,4 @@
 class AnnualReportUploadsController < ApplicationController
-  before_action :authenticate_user!
   before_action :authorise_edit, only: [:destroy]
   respond_to :json
 
@@ -61,9 +60,4 @@ class AnnualReportUploadsController < ApplicationController
     send_data data, type: 'text/csv', filename: "validation_report_#{aru.id}.csv"
   end
 
-  private
-
-  def authenticate_user!
-    render "unauthorised" unless (current_epix_user || current_sapi_user).present?
-  end
 end

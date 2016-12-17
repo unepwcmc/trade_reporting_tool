@@ -1,5 +1,4 @@
 class Api::V1::ShipmentsController < ApplicationController
-  before_action :authenticate_user!
 
   def index
     @annual_report_upload =
@@ -15,9 +14,4 @@ class Api::V1::ShipmentsController < ApplicationController
     }
   end
 
-  private
-
-  def authenticate_user!
-    render "unauthorised" unless (current_epix_user || current_sapi_user).present?
-  end
 end

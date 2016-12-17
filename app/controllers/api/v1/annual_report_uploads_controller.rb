@@ -1,5 +1,4 @@
 class Api::V1::AnnualReportUploadsController < ApplicationController
-  before_action :authenticate_user!
 
   def index
     epix_user_id = current_epix_user && current_epix_user.id
@@ -40,9 +39,4 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
     }
   end
 
-  private
-
-  def authenticate_user!
-    render "unauthorised" unless (current_epix_user || current_sapi_user).present?
-  end
 end
