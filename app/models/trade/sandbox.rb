@@ -42,13 +42,17 @@ class Trade::Sandbox
     create_target_table_indexes
   end
 
-  def copy_from_sandbox_to_shipments
+  def copy_from_sandbox_to_shipments(submitter)
     success = true
+    # is_a? doesn't always return false for some reason
+    submitter_type = submitter.class.to_s.split(':').first
     Trade::SandboxTemplate.transaction do
       pg_result = Trade::SandboxTemplate.connection.execute(
         Trade::SandboxTemplate.send(:sanitize_sql_array, [
-          'SELECT * FROM copy_transactions_from_sandbox_to_shipments(?)',
-          @annual_report_upload.id
+          'SELECT * FROM copy_transactions_from_sandbox_to_shipments(?, ?, ?)',
+          @annual_report_upload.id,
+          submitter_type,
+          submitter.id
         ])
       )
       moved_rows_cnt = pg_result.first['copy_transactions_from_sandbox_to_shipments'].to_i
