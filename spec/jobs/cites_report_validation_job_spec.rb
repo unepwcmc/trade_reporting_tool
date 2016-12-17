@@ -4,8 +4,9 @@ RSpec.describe CitesReportValidationJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:aru){ FactoryGirl.create(:annual_report_upload) }
-  subject(:job) { described_class.perform_later(aru.id) }
-  subject(:job_without_email) { described_class.perform_later(aru.id, false) }
+  let(:user) { FactoryGirl.create(:epix_user) }
+  subject(:job) { described_class.perform_later(aru.id, user) }
+  subject(:job_without_email) { described_class.perform_later(aru.id, user, false) }
 
   it 'queues the job' do
     expect { job }
@@ -17,7 +18,7 @@ RSpec.describe CitesReportValidationJob, type: :job do
   end
 
   it 'executes perform' do
-    expect(CitesReportValidator).to receive(:call).with(aru.id, true)
+    expect(CitesReportValidator).to receive(:call).with(aru.id, user, true)
     perform_enqueued_jobs { job }
   end
 
@@ -33,7 +34,10 @@ RSpec.describe CitesReportValidationJob, type: :job do
         receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
       )
       allow_any_instance_of(Trade::AnnualReportUpload).to(
-        receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
+        receive(:submit).with(user)
+      )
+      allow_any_instance_of(Trade::Sandbox).to(
+        receive(:copy_from_sandbox_to_shipments).and_return(true)
       )
       allow(CitesReportValidator).to(
         receive(:generate_validation_report).and_return(

@@ -284,9 +284,12 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
           receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
         )
         allow_any_instance_of(Trade::AnnualReportUpload).to(
-          receive_message_chain(:submit, :copy_from_sandbox_to_shipments).and_return(true)
+          receive(:submit).with(@epix_user)
         )
-        CitesReportValidator.call(@aru.id)
+        allow_any_instance_of(Trade::Sandbox).to(
+          receive(:copy_from_sandbox_to_shipments).with(@epix_user).and_return(true)
+        )
+        CitesReportValidator.call(@aru.id, @epix_user)
       end
       it "should download validation report" do
         @request.env['devise.mapping'] = Devise.mappings[:epix_user]
