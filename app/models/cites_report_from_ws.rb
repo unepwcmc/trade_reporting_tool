@@ -5,6 +5,7 @@ class CitesReportFromWS
     @type_of_report = data[:type_of_report]
     @submitted_data = data[:submitted_data]
     @force_submit = data[:force_submit]
+    @epix_user = epix_user
     @aru = Trade::AnnualReportUpload.new({
       force_submit: @force_submit,
       is_from_web_service: true,
@@ -28,7 +29,7 @@ class CitesReportFromWS
       false
     else
       # needs to happen after transaction committed
-      CitesReportValidationJob.perform_later(@aru.id)
+      CitesReportValidationJob.perform_later(@aru.id, @epix_user)
       true
     end
   end
