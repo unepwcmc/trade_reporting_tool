@@ -20,9 +20,9 @@ class CitesReportFromWS
 
   def save
     Sapi::Base.transaction do
-      if @aru.save
+      if @aru.save_wo_timestamps
         @aru.sandbox.copy_data(@submitted_data)
-        @aru.update_attribute(:number_of_rows, @aru.sandbox.shipments.count)
+        @aru.update_column(:number_of_rows, @aru.sandbox.shipments.count)
       end
     end
     if @aru.errors.any?

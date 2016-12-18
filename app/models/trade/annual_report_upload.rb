@@ -110,6 +110,7 @@ class Trade::AnnualReportUpload < Sapi::Base
       self.errors[:base] << "Submit failed, primary validation errors present."
       return false
     end
+
     return false unless sandbox.copy_from_sandbox_to_shipments(submitter)
     # remove uploaded file
     #store_dir = csv_source_file.store_dir
@@ -125,7 +126,26 @@ class Trade::AnnualReportUpload < Sapi::Base
     #DownloadsCacheCleanupJob.perform_async(:shipments)
 
     # flag as submitted
-    update_attribute(:submitted_at, DateTime.now)
+    submitter_type = submitter.class.to_s.split(':').first
+    if submitter_type == 'Epix'
+      update_column(:epix_submitted_at, DateTime.now)
+    else
+      update_column(:submitted_at, DateTime.now)
+    end
+  end
+
+  def save_wo_timestamps
+    class << self
+      def record_timestamps; false; end
+    end
+
+    begin
+      self.save
+    ensure
+      class << self
+        remove_method :record_timestamps
+      end
+    end
   end
 
   private
