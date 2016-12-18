@@ -34,7 +34,13 @@ class Trade::Sandbox
           export_permit: row[:ExportPermitId],
           import_permit: row[:ImportPermitId],
           created_by_id: @annual_report_upload.created_by_id,
-          updated_by_id: @annual_report_upload.updated_by_id
+          updated_by_id: @annual_report_upload.updated_by_id,
+          epix_created_by_id: @annual_report_upload.epix_created_by_id,
+          epix_updated_by_id: @annual_report_upload.epix_updated_by_id,
+          created_at: @annual_report_upload.created_at,
+          updated_at: @annual_report_upload.updated_at,
+          epix_created_at: @annual_report_upload.epix_created_at,
+          epix_updated_at: @annual_report_upload.epix_updated_at
         })
       end
     end
