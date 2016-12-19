@@ -10,6 +10,7 @@ window.Shipments = class Shipments extends React.Component
       validationErrorId: props.validationErrorId
       changesHistory: props.changesHistory
       format: props.format
+      userType: props.userType
     }
 
   render: ->
@@ -46,6 +47,7 @@ window.Shipments = class Shipments extends React.Component
                 index: v_idx
                 changes: shipment.changes[v_idx]
                 rowType: rowType
+                userType: @state.userType
               }
             )
       ]

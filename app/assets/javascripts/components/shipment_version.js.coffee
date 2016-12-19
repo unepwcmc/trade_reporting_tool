@@ -7,6 +7,7 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
       index: props.index
       changes: props.changes
       rowType: props.rowType
+      userType: props.userType
     }
 
   render: ->
@@ -47,8 +48,18 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
         span({ className: "#{@state.index}_year" }, + data.year)
       )
       td({}, span({ className: "#{@state.index}_updated_at"}, data.updated_at))
-      td({}, span({ className: "#{@state.index}_updated_by"}, data.updated_by))
+      @showEditor()
     )
+
+  showEditor: ->
+    editor = ''
+    if @state.userType == 'sapi' || (@state.userType == @state.shipment.editor)
+      editor = @state.shipment.updated_by
+    else
+      editor = 'WCMC'
+    td({}, span({ className: "#{@state.index}_updated_by"}, editor))
+
+
 
   componentDidMount: ->
     keys = Object.keys(@state.changes)

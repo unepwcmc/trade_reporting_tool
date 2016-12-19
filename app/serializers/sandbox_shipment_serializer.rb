@@ -2,7 +2,7 @@ class SandboxShipmentSerializer < ActiveModel::Serializer
   attributes :id, :appendix, :taxon_name, #:reported_taxon_name, :accepted_taxon_name,
     :term_code, :quantity, :unit_code, :trading_partner, :country_of_origin,
     :export_permit, :origin_permit, :purpose_code, :source_code,
-    :year, :import_permit, :updated_at
+    :year, :import_permit, :updated_at, :updated_by, :editor
 
 #  def reported_taxon_name
 #    object.reported_taxon_concept && "#{object.reported_taxon_concept.full_name} (#{object.reported_taxon_concept.name_status})" ||
@@ -31,6 +31,10 @@ class SandboxShipmentSerializer < ActiveModel::Serializer
     else
       nil
     end
+  end
+
+  def editor
+    object.epix_updater ? 'epix' : 'sapi'
   end
 
 end
