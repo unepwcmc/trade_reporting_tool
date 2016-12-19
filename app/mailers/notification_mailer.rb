@@ -19,4 +19,10 @@ class NotificationMailer < ApplicationMailer
     mail(to: @user.email, subject: 'Changes history log')
   end
 
+  def changelog_failed(user, aru)
+    @user = user
+    @aru = aru
+    mail(to: @user.email, subject: 'Changes history log - generation failed')
+  end
+
 end

@@ -1,4 +1,4 @@
-class ChangesHistoryPdfGeneratorJob < ApplicationJob
+class ChangesHistoryGeneratorJob < ApplicationJob
   queue_as :default
 
   def perform(aru_id, cookie, domain, user, pages) # TODO
@@ -9,7 +9,7 @@ class ChangesHistoryPdfGeneratorJob < ApplicationJob
       message = "CITES Report #{aru_id} not found"
       Rails.logger.warn message
       Appsignal.add_exception(e) if defined? Appsignal
-      # TODO: email notification?
+      NotificationMailer.changelog_failed(user, aru).deliver
     end
 
     tempfile = ChangelogCsvGenerator.call(aru, user)

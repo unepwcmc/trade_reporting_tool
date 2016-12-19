@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe ChangesHistoryPdfGeneratorJob, type: :job do
+RSpec.describe ChangesHistoryGeneratorJob, type: :job do
   include ActiveJob::TestHelper
 
   let(:aru){ FactoryGirl.create(:annual_report_upload) }
@@ -12,6 +12,6 @@ RSpec.describe ChangesHistoryPdfGeneratorJob, type: :job do
   end
 
   it 'is in default queue' do
-    expect(CitesReportValidationJob.new.queue_name).to eq('default')
+    expect(ChangesHistoryGeneratorJob.new.queue_name).to eq('default')
   end
 end

@@ -52,7 +52,7 @@ class AnnualReportUploadsController < ApplicationController
     respond_to do |format|
       format.html
       format.pdf do
-        ChangesHistoryPdfGeneratorJob.perform_later(
+        ChangesHistoryGeneratorJob.perform_later(
           @annual_report_upload.id, cookie, request.domain, current_user, @total_pages
         )
         redirect_to root_path
