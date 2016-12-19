@@ -1,22 +1,19 @@
-require 'zip'
 class ChangesHistoryPdfGeneratorJob < ApplicationJob
   queue_as :default
 
-  def perform(aru_id, cookie, domain, user, pages)
-    rasterizer = Rails.root.join("vendor/assets/javascripts/rasterize.js")
-    url = Rails.application.secrets.host
-    url = url + "/annual_report_uploads/#{aru_id}/changes_history_pdf"
-    dir = Rails.root.join("tmp/").to_s
-    `phantomjs #{rasterizer} '#{url}' #{cookie} #{domain} #{pages} #{dir}`
-
-    zipfile = "#{dir}changes_history_for_aru_#{aru_id}.zip"
-    Zip::File.open(zipfile, Zip::File::CREATE) do |zipfile|
-      (1..pages).each do |index|
-        filename = "changes_history_#{index}.pdf"
-        zipfile.add(filename, dir + filename)
-      end
+  def perform(aru_id, cookie, domain, user, pages) # TODO
+    begin
+      aru = Trade::AnnualReportUpload.find(aru_id)
+    rescue ActiveRecord::RecordNotFound => e
+      # catch this exception so that retry is not scheduled
+      message = "CITES Report #{aru_id} not found"
+      Rails.logger.warn message
+      Appsignal.add_exception(e) if defined? Appsignal
+      # TODO: email notification?
     end
 
-    NotificationMailer.changes_history_pdf(user, zipfile).deliver
+    tempfile = ChangelogCsvGenerator.call(aru, user)
+
+    NotificationMailer.changes_history_pdf(user, tempfile).deliver # TODO
   end
 end

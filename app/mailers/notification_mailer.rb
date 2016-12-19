@@ -14,7 +14,7 @@ class NotificationMailer < ApplicationMailer
 
   def changes_history_pdf(user, file)
     @user = user
-    attachments["changes_history.zip"] = File.read(file)
+    attachments["changes_history.csv"] = File.read(file)
     mail(to: @user.email, subject: 'Changes history log')
   end
 
