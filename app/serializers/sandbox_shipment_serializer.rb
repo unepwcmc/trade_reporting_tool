@@ -14,7 +14,23 @@ class SandboxShipmentSerializer < ActiveModel::Serializer
 #  end
   #
   def updated_at
-    object.updated_at.strftime("%d/%m/%y")
+    if object.epix_updater
+      object.epix_updated_at && object.epix_updated_at.strftime("%d/%m/%y")
+    elsif object.sapi_updater
+      object.updated_at && object.updated_at.strftime("%d/%m/%y")
+    else
+      nil
+    end
+  end
+
+  def updated_by
+    if object.epix_updater
+      object.epix_updater.name
+    elsif object.sapi_updater
+      object.sapi_updater.name
+    else
+      nil
+    end
   end
 
 end

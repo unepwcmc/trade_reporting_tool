@@ -27,6 +27,15 @@ class Trade::SandboxTemplate < Sapi::Base
         has_paper_trail
         # belongs_to :taxon_concept
         # belongs_to :reported_taxon_concept, :class_name => TaxonConcept
+        belongs_to :epix_creator, class_name: Epix::User,
+          foreign_key: :epix_created_by_id, optional: true
+        belongs_to :sapi_creator, class_name: Sapi::User,
+          foreign_key: :created_by_id, optional: true
+        belongs_to :epix_updater, class_name: Epix::User,
+          foreign_key: :epix_updated_by_id, optional: true
+        belongs_to :sapi_updater, class_name: Sapi::User,
+          foreign_key: :updated_by_id, optional: true
+
 
         scope :destroyed, -> {
           PaperTrail::Version.where(event: 'destroy', item_type: self).
