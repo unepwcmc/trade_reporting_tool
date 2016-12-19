@@ -105,7 +105,7 @@ RSpec.describe Api::V1::AnnualReportUploadsController, type: :controller do
       end
     end
   end
-  describe "GET changes_history_pdf" do
+  describe "GET changes_history_download" do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
@@ -149,7 +149,7 @@ RSpec.describe Api::V1::AnnualReportUploadsController, type: :controller do
         @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
         sign_in @sapi_user
 
-        get :changes_history_pdf, id: @epix_upload.id
+        get :changes_history_download, id: @epix_upload.id
 
         expect(assigns(:shipments).size).to eq(1)
       end

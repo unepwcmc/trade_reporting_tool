@@ -1,7 +1,7 @@
 class ChangesHistoryGeneratorJob < ApplicationJob
   queue_as :default
 
-  def perform(aru_id, cookie, domain, user, pages) # TODO
+  def perform(aru_id, user)
     begin
       aru = Trade::AnnualReportUpload.find(aru_id)
     rescue ActiveRecord::RecordNotFound => e
@@ -14,6 +14,6 @@ class ChangesHistoryGeneratorJob < ApplicationJob
 
     tempfile = ChangelogCsvGenerator.call(aru, user)
 
-    NotificationMailer.changelog(user, aru, tempfile).deliver # TODO
+    NotificationMailer.changelog(user, aru, tempfile).deliver
   end
 end

@@ -57,3 +57,4 @@ en:
   edit: 'Edit'
   shipment_updated: 'Shipment successfully updated.'
   shipment_not_updated: 'An error occurred while updating shipment.'
+  aru_changelog_generation_scheduled: 'Generation of changelog scheduled. An email notification will be delivered.'

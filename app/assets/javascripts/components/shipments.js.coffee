@@ -56,7 +56,7 @@ window.Shipments = class Shipments extends React.Component
     url = window.location.origin + "/api/v1/annual_report_uploads/#{aru_id}"
     if @state.changesHistory
       if @state.format == 'pdf'
-        url = url + "/changes_history_pdf"
+        url = url + "/changes_history_download"
       else
         url = url + "/changes_history"
     else

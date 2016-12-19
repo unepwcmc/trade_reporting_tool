@@ -42,20 +42,16 @@ class AnnualReportUploadsController < ApplicationController
     @total_pages = (shipments.count / per_page.to_f).ceil
   end
 
-  def changes_history_pdf
+  def changes_history_download
     @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
-    shipments = @annual_report_upload.shipments_with_versions
-    per_page = Trade::SandboxTemplate.per_page
-    @total_pages = (shipments.count / per_page.to_f).ceil
-
-    cookie = cookies.to_h['_trade_reporting_tool_session']
     respond_to do |format|
       format.html
       format.pdf do
         ChangesHistoryGeneratorJob.perform_later(
-          @annual_report_upload.id, cookie, request.domain, current_user, @total_pages
+          @annual_report_upload.id, current_user
         )
-        redirect_to root_path
+        flash[:notice] = t('aru_changelog_generation_scheduled')
+        redirect_to changes_history_url(@annual_report_upload)
       end
     end
   end
