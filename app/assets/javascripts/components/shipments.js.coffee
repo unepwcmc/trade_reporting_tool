@@ -43,6 +43,7 @@ window.Shipments = class Shipments extends React.Component
               {
                 key: "#{shipment.id}_#{v_idx}"
                 shipment: version
+                index: v_idx
                 changes: shipment.changes[v_idx]
                 rowType: rowType
               }
