@@ -42,6 +42,20 @@ class AnnualReportUploadsController < ApplicationController
     @total_pages = (shipments.count / per_page.to_f).ceil
   end
 
+  def changes_history_download
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    respond_to do |format|
+      format.html
+      format.pdf do
+        ChangesHistoryGeneratorJob.perform_later(
+          @annual_report_upload.id, current_user
+        )
+        flash[:notice] = t('aru_changelog_generation_scheduled')
+        redirect_to changes_history_url(@annual_report_upload)
+      end
+    end
+  end
+
   def destroy
     @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
     if @annual_report_upload.destroy_with_sandbox

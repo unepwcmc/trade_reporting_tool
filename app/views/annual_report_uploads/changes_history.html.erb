@@ -6,18 +6,10 @@
   <i class="fa fa-download green"></i>
   <%=
     link_to t('download_changes_history'),
-    '',
+    changes_history_download_path(@annual_report_upload, format: :pdf),
     class: 'green-link-underlined'
   %>
 </div>
 <h1 class="sandbox-title">Changes History</h1>
 
-<%=
-  react_component 'ShipmentsTable',
-    {
-      pageName: 'shipments',
-      totalPages: @total_pages,
-      annualReportUploadId: @annual_report_upload.id,
-      changesHistory: true
-    }
-%>
+<%= render partial: 'shared/shipments_table', locals: { changesHistory: true, format: 'html' } %>

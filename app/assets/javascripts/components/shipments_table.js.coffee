@@ -9,6 +9,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
       annualReportUploadId: props.annualReportUploadId
       validationErrorId: props.validationErrorId
       changesHistory: props.changesHistory
+      format: props.format
     }
     @incrementPage = @changePage.bind(@, 1)
     @decrementPage = @changePage.bind(@, -1)
@@ -77,6 +78,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
         annualReportUploadId: @state.annualReportUploadId
         validationErrorId: @state.validationErrorId
         changesHistory: @state.changesHistory
+        format: @state.format
       }
     )
 
