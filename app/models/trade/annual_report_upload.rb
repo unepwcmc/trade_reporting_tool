@@ -129,8 +129,10 @@ class Trade::AnnualReportUpload < Sapi::Base
     submitter_type = submitter.class.to_s.split(':').first
     if submitter_type == 'Epix'
       update_column(:epix_submitted_at, DateTime.now)
+      update_column(:epix_submitted_by_id, submitter.id)
     else
       update_column(:submitted_at, DateTime.now)
+      update_column(:submitted_by_id, submitter.id)
     end
   end
 
