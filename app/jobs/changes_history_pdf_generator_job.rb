@@ -14,6 +14,6 @@ class ChangesHistoryPdfGeneratorJob < ApplicationJob
 
     tempfile = ChangelogCsvGenerator.call(aru, user)
 
-    NotificationMailer.changes_history_pdf(user, tempfile).deliver # TODO
+    NotificationMailer.changelog(user, aru, tempfile).deliver # TODO
   end
 end
