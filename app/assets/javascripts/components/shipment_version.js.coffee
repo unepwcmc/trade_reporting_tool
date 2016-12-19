@@ -11,11 +11,17 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
   render: ->
     data = @state.shipment
     keys = Object.keys(@state.changes)
-    changes = if keys.length > 1 then ' changes' else ' change'
+    changes = ''
+    if keys.length == 0
+      changes = 'deleted'
+    else if keys.length > 1
+      changes = "#{keys.length} changes"
+    else
+      changes = "1 change"
     tr({ className: @state.rowType },
       td({}
         div({ className: 'bold' }, data.updated_at)
-        div({ className: 'italic' }, keys.length + changes)
+        div({ className: 'italic' }, changes)
       )
       td({}, span({ className: 'appendix' }, data.appendix))
       td({},
@@ -39,6 +45,8 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
         ' - '
         span({ className: 'year' }, + data.year)
       )
+      td({}, span({ className: 'updated_at'}, data.updated_at))
+      td({}, span({ className: 'updated_by'}, data.updated_by))
     )
 
   componentDidMount: ->
