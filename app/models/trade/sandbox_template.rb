@@ -28,6 +28,12 @@ class Trade::SandboxTemplate < Sapi::Base
         # belongs_to :taxon_concept
         # belongs_to :reported_taxon_concept, :class_name => TaxonConcept
 
+        scope :destroyed, -> {
+          PaperTrail::Version.where(event: 'destroy', item_type: self).
+          joins("LEFT JOIN #{self.table_name} ON item_id=#{self.table_name}.id").
+          where("#{self.table_name}.id IS NULL")
+        }
+
         def sanitize
           self.class.sanitize(self.id)
         end

@@ -34,6 +34,10 @@ class Api::V1::AnnualReportUploadsController < ApplicationController
         SandboxShipmentChangesSerializer.new(shipment)
       end
 
+    ar_klass.destroyed.map(&:reify).map do |shipment|
+      @shipments << SandboxShipmentChangesSerializer.new(shipment)
+    end
+
     render json: {
       shipments: @shipments
     }
