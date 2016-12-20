@@ -23,7 +23,7 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
     tr({ className: @state.rowType },
       td({}
         div({ className: "bold" }, data.updated_at)
-        div({ className: "italic" }, changes)
+        div({ className: "italic" }, changes + " by " + @getEditor())
       )
       td({}, span({ className: "appendix" }, data.appendix))
       td({},
@@ -47,17 +47,13 @@ window.ShipmentVersion = class ShipmentVersion extends React.Component
         " - "
         span({ className: "#{@state.index}_year" }, + data.year)
       )
-      td({}, span({ className: "#{@state.index}_updated_at"}, data.updated_at))
-      @showEditor()
     )
 
-  showEditor: ->
-    editor = ''
+  getEditor: ->
     if @state.userType == 'sapi' || (@state.userType == @state.shipment.editor)
-      editor = @state.shipment.updated_by
+      @state.shipment.whodunnit
     else
-      editor = 'WCMC'
-    td({}, span({ className: "#{@state.index}_updated_by"}, editor))
+      'WCMC'
 
 
 

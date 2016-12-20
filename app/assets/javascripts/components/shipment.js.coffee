@@ -34,13 +34,7 @@ window.Shipment = class Shipment extends React.Component
       td({}
         data.purpose_code + ' - ' + data.source_code + ' - ' + data.year
       )
-      if @state.changesHistory
-        [
-          td({}, '')
-          td({}, '')
-        ]
-      else
-        @state.changesHistory
+      unless @state.changesHistory
         td({ className: 'actions-col' },
           div(
             {}

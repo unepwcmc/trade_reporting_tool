@@ -67,11 +67,6 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
         )
         unless @state.changesHistory
           th({}, 'Actions')
-        else
-          [
-            th({}, 'Updated at')
-            th({}, 'Updated by')
-          ]
       )
     )
 
