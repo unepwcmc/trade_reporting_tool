@@ -6,6 +6,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       annualReportUpload: props.annualReportUpload
       submitted: !!props.annualReportUpload.submitted_at
       sandboxEnabled: !!props.sandboxEnabled
+      adminUrl: props.adminUrl
     }
     @updateModal = @updateModal.bind(@, @summary())
 
@@ -28,10 +29,9 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       info_text.html(text)
     else
       modal_content.removeClass('smaller')
-      info_text.html(I18n.t('change_sandbox_settings'))
-
-
-
+      text = I18n.t('change_sandbox_settings')
+      text = text + "<a href='#{@state.adminUrl}' class='bold'>#{I18n.t('your_admin_page')}</a>"
+      info_text.html(text)
 
   render: ->
     if @state.submitted
