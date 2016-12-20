@@ -56,6 +56,16 @@ class AnnualReportUploadsController < ApplicationController
     end
   end
 
+  def submit
+    @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
+    if @annual_report_upload.submit(current_user)
+      flash[:notice] = "Annual Report Upload #{params[:id]} submitted succesfully"
+    else
+      flash[:error] = @annual_report_upload.errors
+    end
+    redirect_to annual_report_uploads_path
+  end
+
   def destroy
     @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
     if @annual_report_upload.destroy_with_sandbox
