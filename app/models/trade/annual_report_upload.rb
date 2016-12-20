@@ -112,12 +112,6 @@ class Trade::AnnualReportUpload < Sapi::Base
     end
 
     return false unless sandbox.copy_from_sandbox_to_shipments(submitter)
-    # remove uploaded file
-    #store_dir = csv_source_file.store_dir
-    #remove_csv_source_file!
-    #puts '### removing uploads dir ###'
-    #puts Rails.root.join('public', store_dir)
-    #FileUtils.remove_dir(Rails.root.join('public', store_dir), :force => true)
 
     # remove sandbox table
     sandbox.destroy
