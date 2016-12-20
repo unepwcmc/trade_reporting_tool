@@ -20,4 +20,14 @@ module ApplicationHelper
       link_to t('back_to_speciesplus'), home_url
     end
   end
+
+  def destroy_user_session_path
+    if current_sapi_user
+      destroy_sapi_user_session_path
+    elsif current_epix_user
+      destroy_epix_user_session_path
+    else
+      ''
+    end
+  end
 end
