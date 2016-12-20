@@ -20,6 +20,8 @@ class CitesReportFromWS
 
   def save
     Sapi::Base.transaction do
+      # Since this aru is coming from a web service, we populate just the epix timestamps.
+      # The following method will save the aru without the default timestamps.
       if @aru.save_wo_timestamps
         @aru.sandbox.copy_data(@submitted_data)
         @aru.update_column(:number_of_rows, @aru.sandbox.shipments.count)
