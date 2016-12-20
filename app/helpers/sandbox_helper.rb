@@ -10,9 +10,9 @@ module SandboxHelper
       content_tag(:div, nil, class: 'submit-shipments') do
         validation_errors = @annual_report_upload.validation_errors
         submit_enabled = validation_errors.first.try(:is_primary).nil?
-        link = submit_enabled ? '#submit_link' : ''
+        link = submit_enabled ? submit_path(@annual_report_upload.object.id) : ''
         enabled_class = submit_enabled ? 'submit-enabled' : 'submit-disabled'
-        link_to(t('submit_shipments'), link, class: "submit-aru button #{enabled_class}")
+        link_to(t('submit_shipments'), link, class: "submit-aru button #{enabled_class}", method: :post)
       end
     end
   end
