@@ -49,4 +49,17 @@ RSpec.describe EpixUser::SessionsController, type: :controller do
       end
     end
   end
+
+  describe "DELETE destroy" do
+    before(:each) do
+      @user = FactoryGirl.create(:epix_user)
+      @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+    end
+    it "should logout correctly" do
+      delete :destroy
+
+      expect(response.status).to eq(302)
+      expect(subject.current_epix_user).to eq(nil)
+    end
+  end
 end

@@ -48,4 +48,16 @@ RSpec.describe SapiUser::SessionsController, type: :controller do
     end
   end
 
+  describe "DELETE destroy" do
+    before(:each) do
+      @user = FactoryGirl.create(:sapi_user)
+      @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
+    end
+    it "should logout correctly" do
+      delete :destroy
+
+      expect(response.status).to eq(302)
+      expect(subject.current_sapi_user).to eq(nil)
+    end
+  end
 end
