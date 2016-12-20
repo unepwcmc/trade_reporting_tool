@@ -77,7 +77,6 @@ class ApplicationController < ActionController::Base
   end
 
   def user_for_paper_trail
-    return nil unless current_user
     current_user.is_a?(Epix::User) ? "Epix:#{current_user.id}" : "Sapi:#{current_user.id}"
   end
 end
