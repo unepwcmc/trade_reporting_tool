@@ -13,4 +13,13 @@ module AnnualReportUploadHelper
       content_tag(:span, t('import_report'))
     end
   end
+
+  def admin_url
+    if current_epix_user
+      Rails.application.secrets.epix_url +
+        "/admin/organisations/#{current_epix_user.organisation_id}"
+    elsif current_sapi_user
+      Rails.application.secrets.sapi_admin_url
+    end
+  end
 end

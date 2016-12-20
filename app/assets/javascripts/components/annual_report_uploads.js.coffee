@@ -7,6 +7,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
       pageName: props.pageName,
       page: props.page,
       sandboxEnabled: props.sandboxEnabled
+      adminUrl: props.adminUrl
     }
 
   render: ->
@@ -31,6 +32,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
             key: annualReportUpload.id,
             annualReportUpload: annualReportUpload,
             sandboxEnabled: @state.sandboxEnabled
+            adminUrl: @state.adminUrl
           }
         )
       )
