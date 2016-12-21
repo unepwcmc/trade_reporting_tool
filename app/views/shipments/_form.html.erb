@@ -58,7 +58,7 @@
         title: 'Unit',
         name: 'unit_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Unit.pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.unit_code),
         form: (form && form.object_name)
