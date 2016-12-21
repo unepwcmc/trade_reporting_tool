@@ -12,6 +12,7 @@ window.Dropdown = class Dropdown extends React.Component
       value: props.value
       form: props.form
       apiBaseUrl: props.apiBaseUrl
+      isBlank: false
     }
     @setBlank = @setBlank.bind(@)
 
@@ -51,10 +52,7 @@ window.Dropdown = class Dropdown extends React.Component
     )
 
   setBlank: ->
-    @setState({value: ' '})
-
-  componentWillUpdate: (nextProps, nextState)->
-    @refs.textInput.value = nextState.value
+    @setState({isBlank: !@state.isBlank})
 
   componentDidMount: ->
     data = []
@@ -73,6 +71,16 @@ window.Dropdown = class Dropdown extends React.Component
       placeholder: @state.placeholder,
       data: data
     })
+
+  componentDidUpdate: ->
+    dropdown = "##{@state.name}_dropdown"
+    if @state.isBlank
+      $(dropdown).html('').select2({data: [{id: '', text: ''}]})
+    else
+      data = @state.data.map (value) ->
+        id: value
+        text: value
+      $(dropdown).html('').select2({data: data}).val(@state.value).trigger('change')
 
   select2TaxonConcept: ->
     $("#taxon_name_dropdown").select2({
