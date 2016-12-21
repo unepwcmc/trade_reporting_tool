@@ -1,4 +1,4 @@
-{div, input, span, a, i, button, ul, li } = React.DOM
+{div, input, span, a, i, button, ul, li, select, option } = React.DOM
 window.Dropdown = class Dropdown extends React.Component
   constructor: (props, context) ->
     super(props, context)
@@ -12,7 +12,6 @@ window.Dropdown = class Dropdown extends React.Component
       value: props.value
       form: props.form
     }
-    @processSelection = @processSelection.bind(@)
     @setBlank = @setBlank.bind(@)
 
   render: ->
@@ -28,28 +27,17 @@ window.Dropdown = class Dropdown extends React.Component
     name = if @state.form then "#{@state.form}[#{@state.name}]" else @state.name
     div(
       {}
-      button(
-        { "data-toggle": 'dropdown' }
-        span({}, (@state.value || @state.placeholder))
-        i({ className: 'fa fa-caret-down'})
-      )
-      ul(
-        { className: 'dropdown-menu' }
-        for item in @state.data
-          li({ key: item, onClick: @processSelection },
-            a({}, item)
-          )
-      )
-      input(
+      select(
         {
-          className: 'dropdown-input',
+          id: "#{@state.name}_dropdown",
+          className: 'dropdown-menu',
           name: name
-          type: 'text',
-          defaultValue: @state.value || ''
-          ref: 'textInput'
         }
+        option(
+          { defaultValue: @state.value }
+          @state.value
+        )
       )
-
     )
 
   renderCheckbox: ->
@@ -61,13 +49,17 @@ window.Dropdown = class Dropdown extends React.Component
       span({}, 'Set blank')
     )
 
-  processSelection: (e) ->
-    item = $(e.currentTarget).find('a').html()
-    @setState({value: item})
-
   setBlank: ->
     @setState({value: ' '})
 
   componentWillUpdate: (nextProps, nextState)->
     @refs.textInput.value = nextState.value
+
+  componentDidMount: ->
+    $("##{@state.name}_dropdown").select2({
+      placeholder: @state.placeholder,
+      data: @state.data.map (value) ->
+        id: value
+        text: value
+    })
 
