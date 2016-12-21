@@ -10,6 +10,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
       validationErrorId: props.validationErrorId
       changesHistory: props.changesHistory
       format: props.format
+      userType: props.userType
     }
     @incrementPage = @changePage.bind(@, 1)
     @decrementPage = @changePage.bind(@, -1)
@@ -79,6 +80,7 @@ window.ShipmentsTable = class ShipmentsTable extends React.Component
         validationErrorId: @state.validationErrorId
         changesHistory: @state.changesHistory
         format: @state.format
+        userType: @state.userType
       }
     )
 

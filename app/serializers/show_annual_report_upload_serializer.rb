@@ -35,7 +35,13 @@ class ShowAnnualReportUploadSerializer < ActiveModel::Serializer
   end
 
   def updated_at
-    object.updated_at.strftime("%d/%m/%y")
+    if object.epix_updater
+      object.epix_updated_at && object.epix_updated_at.strftime("%d/%m/%y")
+    elsif object.sapi_updater
+      object.updated_at && object.updated_at.strftime("%d/%m/%y")
+    else
+      nil
+    end
   end
 
   def created_by

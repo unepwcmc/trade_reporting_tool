@@ -5,6 +5,7 @@
       totalPages: @total_pages,
       annualReportUploadId: @annual_report_upload.id,
       changesHistory: changesHistory,
-      format: format
+      format: format,
+      userType: current_epix_user ? 'epix' : current_sapi_user ? 'sapi' : ''
     }
 %>
