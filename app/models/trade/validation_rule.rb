@@ -48,7 +48,7 @@ class Trade::ValidationRule < Sapi::Base
       existing_record,
       matching_records.length,
       error_message,
-      '{}'
+      {}
     )
   end
 

@@ -37,7 +37,7 @@ class Trade::InclusionValidationRule < Trade::ValidationRule
 
   def refresh_errors_if_needed(annual_report_upload)
     return true unless refresh_needed?(annual_report_upload)
-    errors_to_destroy = validation_errors.all
+    error_ids_to_destroy = validation_errors.pluck(:id)
     matching_records_grouped(annual_report_upload).map do |mr|
       values_hash = Hash[column_names.map { |cn| [cn, mr.send(cn)] }]
       values_hash_for_display = Hash[column_names_for_display.map { |cn| [cn, mr.send(cn)] }]
@@ -51,13 +51,15 @@ class Trade::InclusionValidationRule < Trade::ValidationRule
         existing_record,
         mr.error_count.to_i,
         error_message(values_hash_for_display),
-        jsonb_matching_criteria_for_insert(values_hash)
+        values_hash
       )
       if existing_record
-        errors_to_destroy.reject! { |e| e.id == existing_record.id }
+        error_ids_to_destroy.delete(existing_record.id)
       end
     end
-    errors_to_destroy.each(&:destroy)
+    unless error_ids_to_destroy.empty?
+      Trade::ValidationError.delete(error_ids_to_destroy)
+    end
   end
 
   def validation_errors_for_shipment(shipment)
@@ -81,21 +83,6 @@ class Trade::InclusionValidationRule < Trade::ValidationRule
     else
       column_names
     end
-  end
-
-  def jsonb_matching_criteria_for_insert(values_hash)
-    jsonb_keys_and_values = column_names.map do |c|
-      is_numeric = (c =~ /.+_id$/ || c == 'year')
-      value = values_hash[c]
-      value_quoted =
-        if is_numeric
-          value
-        else
-          "\"#{value}\""
-        end
-      "\"#{c}\": #{value_quoted}"
-    end.join(', ')
-    '{' + jsonb_keys_and_values + '}'
   end
 
   def jsonb_matching_criteria_for_comparison(values_hash = nil)
