@@ -56,10 +56,17 @@ window.Dropdown = class Dropdown extends React.Component
     @refs.textInput.value = nextState.value
 
   componentDidMount: ->
-    $("##{@state.name}_dropdown").select2({
-      placeholder: @state.placeholder,
-      data: @state.data.map (value) ->
+    data = []
+    if @state.name in ['trading_partner', 'country_of_origin']
+      data = @state.data.map (value) ->
+        id: value[0]
+        text: value[1]
+    else
+      data = @state.data.map (value) ->
         id: value
         text: value
+    $("##{@state.name}_dropdown").select2({
+      placeholder: @state.placeholder,
+      data: data
     })
 

@@ -71,7 +71,7 @@
         title: 'Trading partner',
         name: 'trading_partner',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Sapi::GeoEntity.map_for_search,
         enabled: true,
         value: (@shipment && @shipment.trading_partner),
         form: (form && form.object_name)
@@ -86,7 +86,7 @@
         title: 'Origin',
         name: 'country_of_origin',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Sapi::GeoEntity.map_for_search,
         enabled: true,
         value: (@shipment && @shipment.country_of_origin),
         form: (form && form.object_name)
