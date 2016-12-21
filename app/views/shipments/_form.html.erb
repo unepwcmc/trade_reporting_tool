@@ -137,8 +137,8 @@
         title: 'Purpose Code',
         name: 'purpose_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
-        enabled: false,
+        data: Purpose.pluck(:code),
+        enabled: true,
         value: (@shipment && @shipment.purpose_code),
         form: (form && form.object_name)
       })
