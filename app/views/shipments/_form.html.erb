@@ -150,7 +150,7 @@
         title: 'Source code',
         name: 'source_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Source.pluck(:code),
         enabled: true,
         blankCheckbox: true,
         value: (@shipment && @shipment.source_code),
