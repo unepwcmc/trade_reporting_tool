@@ -12,4 +12,8 @@ class TradeCode < Sapi::Base
       scoped
     end
   end
+
+  def name
+    send("name_#{I18n.locale}")
+  end
 end
