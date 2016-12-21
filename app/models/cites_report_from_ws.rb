@@ -5,6 +5,7 @@ class CitesReportFromWS
     @type_of_report = data[:type_of_report]
     @submitted_data = data[:submitted_data]
     @force_submit = data[:force_submit]
+    @epix_user = epix_user
     @aru = Trade::AnnualReportUpload.new({
       force_submit: @force_submit,
       is_from_web_service: true,
@@ -19,16 +20,18 @@ class CitesReportFromWS
 
   def save
     Sapi::Base.transaction do
-      if @aru.save
+      # Since this aru is coming from a web service, we populate just the epix timestamps.
+      # The following method will save the aru without the default timestamps.
+      if @aru.save_wo_timestamps
         @aru.sandbox.copy_data(@submitted_data)
-        @aru.update_attribute(:number_of_rows, @aru.sandbox.shipments.count)
+        @aru.update_column(:number_of_rows, @aru.sandbox.shipments.count)
       end
     end
     if @aru.errors.any?
       false
     else
       # needs to happen after transaction committed
-      CitesReportValidationJob.perform_later(@aru.id)
+      CitesReportValidationJob.perform_later(@aru.id, @epix_user)
       true
     end
   end

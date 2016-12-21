@@ -3,18 +3,18 @@ require "rails_helper"
 RSpec.describe CitesReportValidator do
 
   describe :call do
+    let(:epix_user){
+      FactoryGirl.create(:epix_user)
+    }
     context 'when CITES Report not found' do
       it "should return error" do
         expect(
-          CitesReportValidator.call(nil)[:CITESReportResult][:Status]
+          CitesReportValidator.call(nil, epix_user)[:CITESReportResult][:Status]
         ).to eq('UPLOAD_FAILED')
       end
     end
     let(:sapi_poland){
       FactoryGirl.create(:geo_entity, iso_code2: 'PL')
-    }
-    let(:epix_user){
-      FactoryGirl.create(:epix_user)
     }
     before(:each) do
       allow(CitesReportValidator).to(receive(:generate_validation_report).and_return({}))
@@ -31,10 +31,16 @@ RSpec.describe CitesReportValidator do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
           )
+          allow_any_instance_of(Trade::AnnualReportUpload).to(
+            receive(:submit).with(epix_user)
+          )
+          allow_any_instance_of(Trade::Sandbox).to(
+            receive(:copy_from_sandbox_to_shipments).with(epix_user).and_return(true)
+          )
         end
         it "should return success" do
           expect(
-            CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
+            CitesReportValidator.call(aru.id, epix_user)[:CITESReportResult][:Status]
           ).to eq('PENDING')
         end
       end
@@ -47,10 +53,16 @@ RSpec.describe CitesReportValidator do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([Trade::ValidationError.new])
           )
+          allow_any_instance_of(Trade::AnnualReportUpload).to(
+            receive(:submit).with(epix_user)
+          )
+          allow_any_instance_of(Trade::Sandbox).to(
+            receive(:copy_from_sandbox_to_shipments).with(epix_user).and_return(true)
+          )
         end
         it "should return success" do
           expect(
-            CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
+            CitesReportValidator.call(aru.id, epix_user)[:CITESReportResult][:Status]
           ).to eq('PENDING')
         end
       end
@@ -71,7 +83,7 @@ RSpec.describe CitesReportValidator do
         end
         it "should return error" do
           expect(
-            CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
+            CitesReportValidator.call(aru.id, epix_user)[:CITESReportResult][:Status]
           ).to eq('VALIDATION_FAILED')
         end
       end
@@ -90,14 +102,20 @@ RSpec.describe CitesReportValidator do
           allow_any_instance_of(Trade::AnnualReportUpload).to(
             receive_message_chain(:persisted_validation_errors, :secondary).and_return([])
           )
+          allow_any_instance_of(Trade::AnnualReportUpload).to(
+            receive(:submit).with(epix_user)
+          )
+          allow_any_instance_of(Trade::Sandbox).to(
+            receive(:copy_from_sandbox_to_shipments).with(epix_user).and_return(true)
+          )
         end
         it "should return success" do
           expect(
-            CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
+            CitesReportValidator.call(aru.id, epix_user)[:CITESReportResult][:Status]
           ).to eq('PENDING')
         end
         it "sends an email" do
-          expect { CitesReportValidator.call(aru.id) }.to(
+          expect { CitesReportValidator.call(aru.id, epix_user) }.to(
             change { ActionMailer::Base.deliveries.count }.by(1)
           )
         end
@@ -114,11 +132,11 @@ RSpec.describe CitesReportValidator do
         end
         it "should return error" do
           expect(
-            CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
+            CitesReportValidator.call(aru.id, epix_user)[:CITESReportResult][:Status]
           ).to eq('VALIDATION_FAILED')
         end
         it "sends an email" do
-          expect { CitesReportValidator.call(aru.id) }.to(
+          expect { CitesReportValidator.call(aru.id, epix_user) }.to(
             change { ActionMailer::Base.deliveries.count }.by(1)
           )
         end
@@ -140,7 +158,7 @@ RSpec.describe CitesReportValidator do
         end
         it "should return error" do
           expect(
-            CitesReportValidator.call(aru.id)[:CITESReportResult][:Status]
+            CitesReportValidator.call(aru.id, epix_user)[:CITESReportResult][:Status]
           ).to eq('VALIDATION_FAILED')
         end
       end

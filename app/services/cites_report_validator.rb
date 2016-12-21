@@ -1,6 +1,6 @@
 class CitesReportValidator
 
-  def self.call(aru_id, send_email=true)
+  def self.call(aru_id, user, send_email=true)
     begin
       aru = Trade::AnnualReportUpload.find(aru_id)
     rescue ActiveRecord::RecordNotFound => e
@@ -24,7 +24,7 @@ class CitesReportValidator
 
       if aru.persisted_validation_errors.primary.empty? &&
         (aru.persisted_validation_errors.secondary.empty? || aru.force_submit)
-        aru.submit
+        aru.submit(user)
       end
     end
 

@@ -107,7 +107,7 @@ RSpec.describe ShipmentsController, type: :controller do
       end
 
       it "should run validation job" do
-        expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+        expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @epix_user, false))
         patch :update, {
           annual_report_upload_id: @aru.id,
           id: @shipment.id,
@@ -166,7 +166,7 @@ RSpec.describe ShipmentsController, type: :controller do
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
         it "should run validation job" do
-          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @sapi_user, false))
           delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
         it "should set whodunnit correctly", versioning: true do
@@ -214,7 +214,7 @@ RSpec.describe ShipmentsController, type: :controller do
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
         it "should run validation job" do
-          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @epix_user, false))
           delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
         it "should set whodunnit correctly", versioning: true do
@@ -261,7 +261,7 @@ RSpec.describe ShipmentsController, type: :controller do
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
         it "should run validation job" do
-          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, false))
+          expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @epix_user, false))
           delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
         it "should set whodunnit correctly", versioning: true do

@@ -48,6 +48,7 @@ h3.sandbox-upload-summary {
 .submit-disabled {
   opacity: 0.5;
   cursor: default;
+  pointer-events: none;
 }
 
 .validation-errors-info {

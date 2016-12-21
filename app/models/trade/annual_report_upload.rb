@@ -98,8 +98,51 @@ class Trade::AnnualReportUpload < Sapi::Base
     end
   end
 
-  def submit
-    # TODO
+  def run_primary_validations
+    @validation_errors = run_validations(
+      Trade::ValidationRule.where(:is_primary => true)
+    )
+  end
+
+  def submit(submitter)
+    run_primary_validations
+    unless @validation_errors.count == 0
+      self.errors[:base] << "Submit failed, primary validation errors present."
+      return false
+    end
+
+    return false unless sandbox.copy_from_sandbox_to_shipments(submitter)
+
+    update_column(:number_of_records_submitted, sandbox.moved_rows_cnt)
+    # remove sandbox table
+    sandbox.destroy
+
+    # clear downloads cache
+    #DownloadsCacheCleanupJob.perform_async(:shipments)
+
+    # flag as submitted
+    submitter_type = submitter.class.to_s.split(':').first
+    if submitter_type == 'Epix'
+      update_column(:epix_submitted_at, DateTime.now)
+      update_column(:epix_submitted_by_id, submitter.id)
+    else
+      update_column(:submitted_at, DateTime.now)
+      update_column(:submitted_by_id, submitter.id)
+    end
+  end
+
+  def save_wo_timestamps
+    class << self
+      def record_timestamps; false; end
+    end
+
+    begin
+      self.save
+    ensure
+      class << self
+        remove_method :record_timestamps
+      end
+    end
   end
 
   private
