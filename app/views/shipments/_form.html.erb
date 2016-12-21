@@ -33,7 +33,7 @@
         title: 'Term',
         name: 'term_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Term.pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.term_code),
         form: (form && form.object_name)
