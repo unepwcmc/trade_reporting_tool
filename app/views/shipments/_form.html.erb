@@ -18,10 +18,10 @@
         title: 'Taxon name',
         name: 'taxon_name',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
         enabled: true,
         value: (@shipment && @shipment.taxon_name),
-        form: (form && form.object_name)
+        form: (form && form.object_name),
+        apiBaseUrl: Rails.application.secrets.sapi_staging_path
       })
     %>
   </div>

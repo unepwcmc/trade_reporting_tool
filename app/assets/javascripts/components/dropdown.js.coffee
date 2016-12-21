@@ -11,6 +11,7 @@ window.Dropdown = class Dropdown extends React.Component
       blankCheckbox: props.blankCheckbox || false
       value: props.value
       form: props.form
+      apiBaseUrl: props.apiBaseUrl
     }
     @setBlank = @setBlank.bind(@)
 
@@ -61,6 +62,9 @@ window.Dropdown = class Dropdown extends React.Component
       data = @state.data.map (value) ->
         id: value[0]
         text: value[1]
+    else if @state.name == 'taxon_name'
+      @select2TaxonConcept()
+      return
     else
       data = @state.data.map (value) ->
         id: value
@@ -70,3 +74,28 @@ window.Dropdown = class Dropdown extends React.Component
       data: data
     })
 
+  select2TaxonConcept: ->
+    $("#taxon_name_dropdown").select2({
+      minimumInputLength: 3
+      quietMillis: 500,
+      ajax:
+        url: "#{@state.apiBaseUrl}/api/v1/auto_complete_taxon_concepts.json"
+        dataType: 'json'
+        data: (term, page) =>
+          taxon_concept_query: term.term # search term
+          #visibility: 'trade_internal' #includes status
+          include_synonyms: true
+          per_page: 10
+          page: page
+        processResults: (data, page) => # parse the results into the format expected by Select2.
+          more = (page * 10) < data.meta.total
+          formatted_taxon_concepts = data.auto_complete_taxon_concepts.map (tc) =>
+            nameStatusFormatted = unless tc.name_status == 'A'
+              ' [' + tc.name_status + ']'
+            else
+              ''
+            id: tc.full_name
+            text: tc.full_name + nameStatusFormatted
+          results: formatted_taxon_concepts
+          more: more
+    })
