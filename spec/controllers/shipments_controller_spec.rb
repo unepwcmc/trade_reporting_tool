@@ -33,7 +33,9 @@ RSpec.describe ShipmentsController, type: :controller do
     it "should assigns total number of pages" do
       @request.env['devise.mapping'] = Devise.mappings[:epix_user]
       sign_in @epix_user
-      get :index, annual_report_upload_id: @aru
+      get :index, params: {
+        annual_report_upload_id: @aru
+      }
 
       expect(assigns(:total_pages)).to eq(1)
     end
@@ -57,7 +59,9 @@ RSpec.describe ShipmentsController, type: :controller do
         sign_in @epix_user
       end
       it "should be successful" do
-        get :edit, annual_report_upload_id: @aru, id: @shipment.id
+        get :edit, params: {
+          annual_report_upload_id: @aru, id: @shipment.id
+        }
 
         expect(response.status).to eq(200)
       end
@@ -69,7 +73,9 @@ RSpec.describe ShipmentsController, type: :controller do
         sign_in @sapi_user
       end
       it "should redirect to root page" do
-        get :edit, annual_report_upload_id: @aru, id: @shipment.id
+        get :edit, params: {
+          annual_report_upload_id: @aru, id: @shipment.id
+        }
 
         expect(subject).to redirect_to root_path
       end
@@ -94,7 +100,7 @@ RSpec.describe ShipmentsController, type: :controller do
         sign_in @epix_user
       end
       it "should update record succefully" do
-        patch :update, {
+        patch :update, params: {
           annual_report_upload_id: @aru.id,
           id: @shipment.id,
           "trade_trade_sandbox#{@aru.id}": {
@@ -108,7 +114,7 @@ RSpec.describe ShipmentsController, type: :controller do
 
       it "should run validation job" do
         expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @epix_user, false))
-        patch :update, {
+        patch :update, params: {
           annual_report_upload_id: @aru.id,
           id: @shipment.id,
           "trade_trade_sandbox#{@aru.id}": {
@@ -124,7 +130,7 @@ RSpec.describe ShipmentsController, type: :controller do
         sign_in @sapi_user
       end
       it "should redirect to root page" do
-        patch :update, {
+        patch :update, params: {
           annual_report_upload_id: @aru.id,
           id: @shipment.id,
           "trade_trade_sandbox#{@aru.id}": {
@@ -162,15 +168,15 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
         it "should run validation job" do
           expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @sapi_user, false))
-          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
         it "should set whodunnit correctly", versioning: true do
-          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           expect(PaperTrail::Version.last.whodunnit).to eq("Sapi:#{@sapi_user.id}")
         end
       end
@@ -185,7 +191,7 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should not destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
         end
       end
@@ -210,15 +216,15 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
         it "should run validation job" do
           expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @epix_user, false))
-          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
         it "should set whodunnit correctly", versioning: true do
-          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           expect(PaperTrail::Version.last.whodunnit).to eq("Epix:#{@epix_user.id}")
         end
       end
@@ -234,7 +240,7 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should not destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
         end
       end
@@ -257,15 +263,15 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(-1)
         end
         it "should run validation job" do
           expect(CitesReportValidationJob).to(receive(:perform_later).with(@aru.id, @epix_user, false))
-          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
         end
         it "should set whodunnit correctly", versioning: true do
-          delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+          delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           expect(PaperTrail::Version.last.whodunnit).to eq("Epix:#{@epix_user.id}")
         end
       end
@@ -282,7 +288,7 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should not destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
         end
       end
@@ -298,7 +304,7 @@ RSpec.describe ShipmentsController, type: :controller do
         end
         it "should not destroy shipment" do
           expect {
-            delete :destroy, { annual_report_upload_id: @aru.id, id: @shipment.id }
+            delete :destroy, params: { annual_report_upload_id: @aru.id, id: @shipment.id }
           }.to change(@aru.sandbox.ar_klass, :count).by(0)
         end
       end

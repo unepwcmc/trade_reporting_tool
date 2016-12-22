@@ -72,8 +72,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         @request.env['devise.mapping'] = Devise.mappings[:epix_user]
         sign_in @epix_user
 
-        get :show, id: @epix_upload.id
-
+        get :show, params: {
+          id: @epix_upload.id
+        }
         expect(assigns(:annual_report_upload).present?).to be(true)
       end
     end
@@ -123,8 +124,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         @request.env['devise.mapping'] = Devise.mappings[:epix_user]
         sign_in @epix_user
 
-        get 'changes_history', id: @epix_upload.id
-
+        get 'changes_history', params: {
+          id: @epix_upload.id
+        }
         expect(assigns(:annual_report_upload).present?).to be(true)
       end
     end
@@ -133,8 +135,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
       @request.env['devise.mapping'] = Devise.mappings[:epix_user]
       sign_in @epix_user
 
-      get 'changes_history', id: @epix_upload.id
-
+      get 'changes_history', params: {
+        id: @epix_upload.id
+      }
       expect(assigns(:total_pages)).to eq(1)
     end
   end
@@ -160,7 +163,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(-1)
         end
       end
@@ -173,7 +178,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should not destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(0)
         end
       end
@@ -196,7 +203,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(-1)
         end
       end
@@ -210,7 +219,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(0)
         end
       end
@@ -231,7 +242,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(-1)
         end
       end
@@ -246,7 +259,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(0)
         end
       end
@@ -260,7 +275,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         end
         it "should destroy aru" do
           expect {
-            delete :destroy, id: @aru.id
+            delete :destroy, params: {
+              id: @aru.id
+            }
           }.to change(Trade::AnnualReportUpload, :count).by(0)
         end
       end
@@ -295,8 +312,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         @request.env['devise.mapping'] = Devise.mappings[:epix_user]
         sign_in @epix_user
 
-        get 'download_error_report', id: @aru.id
-
+        get 'download_error_report', params: {
+          id: @aru.id
+        }
         expect(response.content_type).to eq('text/csv')
         expect(response.body).to include("II")
       end

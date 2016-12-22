@@ -32,8 +32,9 @@ RSpec.describe Api::V1::ShipmentsController, type: :controller do
     it "should assign shipments" do
       @request.env['devise.mapping'] = Devise.mappings[:epix_user]
       sign_in @epix_user
-      get :index, annual_report_upload_id: @aru
-
+      get :index, params: {
+        annual_report_upload_id: @aru
+      }
       expect(assigns(:shipments).size).to eq(1)
     end
   end

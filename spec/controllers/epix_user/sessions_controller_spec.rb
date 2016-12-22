@@ -30,8 +30,9 @@ RSpec.describe EpixUser::SessionsController, type: :controller do
         @request.env['HTTP_REFERER'] = 'http://test.host/epix/users/sign_in?user="email"'
       end
       it "should redirect to login because unauthorised" do
-        post :create, epix_user: {email: @user.email }
-
+        post :create, params: {
+          epix_user: {email: @user.email}
+        }
         expect(response).to redirect_to(new_epix_user_session_path)
       end
     end
@@ -43,8 +44,9 @@ RSpec.describe EpixUser::SessionsController, type: :controller do
         @request.env['HTTP_REFERER'] = 'http://test.host/epix/users/sign_in?user="email"'
       end
       it "should login correctly" do
-        post :create, epix_user: {email: @user.email }
-
+        post :create, params: {
+          epix_user: {email: @user.email}
+        }
         expect(response.status).to eq(200)
       end
     end
