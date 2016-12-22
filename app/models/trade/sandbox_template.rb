@@ -25,8 +25,8 @@ class Trade::SandboxTemplate < Sapi::Base
         self.table_name = table_name
         include ActiveModel::ForbiddenAttributesProtection
         has_paper_trail
-        # belongs_to :taxon_concept
-        # belongs_to :reported_taxon_concept, :class_name => TaxonConcept
+        belongs_to :taxon_concept, class_name: Sapi::TaxonConcept
+        belongs_to :reported_taxon_concept, class_name: Sapi::TaxonConcept
         belongs_to :epix_creator, class_name: Epix::User,
           foreign_key: :epix_created_by_id, optional: true
         belongs_to :sapi_creator, class_name: Sapi::User,
