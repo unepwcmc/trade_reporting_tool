@@ -58,6 +58,8 @@ gem "i18n-js", ">= 3.0.0.rc11"
 # Models versioning
 gem 'paper_trail', '~> 5.0'
 
+gem 'httparty'
+
 gem 'select2-rails'
 
 group :development, :test do
