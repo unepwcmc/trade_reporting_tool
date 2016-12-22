@@ -84,7 +84,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     upload = @state.annualReportUpload
     upload_type = ''
     if upload.is_from_web_service
-      upload_type = ' via web service upload'
+      upload_type = ' (via web service upload)'
     else
       upload_type = " via CSV upload (#{upload.file_name})"
     upload.trading_country + ' (' + upload.point_of_view + '), ' +
