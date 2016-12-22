@@ -5,7 +5,7 @@
         title: 'Appendix',
         name: 'appendix',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: ['I', 'II', 'III'],
         enabled: true,
         value: (@shipment && @shipment.appendix),
         form: (form && form.object_name)
@@ -18,10 +18,10 @@
         title: 'Taxon name',
         name: 'taxon_name',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
         enabled: true,
         value: (@shipment && @shipment.taxon_name),
-        form: (form && form.object_name)
+        form: (form && form.object_name),
+        apiBaseUrl: Rails.application.secrets.sapi_path
       })
     %>
   </div>
@@ -33,7 +33,7 @@
         title: 'Term',
         name: 'term_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Term.order(:code).pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.term_code),
         form: (form && form.object_name)
@@ -41,13 +41,12 @@
     %>
   </div>
   <div class="col col-sm-3 col-md-3 col-lg-3">
-    <%= react_component("Dropdown",
+    <%= react_component("InputBox",
       {
         title: 'Quantity (Qty)',
         name: 'quantity',
-        placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
         enabled: true,
+        blankCheckbox: false,
         value: (@shipment && @shipment.quantity),
         form: (form && form.object_name)
       })
@@ -59,7 +58,7 @@
         title: 'Unit',
         name: 'unit_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Unit.order(:code).pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.unit_code),
         form: (form && form.object_name)
@@ -72,7 +71,7 @@
         title: 'Trading partner',
         name: 'trading_partner',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Sapi::GeoEntity.map_for_search,
         enabled: true,
         value: (@shipment && @shipment.trading_partner),
         form: (form && form.object_name)
@@ -87,7 +86,7 @@
         title: 'Origin',
         name: 'country_of_origin',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Sapi::GeoEntity.map_for_search,
         enabled: true,
         value: (@shipment && @shipment.country_of_origin),
         form: (form && form.object_name)
@@ -138,8 +137,8 @@
         title: 'Purpose Code',
         name: 'purpose_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
-        enabled: false,
+        data: Purpose.order(:code).pluck(:code),
+        enabled: true,
         value: (@shipment && @shipment.purpose_code),
         form: (form && form.object_name)
       })
@@ -151,7 +150,7 @@
         title: 'Source code',
         name: 'source_code',
         placeholder: "Please select appendix value",
-        data: ['a', 'b', 'c'],
+        data: Source.order(:code).pluck(:code),
         enabled: true,
         blankCheckbox: true,
         value: (@shipment && @shipment.source_code),
@@ -174,5 +173,5 @@
 
 <div class="buttons align-right">
   <%= link_to t('cancel'), '', class: "button btn-scnd" %>
-  <%= submit_tag t('update_selection'), class: "button" %>
+  <%= submit_tag t('update'), class: "button" %>
 </div>

@@ -227,3 +227,7 @@ h3.sandbox-upload-summary {
 .changes-link { height: 0; }
 
 .dropdown-input { display: none; }
+
+// OVERRIDES
+
+span.select2-container { width: 100% !important; }
