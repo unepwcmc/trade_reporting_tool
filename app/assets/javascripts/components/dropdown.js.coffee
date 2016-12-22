@@ -70,6 +70,7 @@ window.Dropdown = class Dropdown extends React.Component
     $("##{@state.name}_dropdown").select2({
       placeholder: @state.placeholder,
       data: data
+      sorter: @sortByText
     })
 
   componentDidUpdate: ->
@@ -85,7 +86,7 @@ window.Dropdown = class Dropdown extends React.Component
   select2TaxonConcept: ->
     $("#taxon_name_dropdown").select2({
       minimumInputLength: 3
-      quietMillis: 500,
+      quietMillis: 500
       ajax:
         url: "#{@state.apiBaseUrl}/api/v1/auto_complete_taxon_concepts.json"
         dataType: 'json'
@@ -107,3 +108,10 @@ window.Dropdown = class Dropdown extends React.Component
           results: formatted_taxon_concepts
           more: more
     })
+
+  sortByText: (results) ->
+    query = $('.select2-search__field').val().toUpperCase()
+    results.sort (a, b) ->
+      firstPos = a.text.toUpperCase().indexOf(query.toUpperCase())
+      secondPos = b.text.toUpperCase().indexOf(query.toUpperCase())
+      return firstPos - secondPos
