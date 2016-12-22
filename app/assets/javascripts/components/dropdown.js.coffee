@@ -56,11 +56,7 @@ window.Dropdown = class Dropdown extends React.Component
 
   componentDidMount: ->
     data = []
-    if @state.name in ['trading_partner', 'country_of_origin']
-      data = @state.data.map (value) ->
-        id: value[0]
-        text: value[1]
-    else if @state.name == 'taxon_name'
+    if @state.name == 'taxon_name'
       @select2TaxonConcept()
       return
     else
@@ -70,7 +66,9 @@ window.Dropdown = class Dropdown extends React.Component
     $("##{@state.name}_dropdown").select2({
       placeholder: @state.placeholder,
       data: data
-      sorter: @sortByText
+      matcher: (params, data) =>
+        return @matchStart(params, data)
+
     })
 
   componentDidUpdate: ->
@@ -109,9 +107,8 @@ window.Dropdown = class Dropdown extends React.Component
           more: more
     })
 
-  sortByText: (results) ->
-    query = $('.select2-search__field').val().toUpperCase()
-    results.sort (a, b) ->
-      firstPos = a.text.toUpperCase().indexOf(query.toUpperCase())
-      secondPos = b.text.toUpperCase().indexOf(query.toUpperCase())
-      return firstPos - secondPos
+  matchStart: (params, data) ->
+    params.term = params.term || ''
+    if data.text.toUpperCase().indexOf(params.term.toUpperCase()) == 0
+      return data
+    return false
