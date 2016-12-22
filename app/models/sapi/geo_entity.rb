@@ -4,8 +4,7 @@ module Sapi
 
     scope :countries, -> {
                            includes(:geo_entity_type).
-                           where('geo_entity_types.name' => 'COUNTRY').
-                            order(:name_en)
+                           where('geo_entity_types.name' => 'COUNTRY')
                          }
 
     def name
@@ -13,8 +12,7 @@ module Sapi
     end
 
     def self.map_for_search
-      name = "name_#{I18n.locale}"
-      countries.pluck(:iso_code2, name)
+      countries.order(:iso_code2).pluck(:iso_code2)
     end
   end
 end
