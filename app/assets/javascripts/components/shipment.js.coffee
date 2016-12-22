@@ -20,9 +20,9 @@ window.Shipment = class Shipment extends React.Component
       td({},
         div(
           { className: 'bold' }
-          data.taxon_name
+          data.reported_taxon_name
         )
-        div({}, data.taxon_name) # Replace with accepted_name
+        div({}, data.accepted_taxon_name)
       )
       td({}, data.term)
       td({}, data.quantity)
