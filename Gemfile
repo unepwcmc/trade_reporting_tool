@@ -7,6 +7,7 @@ gem 'rails', '~> 5.0.0', '>= 5.0.0.1'
 gem 'pg'
 gem 'secondbase' # for handling 2 DB connections
 gem 'bulk_insert' # for inserting shipments into sandbox
+gem 'pg_array_parser' # can't believe this is still useful
 gem 'nested-hstore' # for storing validation rules data as nested hstore
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'

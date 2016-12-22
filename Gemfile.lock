@@ -185,6 +185,7 @@ GEM
       activerecord (>= 3.0, < 6.0)
       request_store (~> 1.1)
     pg (0.19.0)
+    pg_array_parser (0.0.9)
     rack (2.0.1)
     rack-protection (1.5.3)
       rack
@@ -354,6 +355,7 @@ DEPENDENCIES
   nested-hstore
   paper_trail (~> 5.0)
   pg
+  pg_array_parser
   rails (~> 5.0.0, >= 5.0.0.1)
   rails-controller-testing
   react-rails
