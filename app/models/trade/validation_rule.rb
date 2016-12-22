@@ -1,7 +1,7 @@
 class Trade::ValidationRule < Sapi::Base
   self.table_name = 'trade_validation_rules'
-  include PgArrayParser
   serialize :scope, ActiveRecord::Coders::NestedHstore
+  serialize :column_names
   has_many :validation_errors, class_name: Trade::ValidationError
 
   def matching_records_for_aru_and_error(annual_report_upload, validation_error)
@@ -31,13 +31,13 @@ class Trade::ValidationRule < Sapi::Base
     end
   end
 
-  def column_names
-    parse_pg_array(read_attribute(:column_names))
-  end
+  # def column_names
+  #   parse_pg_array(read_attribute(:column_names))
+  # end
 
-  def column_names=(ary)
-    write_attribute(:column_names, '{' + ary.join(',') + '}')
-  end
+  # def column_names=(ary)
+  #   write_attribute(:column_names, '{' + ary.join(',') + '}')
+  # end
 
   def refresh_errors_if_needed(annual_report_upload)
     return true unless refresh_needed?(annual_report_upload)
