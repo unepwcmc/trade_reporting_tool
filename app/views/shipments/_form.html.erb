@@ -33,7 +33,7 @@
         title: 'Term',
         name: 'term_code',
         placeholder: "Please select appendix value",
-        data: Term.pluck(:code),
+        data: Term.order(:code).pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.term_code),
         form: (form && form.object_name)
@@ -58,7 +58,7 @@
         title: 'Unit',
         name: 'unit_code',
         placeholder: "Please select appendix value",
-        data: Unit.pluck(:code),
+        data: Unit.order(:code).pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.unit_code),
         form: (form && form.object_name)
@@ -137,7 +137,7 @@
         title: 'Purpose Code',
         name: 'purpose_code',
         placeholder: "Please select appendix value",
-        data: Purpose.pluck(:code),
+        data: Purpose.order(:code).pluck(:code),
         enabled: true,
         value: (@shipment && @shipment.purpose_code),
         form: (form && form.object_name)
@@ -150,7 +150,7 @@
         title: 'Source code',
         name: 'source_code',
         placeholder: "Please select appendix value",
-        data: Source.pluck(:code),
+        data: Source.order(:code).pluck(:code),
         enabled: true,
         blankCheckbox: true,
         value: (@shipment && @shipment.source_code),
