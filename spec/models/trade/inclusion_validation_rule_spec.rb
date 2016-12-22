@@ -4,7 +4,7 @@ RSpec.describe Trade::InclusionValidationRule, type: :model do
 
   include_context :validation_rules_helpers
 
-  let(:canis_lupus) {
+  let!(:canis_lupus) {
     FactoryGirl.create(
       :taxon_concept,
       taxon_name: FactoryGirl.create(:taxon_name, scientific_name: 'Canis lupus')
@@ -75,7 +75,34 @@ RSpec.describe Trade::InclusionValidationRule, type: :model do
         }.to change { @validation_error.reload.error_count }.by(-1)
       end
     end
+  end
 
+  describe :matching_records_for_aru_and_error do
+    let(:validation_rule) {
+      create_taxon_concept_validation
+    }
+    before(:each) do
+      @shipment1 = sandbox_klass.create(
+        taxon_name: canis_lupus.full_name
+      )
+      @shipment2 = sandbox_klass.create(
+        taxon_name: 'Caniis lupus'
+      )
+      @validation_error = FactoryGirl.create(
+        :validation_error,
+        annual_report_upload_id: aru.id,
+        validation_rule_id: validation_rule.id,
+        matching_criteria: {taxon_name: 'Caniis lupus'}.to_json
+      )
+    end
+    specify {
+      expect(
+        validation_rule.matching_records_for_aru_and_error(
+          aru,
+          @validation_error
+        )
+      ).to eq([@shipment2])
+    }
   end
 
 end
