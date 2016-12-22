@@ -33,7 +33,9 @@ RSpec.describe Trade::DistinctValuesValidationRule, type: :model do
         :validation_error,
         annual_report_upload_id: aru.id,
         validation_rule_id: validation_rule.id,
-        matching_criteria: {importer: sapi_poland.iso_code2, exporter: sapi_poland.iso_code2}.to_json
+        matching_criteria: {
+          importer: sapi_poland.iso_code2, exporter: sapi_poland.iso_code2
+        }
       )
     end
     specify {

@@ -39,7 +39,9 @@ RSpec.describe Trade::TaxonConceptSourceValidationRule, type: :model do
         :validation_error,
         annual_report_upload_id: aru.id,
         validation_rule_id: validation_rule.id,
-        matching_criteria: {source_code: 'A', taxon_concept_id: canis_lupus.id}.to_json
+        matching_criteria: {
+          source_code: 'A', taxon_concept_id: canis_lupus.id
+        }
       )
     end
     specify {

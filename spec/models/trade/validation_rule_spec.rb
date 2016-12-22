@@ -32,7 +32,7 @@ RSpec.describe Trade::ValidationRule, type: :model do
         :validation_error,
         annual_report_upload_id: aru.id,
         validation_rule_id: validation_rule.id,
-        matching_criteria: "{}",
+        matching_criteria: {},
         is_ignored: false,
         is_primary: true,
         error_message: "taxon_name cannot be blank",

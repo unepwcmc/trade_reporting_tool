@@ -5,7 +5,7 @@ class Trade::InclusionValidationRule < Trade::ValidationRule
     @query = sandbox_klass.
       from("#{sandbox_klass.table_name}_view #{sandbox_klass.table_name}").
       where(
-        "'#{validation_error.matching_criteria}'::JSONB @> (#{jsonb_matching_criteria_for_comparison})::JSONB"
+        "'#{validation_error.matching_criteria.to_json}'::JSONB @> (#{jsonb_matching_criteria_for_comparison})::JSONB"
       )
   end
 
