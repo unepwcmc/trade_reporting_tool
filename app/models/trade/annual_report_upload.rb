@@ -118,7 +118,7 @@ class Trade::AnnualReportUpload < Sapi::Base
     sandbox.destroy
 
     # clear downloads cache
-    DownloadsCacheCleanupJob.perform_later('shipments')
+    DownloadsCache.clear_shipments
 
     # flag as submitted
     submitter_type = submitter.class.to_s.split(':').first
