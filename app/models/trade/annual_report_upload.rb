@@ -117,9 +117,6 @@ class Trade::AnnualReportUpload < Sapi::Base
     # remove sandbox table
     sandbox.destroy
 
-    # clear downloads cache
-    DownloadsCache.clear_shipments
-
     # flag as submitted
     submitter_type = submitter.class.to_s.split(':').first
     if submitter_type == 'Epix'
@@ -129,6 +126,9 @@ class Trade::AnnualReportUpload < Sapi::Base
       update_column(:submitted_at, DateTime.now)
       update_column(:submitted_by_id, submitter.id)
     end
+
+    # clear downloads cache
+    DownloadsCache.clear_shipments
   end
 
   def save_wo_timestamps
