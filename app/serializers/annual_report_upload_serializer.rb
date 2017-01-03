@@ -2,7 +2,8 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
   attributes :id, :trading_country_id, :point_of_view, :number_of_rows,
   :file_name, :created_at, :updated_at, :created_by, :updated_by,
   :submitted_at, :submitted_by,  :trading_country,
-  :number_of_records_submitted, :has_validation_report
+  :number_of_records_submitted, :has_validation_report,
+  :is_from_web_service
 
   def file_name
     object.csv_source_file.try(:path) && File.basename(object.csv_source_file.path)
