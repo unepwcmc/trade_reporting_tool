@@ -1,7 +1,6 @@
 class Trade::ValidationRule < Sapi::Base
   self.table_name = 'trade_validation_rules'
   serialize :scope, ActiveRecord::Coders::NestedHstore
-  serialize :column_names
   has_many :validation_errors, class_name: Trade::ValidationError
 
   def matching_records_for_aru_and_error(annual_report_upload, validation_error)
