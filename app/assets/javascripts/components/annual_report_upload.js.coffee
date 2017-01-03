@@ -86,7 +86,8 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     if upload.is_from_web_service
       upload_type = ' (via web service upload)'
     else
-      upload_type = " via CSV upload (#{upload.file_name})"
+      upload_type = " via CSV upload "
+      upload_type = upload_type + " (#{upload.file_name})" unless @state.submitted
     upload.trading_country + ' (' + upload.point_of_view + '), ' +
       upload.number_of_rows + " #{I18n.t('shipments')} " + " #{I18n.t('uploaded_on')} " +
       upload.created_at + " #{I18n.t('by')} " + upload.created_by + upload_type
