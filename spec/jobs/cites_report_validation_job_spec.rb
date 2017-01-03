@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe CitesReportValidationJob, type: :job do
   include ActiveJob::TestHelper
 
-  let(:aru){ FactoryGirl.create(:annual_report_upload) }
+  let(:aru){ FactoryGirl.create(:epix_upload) }
   let(:user) { FactoryGirl.create(:epix_user) }
   subject(:job) { described_class.perform_later(aru.id, user) }
   subject(:job_without_email) { described_class.perform_later(aru.id, user, false) }
@@ -24,7 +24,7 @@ RSpec.describe CitesReportValidationJob, type: :job do
 
   context "sending email" do
     let(:aru) {
-      FactoryGirl.create(:annual_report_upload)
+      FactoryGirl.create(:epix_upload)
     }
     before(:each) do
       allow_any_instance_of(Trade::AnnualReportUpload).to(

@@ -21,7 +21,7 @@ RSpec.describe CitesReportValidator do
     end
     context 'when force_submit' do
       let(:aru){
-        FactoryGirl.create(:annual_report_upload, force_submit: true)
+        FactoryGirl.create(:epix_upload, force_submit: true)
       }
       context 'when no secondary errors' do
         before(:each) do
@@ -91,7 +91,7 @@ RSpec.describe CitesReportValidator do
 
     context 'when no force_submit' do
       let(:aru){
-        FactoryGirl.create(:annual_report_upload)
+        FactoryGirl.create(:epix_upload)
       }
 
       context 'when no secondary errors' do

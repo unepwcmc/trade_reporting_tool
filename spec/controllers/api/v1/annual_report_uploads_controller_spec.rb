@@ -5,10 +5,10 @@ RSpec.describe Api::V1::AnnualReportUploadsController, type: :controller do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
-      @epix_upload = FactoryGirl.create(:annual_report_upload, epix_created_by_id: @epix_user.id)
+      @epix_upload = FactoryGirl.create(:epix_upload, epix_created_by_id: @epix_user.id)
       2.times {
         FactoryGirl.create(
-          :annual_report_upload,
+          :sapi_upload,
           created_by_id: @sapi_user.id,
           submitted_by_id: @sapi_user.id,
           submitted_at: DateTime.now
@@ -32,7 +32,7 @@ RSpec.describe Api::V1::AnnualReportUploadsController, type: :controller do
         sign_in @sapi_user
         get :index
 
-        expect(assigns(:annual_report_uploads).size).to eq(3)
+        expect(assigns(:annual_report_uploads).size).to eq(2)
       end
     end
 
@@ -50,7 +50,7 @@ RSpec.describe Api::V1::AnnualReportUploadsController, type: :controller do
         sign_in @sapi_user
         get :index
 
-        expect(assigns(:in_progress_uploads).size).to eq(1)
+        expect(assigns(:in_progress_uploads).size).to eq(0)
       end
     end
   end
