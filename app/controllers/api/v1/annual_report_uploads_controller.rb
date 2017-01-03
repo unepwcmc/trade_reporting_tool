@@ -1,9 +1,10 @@
 class Api::V1::AnnualReportUploadsController < ApplicationController
 
   def index
-    epix_user_id = current_epix_user && current_epix_user.id
+    user_id = current_user && current_user.id
+    user_type = current_user && current_user.is_a?(Epix::User) ? 'epix' : 'sapi'
     @annual_report_uploads =
-      Trade::AnnualReportUpload.created_by(epix_user_id).
+      Trade::AnnualReportUpload.created_by(user_id, user_type).
       order(created_at: :desc)
     @submitted_uploads = @annual_report_uploads.submitted.
       paginate(page: params[:submitted_uploads], per_page: 10).map do |aru|

@@ -21,12 +21,17 @@ class Trade::AnnualReportUpload < Sapi::Base
   belongs_to :sapi_submitter, class_name: Sapi::User,
     foreign_key: :submitted_by_id, optional: true
 
-  scope :created_by, -> (user_id) { where(epix_created_by_id: user_id) if user_id }
+  scope :created_by, -> (user_id, user_type) {
+    if user_type == 'epix'
+      where(epix_created_by_id: user_id)
+    else
+      where("epix_created_by_id IS NULL")
+    end
+  }
   scope :submitted, -> { where("submitted_at IS NOT NULL OR epix_submitted_at IS NOT NULL") }
   scope :in_progress, -> { where("submitted_at IS NULL AND epix_submitted_at IS NULL") }
 
-  validates :trading_country_id, :epix_created_by_id, :epix_created_at,
-    :epix_updated_by_id, :epix_updated_at, presence: true
+  validates :trading_country_id, presence: true
   validates :point_of_view, inclusion: { in: ['E', 'I'] }
 
   attr_reader :primary_validation_errors, :secondary_validation_errors
