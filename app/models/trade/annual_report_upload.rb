@@ -32,7 +32,7 @@ class Trade::AnnualReportUpload < Sapi::Base
   attr_reader :primary_validation_errors, :secondary_validation_errors
 
   def file_name
-    csv_source_file.try(:path) && File.basename(csv_source_file.path)
+    csv_source_file
   end
 
   def summary
