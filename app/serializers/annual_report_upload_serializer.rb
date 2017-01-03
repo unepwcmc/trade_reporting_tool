@@ -5,10 +5,6 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
   :number_of_records_submitted, :has_validation_report,
   :is_from_web_service
 
-  def file_name
-    object.csv_source_file.try(:path) && File.basename(object.csv_source_file.path)
-  end
-
   def created_at
     if object.epix_created_at
       object.epix_created_at.strftime("%d/%m/%y")

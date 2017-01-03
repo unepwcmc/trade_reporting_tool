@@ -16,10 +16,6 @@ class ShowAnnualReportUploadSerializer < ActiveModel::Serializer
     end.sort_by(&:error_message)
   end
 
-  def file_name
-    object.csv_source_file.try(:path) && File.basename(object.csv_source_file.path)
-  end
-
   def has_primary_errors
     !validation_errors.index { |ve| ve.is_primary }.nil?
   end
