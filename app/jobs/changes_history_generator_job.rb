@@ -13,7 +13,7 @@ class ChangesHistoryGeneratorJob < ApplicationJob
       NotificationMailer.changelog_failed(user, aru).deliver
     end
 
-    tempfile = ChangelogCsvGenerator.call(aru, user)
+    tempfile = ChangelogCsvGenerator.call(aru, user, aws)
 
     if aws
       s3 = Aws::S3::Resource.new

@@ -1,7 +1,7 @@
 require 'csv'
 class ChangelogCsvGenerator
 
-  def self.call(aru, requester)
+  def self.call(aru, requester, aws=false)
     data_columns = if aru.reported_by_exporter?
       Trade::SandboxTemplate::EXPORTER_COLUMNS
     else
@@ -46,7 +46,11 @@ class ChangelogCsvGenerator
             whodunnit = if id_as_number && type == 'Epix'
               epix_users[id_as_number] || 'epix'
             elsif id_as_number && type == 'Sapi'
-              sapi_users && sapi_users[id_as_number] || 'WCMC'
+              if aws
+                'WCMC'
+              else
+                sapi_users && sapi_users[id_as_number] || 'WCMC'
+              end
             end
             csv << [
                 version.item_id, version.id, version.event, version.created_at, whodunnit
