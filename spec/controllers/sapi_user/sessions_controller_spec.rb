@@ -29,7 +29,9 @@ RSpec.describe SapiUser::SessionsController, type: :controller do
         @request.env['HTTP_REFERER'] = 'http://test.host/sapi/users/sign_in?user="email"'
       end
       it "should redirect to login because unauthorised" do
-        post :create, sapi_user: {email: @user.email }
+        post :create, params: {
+          sapi_user: {email: @user.email}
+        }
 
         expect(response).to redirect_to(new_sapi_user_session_path)
       end
@@ -41,8 +43,9 @@ RSpec.describe SapiUser::SessionsController, type: :controller do
         @request.env['HTTP_REFERER'] = 'http://test.host/sapi/users/sign_in?user="email"'
       end
       it "should login correctly" do
-        post :create, sapi_user: {email: @user.email }
-
+        post :create, params:{
+          sapi_user: {email: @user.email}
+        }
         expect(response.status).to eq(200)
       end
     end

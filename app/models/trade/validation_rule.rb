@@ -1,8 +1,6 @@
 class Trade::ValidationRule < Sapi::Base
   self.table_name = 'trade_validation_rules'
-  # include PgArrayParser
   serialize :scope, ActiveRecord::Coders::NestedHstore
-  #store_accessor :scope
   has_many :validation_errors, class_name: Trade::ValidationError
 
   def matching_records_for_aru_and_error(annual_report_upload, validation_error)
@@ -49,7 +47,7 @@ class Trade::ValidationRule < Sapi::Base
       existing_record,
       matching_records.length,
       error_message,
-      '{}'
+      {}
     )
   end
 

@@ -92,6 +92,7 @@ group :test do
   gem 'rails-controller-testing'
   gem 'simplecov', require: false
   gem 'codeclimate-test-reporter', require: false
+  gem 'timecop'
 end
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
