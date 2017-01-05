@@ -26,12 +26,14 @@ class ChangelogCsvGenerator
 
     tempfile = Tempfile.new(["changelog_#{requester_type}_#{aru.id}-", ".csv"], Rails.root.join('tmp'))
 
+    ar_klass = aru.sandbox(true).ar_klass
+
     CSV.open(tempfile, 'w', headers: true) do |csv|
       csv << ['ID', 'Version', 'OP', 'ChangedAt', 'ChangedBy'] +
         data_columns.map(&:camelize)
       limit = 100
       offset = 0
-      query = aru.sandbox.ar_klass.includes(:versions).limit(limit).offset(offset)
+      query = ar_klass.includes(:versions).limit(limit).offset(offset)
       while query.any?
         query.all.each do |shipment|
           csv << [shipment.id, nil, nil, shipment.created_at, nil] +
@@ -61,7 +63,7 @@ class ChangelogCsvGenerator
           end
 
           offset += limit
-          query = aru.sandbox.ar_klass.includes(:versions).limit(limit).offset(offset)
+          query = ar_klass.includes(:versions).limit(limit).offset(offset)
         end
       end
     end

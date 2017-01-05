@@ -54,8 +54,8 @@ class Trade::AnnualReportUpload < Sapi::Base
     @primary_validation_errors || @secondary_validation_errors
   end
 
-  def sandbox
-    return nil if is_submitted?
+  def sandbox(tmp=false)
+    return nil if is_submitted? && !tmp
     @sandbox ||= Trade::Sandbox.new(self)
   end
 
