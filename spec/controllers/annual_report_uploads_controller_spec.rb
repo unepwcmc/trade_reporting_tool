@@ -5,10 +5,10 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
     before(:each) do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
-      @epix_upload = FactoryGirl.create(:annual_report_upload, epix_creator: @epix_user)
+      @epix_upload = FactoryGirl.create(:epix_upload, epix_creator: @epix_user)
       2.times {
         FactoryGirl.create(
-          :annual_report_upload,
+          :sapi_upload,
           created_by_id: @sapi_user.id,
           submitted_by_id: @sapi_user.id,
           submitted_at: DateTime.now
@@ -34,7 +34,7 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
           get :index
 
           expect(assigns(:submitted_pages)).to eq(1)
-          expect(assigns(:in_progress_pages)).to eq(1)
+          expect(assigns(:in_progress_pages)).to eq(0)
         end
       end
 
@@ -271,7 +271,7 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
     context "when validation report has been generated" do
       before(:each) do
         @epix_user = FactoryGirl.create(:epix_user)
-        @aru = FactoryGirl.create(:annual_report_upload)
+        @aru = FactoryGirl.create(:epix_upload)
         allow(CitesReportValidator).to(
           receive(:generate_validation_report).and_return(
             {'0' => {'data' => {"appendix": "II"}, 'errors' => []}}

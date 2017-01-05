@@ -8,7 +8,7 @@ FactoryGirl.define do
     is_admin false
   end
 
-  factory :sapi_user, class: Sapi::User do
+  factory :sapi_user, class: Sapi::User, aliases: [:sapi_creator, :sapi_updater] do
     sequence(:email) { |n| "#{n}#{Faker::Internet.email}" }
     password { Faker::Internet.password(10, 20) }
     name { Faker::Name.first_name }
