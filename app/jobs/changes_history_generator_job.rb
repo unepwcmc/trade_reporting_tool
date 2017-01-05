@@ -16,18 +16,24 @@ class ChangesHistoryGeneratorJob < ApplicationJob
     tempfile = ChangelogCsvGenerator.call(aru, user, aws)
 
     if aws
-      s3 = Aws::S3::Resource.new
-      filename = "trade/annual_report_upload/#{aru.id}/changelog.csv"
-      bucket_name = Rails.application.secrets.aws['bucket_name']
-      obj = s3.bucket(bucket_name).object(filename)
-      obj.upload_file(tempfile.path)
-      tempfile.delete
-
-      # remove sandbox table
-      aru.sandbox(true).destroy
-
-    else
-      NotificationMailer.changelog(user, aru, tempfile).deliver
+      begin
+        s3 = Aws::S3::Resource.new
+        filename = "trade/annual_report_upload/#{aru.id}/changelog.csv"
+        bucket_name = Rails.application.secrets.aws['bucket_name']
+        obj = s3.bucket(bucket_name).object(filename)
+        obj.upload_file(tempfile.path)
+        aru.update_attributes(aws_storage_path: obj.public_url)
+      rescue => e
+        Rails.logger.info("Something went wrong while uploading file to S3")
+        Rails.logger.info(e)
+      end
     end
+
+    NotificationMailer.changelog(user, aru, tempfile).deliver
+
+    tempfile.delete
+
+    # remove sandbox table
+    aru.sandbox(true).destroy
   end
 end
