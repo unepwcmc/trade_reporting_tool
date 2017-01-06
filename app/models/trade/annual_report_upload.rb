@@ -151,6 +151,20 @@ class Trade::AnnualReportUpload < Sapi::Base
     end
   end
 
+  def get_changelog(filename)
+    changelog = Tempfile.new([filename, ".csv"], Rails.root.join('tmp'))
+    begin
+      s3 = Aws::S3::Client.new
+      bucket = Rails.application.secrets.aws['bucket_name']
+      key = "#{Rails.env}/trade/annual_report_upload/#{self.id}/changelog.csv"
+      s3.get_object({bucket: bucket, key: key}, target: changelog.path)
+    rescue Aws::S3::Errors::ServiceError => e
+      Rails.logger.warn "Something went wrong while uploading #{self.id} to S3"
+      Appsignal.add_exception(e) if defined? Appsignal
+    end
+    changelog
+  end
+
   private
 
   # Expects a relation object
