@@ -72,7 +72,7 @@ class Trade::AnnualReportUpload < Sapi::Base
   end
 
   def is_submitted?
-    submitted_at.present?
+    submitted_at.present? || epix_submitted_at.present?
   end
 
   def reported_by_exporter?
