@@ -80,6 +80,10 @@ class AnnualReportUploadsController < ApplicationController
 
   def download_error_report
     aru = Trade::AnnualReportUpload.find(params[:id])
+    unless aru.is_submitted?
+      render json: { error: t('download_report_disabled') }
+      return
+    end
     validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
 
     changelog = aru.get_changelog("changelog_#{aru.id}-")
