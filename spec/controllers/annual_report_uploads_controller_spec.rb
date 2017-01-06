@@ -306,6 +306,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         allow_any_instance_of(Trade::Sandbox).to(
           receive(:copy_from_sandbox_to_shipments).with(@epix_user).and_return(true)
         )
+        allow_any_instance_of(Aws::S3::Client).to(
+          receive(:get_object).and_return(true)
+        )
         CitesReportValidator.call(@aru.id, @epix_user)
       end
       it "should download validation report" do
