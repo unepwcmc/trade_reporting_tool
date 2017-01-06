@@ -54,8 +54,8 @@ class Trade::AnnualReportUpload < Sapi::Base
     @primary_validation_errors || @secondary_validation_errors
   end
 
-  def sandbox
-    return nil if is_submitted?
+  def sandbox(tmp=false)
+    return nil if is_submitted? && !tmp
     @sandbox ||= Trade::Sandbox.new(self)
   end
 
@@ -118,9 +118,10 @@ class Trade::AnnualReportUpload < Sapi::Base
 
     return false unless sandbox.copy_from_sandbox_to_shipments(submitter)
 
+    # generate changelog
+    ChangesHistoryGeneratorJob.perform_later(self.id, submitter, true)
+
     update_column(:number_of_records_submitted, sandbox.moved_rows_cnt)
-    # remove sandbox table
-    sandbox.destroy
 
     # flag as submitted
     submitter_type = submitter.class.to_s.split(':').first
