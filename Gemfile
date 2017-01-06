@@ -65,6 +65,8 @@ gem 'select2-rails'
 # Connect to S3 bucket
 gem 'aws-sdk', '~> 2'
 
+gem 'rubyzip', '>= 1.0.0'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platform: :mri
