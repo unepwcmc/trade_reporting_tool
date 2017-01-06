@@ -315,8 +315,9 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         get 'download_error_report', params: {
           id: @aru.id
         }
-        expect(response.content_type).to eq('text/csv')
-        expect(response.body).to include("II")
+        expect(response.content_type).to eq('application/zip')
+        expect(response.body).to include("validation_report.csv")
+        expect(response.body).to include("changelog.csv")
       end
     end
   end
