@@ -24,6 +24,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     else
       download_button.addClass('disabled')
     if @state.submitted
+      download_button.removeClass('disabled')
       modal_content.addClass('smaller')
       text = I18n.t('submitted_at_info_box') + " " + @getSubmitter()
       text = text + I18n.t('on') + " #{@state.annualReportUpload.submitted_at}. "
