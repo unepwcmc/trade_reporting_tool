@@ -25,13 +25,11 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       download_button.addClass('disabled')
     if @state.submitted
       download_button.removeClass('disabled')
-      modal_content.addClass('smaller')
       text = I18n.t('submitted_at_info_box') + " " + @getSubmitter()
       text = text + I18n.t('on') + " #{@state.annualReportUpload.submitted_at}. "
       text = text + I18n.t('download_info_box')
       info_text.html(text)
     else
-      modal_content.removeClass('smaller')
       text = I18n.t('change_sandbox_settings')
       text = text + "<a href='#{@state.adminUrl}' class='bold'>#{I18n.t('your_admin_page')}</a>"
       info_text.html(text)
