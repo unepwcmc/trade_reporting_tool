@@ -25,7 +25,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       download_button.addClass('disabled')
     if @state.submitted
       modal_content.addClass('smaller')
-      text = I18n.t('submitted_at_info_box') + " #{@state.annualReportUpload.submitted_by} "
+      text = I18n.t('submitted_at_info_box') + " " + @getSubmitter()
       text = text + I18n.t('the') + " #{@state.annualReportUpload.submitted_at}"
       info_text.html(text)
     else
@@ -103,7 +103,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       " #{I18n.t('records_submitted_by')} "
       span(
         {className: 'bold'}
-        @state.annualReportUpload.submitted_by
+        @getSubmitter()
       )
       " #{I18n.t('the')} "
       span(
