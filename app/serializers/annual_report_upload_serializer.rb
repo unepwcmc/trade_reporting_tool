@@ -65,6 +65,16 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
     end
   end
 
+  def submitted_by_type
+    if object.epix_submitter
+      'epix'
+    elsif object.sapi_submitter
+      'sapi'
+    else
+      ''
+    end
+  end
+
   def trading_country
     object.trading_country && object.trading_country.name_en
   end
@@ -74,4 +84,3 @@ class AnnualReportUploadSerializer < ActiveModel::Serializer
   end
 
 end
-

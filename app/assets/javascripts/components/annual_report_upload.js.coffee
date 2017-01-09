@@ -7,6 +7,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       submitted: !!props.annualReportUpload.submitted_at
       sandboxEnabled: !!props.sandboxEnabled
       adminUrl: props.adminUrl
+      userType: props.userType
     }
     @updateModal = @updateModal.bind(@, @summary())
 
@@ -110,3 +111,10 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         @state.annualReportUpload.submitted_at
       )
     )
+
+  getSubmitter: ->
+    submitted_by_type = @state.annualReportUpload.submitted_by_type
+    if @state.userType == 'sapi' || (@state.userType == submitted_by_type)
+      @state.annualReportUpload.submitted_by
+    else
+      'WCMC'

@@ -45,7 +45,8 @@
           {
             pageName: 'submitted_uploads',
             totalPages: @submitted_pages,
-            sandboxEnabled: @sandbox_enabled
+            sandboxEnabled: @sandbox_enabled,
+            userType: current_epix_user ? 'epix' : current_sapi_user ? 'sapi' : ''
           }
       %>
   </div>

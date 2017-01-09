@@ -10,6 +10,8 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
       page: 1,
       sandboxEnabled: props.sandboxEnabled
       adminUrl: props.adminUrl
+      userType: props.userType
+
     }
     @incrementPage = @changePage.bind(@, 1)
     @decrementPage = @changePage.bind(@, -1)
@@ -29,6 +31,7 @@ window.AnnualReportUploadsContainer = class AnnualReportUploadsContainer extends
           page: @state.page,
           sandboxEnabled: @state.sandboxEnabled
           adminUrl: @state.adminUrl
+          userType: @state.userType
         }
       )
       @renderPaginator() if @state.totalPages > 1
