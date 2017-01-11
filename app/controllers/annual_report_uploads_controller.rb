@@ -90,7 +90,9 @@ class AnnualReportUploadsController < ApplicationController
     zipfile = "#{Rails.root.join('tmp')}/report_#{aru.id}.zip"
     Zip::File.open(zipfile, Zip::File::CREATE) do |zipfile|
       zipfile.add('changelog.csv', changelog.path) unless File.zero?(changelog)
-      zipfile.add('validation_report.csv', validation_report_csv_file.path)
+      filepath = "validation_report.csv"
+      filepath.prepend("report_#{aru.id}/") if File.zero?(changelog)
+      zipfile.add(filepath, validation_report_csv_file.path)
     end
 
     data = File.read(zipfile)
