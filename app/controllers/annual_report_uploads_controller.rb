@@ -80,7 +80,7 @@ class AnnualReportUploadsController < ApplicationController
 
   def download_error_report
     aru = Trade::AnnualReportUpload.find(params[:id])
-    unless aru.is_submitted?
+    if !aru.is_submitted? && aru.validation_report.empty?
       render json: { error: t('download_report_disabled') }
       return
     end
