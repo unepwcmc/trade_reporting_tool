@@ -37,7 +37,7 @@ en:
   upload_file: 'Upload a file (CSV format)'
   choose_file: 'Please choose a file'
   download_report: 'Download report'
-  download_info: 'You are about to download the following report on existing errors:'
+  download_info: 'You are about to download a report on the following submission:'
   download_report_on_errors: "Download report on existing errors"
   submit_shipments: "Submit shipments"
   back_to_shipments: "Back to shipments' list"

@@ -5,12 +5,12 @@
       <h2 class="modal-title"><%= t('download_report') %></h2>
     </div>
     <div class="modal-body">
-      <p class="download-info"><%= t('download_info') %></p>
-      <p class="file-to-download"></p>
       <div class="change-sandbox-settings info-box">
         <i class="fa fa-info-circle"></i>
         <span class="info-text"><%= t('change_sandbox_settings').html_safe %></span>
       </div>
+      <p class="download-info"><%= t('download_info') %></p>
+      <p class="file-to-download"></p>
       <div class="buttons right">
         <%=
           button_tag('Cancel',
