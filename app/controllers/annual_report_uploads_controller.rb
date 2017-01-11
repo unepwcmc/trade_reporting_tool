@@ -80,7 +80,7 @@ class AnnualReportUploadsController < ApplicationController
 
   def download_error_report
     aru = Trade::AnnualReportUpload.find(params[:id])
-    if !aru.is_submitted? && aru.validation_report.empty?
+    if !aru.is_submitted? && !aru.validation_report
       render json: { error: t('download_report_disabled') }
       return
     end
@@ -89,8 +89,10 @@ class AnnualReportUploadsController < ApplicationController
     changelog = aru.get_changelog("changelog_#{aru.id}-")
     zipfile = "#{Rails.root.join('tmp')}/report_#{aru.id}.zip"
     Zip::File.open(zipfile, Zip::File::CREATE) do |zipfile|
-      zipfile.add('changelog.csv', changelog.path)
-      zipfile.add('validation_report.csv', validation_report_csv_file.path)
+      zipfile.add('changelog.csv', changelog.path) unless File.zero?(changelog)
+      filepath = "validation_report.csv"
+      filepath.prepend("report_#{aru.id}/") if File.zero?(changelog)
+      zipfile.add(filepath, validation_report_csv_file.path)
     end
 
     data = File.read(zipfile)
