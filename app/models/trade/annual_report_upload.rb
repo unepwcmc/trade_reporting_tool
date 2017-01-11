@@ -28,8 +28,14 @@ class Trade::AnnualReportUpload < Sapi::Base
       where("epix_created_by_id IS NULL")
     end
   }
-  scope :submitted, -> { where("submitted_at IS NOT NULL OR epix_submitted_at IS NOT NULL") }
-  scope :in_progress, -> { where("submitted_at IS NULL AND epix_submitted_at IS NULL") }
+  scope :submitted, -> {
+    where("submitted_at IS NOT NULL OR epix_submitted_at IS NOT NULL").
+    order(created_at: :desc, epix_created_at: :desc)
+  }
+  scope :in_progress, -> {
+    where("submitted_at IS NULL AND epix_submitted_at IS NULL").
+    order(created_at: :desc, epix_created_at: :desc)
+  }
 
   validates :trading_country_id, presence: true
   validates :point_of_view, inclusion: { in: ['E', 'I'] }
