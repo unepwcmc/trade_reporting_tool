@@ -65,7 +65,7 @@ class ShowAnnualReportUploadSerializer < ActiveModel::Serializer
     _created_by = (object.epix_creator || object.sapi_creator).name
     object.trading_country.name_en + ' (' + object.point_of_view + '), ' +
       object.number_of_rows.to_s + ' shipments' + ' uploaded on ' + _created_at +
-      ' by ' + _created_by + ' ('  + (file_name || '') + ')'
+      ' by ' + _created_by + ' ('  + (object.file_name || '') + ')'
   end
 
   def has_validation_report

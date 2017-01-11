@@ -28,8 +28,14 @@ class Trade::AnnualReportUpload < Sapi::Base
       where("epix_created_by_id IS NULL")
     end
   }
-  scope :submitted, -> { where("submitted_at IS NOT NULL OR epix_submitted_at IS NOT NULL") }
-  scope :in_progress, -> { where("submitted_at IS NULL AND epix_submitted_at IS NULL") }
+  scope :submitted, -> {
+    where("submitted_at IS NOT NULL OR epix_submitted_at IS NOT NULL").
+    order(created_at: :desc, epix_created_at: :desc)
+  }
+  scope :in_progress, -> {
+    where("submitted_at IS NULL AND epix_submitted_at IS NULL").
+    order(created_at: :desc, epix_created_at: :desc)
+  }
 
   validates :trading_country_id, presence: true
   validates :point_of_view, inclusion: { in: ['E', 'I'] }
@@ -72,7 +78,7 @@ class Trade::AnnualReportUpload < Sapi::Base
   end
 
   def is_submitted?
-    submitted_at.present?
+    submitted_at.present? || epix_submitted_at.present?
   end
 
   def reported_by_exporter?
@@ -149,6 +155,20 @@ class Trade::AnnualReportUpload < Sapi::Base
         remove_method :record_timestamps
       end
     end
+  end
+
+  def get_changelog(filename)
+    changelog = Tempfile.new([filename, ".csv"], Rails.root.join('tmp'))
+    begin
+      s3 = Aws::S3::Client.new
+      bucket = Rails.application.secrets.aws['bucket_name']
+      key = "#{Rails.env}/trade/annual_report_upload/#{self.id}/changelog.csv"
+      s3.get_object({bucket: bucket, key: key}, target: changelog.path)
+    rescue Aws::S3::Errors::ServiceError => e
+      Rails.logger.warn "Something went wrong while uploading #{self.id} to S3"
+      Appsignal.add_exception(e) if defined? Appsignal
+    end
+    changelog
   end
 
   private

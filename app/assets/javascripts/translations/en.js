@@ -21,8 +21,10 @@ I18n.translations["en"] = I18n.extend((I18n.translations["en"] || {}),
     "edit": "Edit",
     "edit_all_errors": "Edit all affected errors",
     "close": "Close",
-    "submitted_at_info_box": "This report has been submitted by",
+    "submitted_at_info_box": "This CITES report has been submitted by",
     "change_sandbox_settings": "If you would like to correct these existing errors by using the app sandbox please update the relevant settings on ",
-    "your_admin_page": "your admin account page."
+    "your_admin_page": "your admin account page.",
+    "on": "on",
+    "download_info_box": "You can download the validation report and log of changelog detailing any changes made within the online correction tool"
   }
 )

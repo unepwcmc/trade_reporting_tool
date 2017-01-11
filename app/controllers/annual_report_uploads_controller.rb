@@ -1,3 +1,4 @@
+require 'zip'
 class AnnualReportUploadsController < ApplicationController
   before_action :authorise_edit, only: [:destroy]
   respond_to :json
@@ -79,10 +80,23 @@ class AnnualReportUploadsController < ApplicationController
 
   def download_error_report
     aru = Trade::AnnualReportUpload.find(params[:id])
+    if !aru.is_submitted? && aru.validation_report.empty?
+      render json: { error: t('download_report_disabled') }
+      return
+    end
     validation_report_csv_file = ValidationReportCsvGenerator.call(aru)
-    data = File.read(validation_report_csv_file)
 
-    send_data data, type: 'text/csv', filename: "validation_report_#{aru.id}.csv"
+    changelog = aru.get_changelog("changelog_#{aru.id}-")
+    zipfile = "#{Rails.root.join('tmp')}/report_#{aru.id}.zip"
+    Zip::File.open(zipfile, Zip::File::CREATE) do |zipfile|
+      zipfile.add('changelog.csv', changelog.path)
+      zipfile.add('validation_report.csv', validation_report_csv_file.path)
+    end
+
+    data = File.read(zipfile)
+    changelog.delete
+    File.delete(zipfile)
+    send_data data, type: 'application/zip', filename: "report_#{aru.id}.zip"
   end
 
 end

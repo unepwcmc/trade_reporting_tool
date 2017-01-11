@@ -306,17 +306,38 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         allow_any_instance_of(Trade::Sandbox).to(
           receive(:copy_from_sandbox_to_shipments).with(@epix_user).and_return(true)
         )
+        allow_any_instance_of(Aws::S3::Client).to(
+          receive(:get_object).and_return(true)
+        )
         CitesReportValidator.call(@aru.id, @epix_user)
       end
-      it "should download validation report" do
-        @request.env['devise.mapping'] = Devise.mappings[:epix_user]
-        sign_in @epix_user
+      context "when annual report upload has not been submitted yet" do
+        it "should return json error message" do
+          @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+          sign_in @epix_user
 
-        get 'download_error_report', params: {
-          id: @aru.id
-        }
-        expect(response.content_type).to eq('text/csv')
-        expect(response.body).to include("II")
+          get 'download_error_report', params: {
+            id: @aru.id
+          }
+          expect(response.content_type).to eq('application/json')
+          expect(JSON.parse(response.body)["error"].length).to be > 0
+        end
+      end
+      context "when annual report upload has been submitted" do
+        before(:each) do
+          @aru.update_attributes(epix_submitted_at: Time.now)
+        end
+        it "should download validation report" do
+          @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+          sign_in @epix_user
+
+          get 'download_error_report', params: {
+            id: @aru.id
+          }
+          expect(response.content_type).to eq('application/zip')
+          expect(response.body).to include("validation_report.csv")
+          expect(response.body).to include("changelog.csv")
+        end
       end
     end
   end

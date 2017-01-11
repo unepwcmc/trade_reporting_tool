@@ -8,6 +8,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
       page: props.page,
       sandboxEnabled: props.sandboxEnabled
       adminUrl: props.adminUrl
+      userType: props.userType
     }
 
   render: ->
@@ -33,6 +34,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
             annualReportUpload: annualReportUpload,
             sandboxEnabled: @state.sandboxEnabled
             adminUrl: @state.adminUrl
+            userType: @state.userType
           }
         )
       )

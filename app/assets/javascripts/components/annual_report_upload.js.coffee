@@ -7,6 +7,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       submitted: !!props.annualReportUpload.submitted_at
       sandboxEnabled: !!props.sandboxEnabled
       adminUrl: props.adminUrl
+      userType: props.userType
     }
     @updateModal = @updateModal.bind(@, @summary())
 
@@ -23,12 +24,12 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     else
       download_button.addClass('disabled')
     if @state.submitted
-      modal_content.addClass('smaller')
-      text = I18n.t('submitted_at_info_box') + " #{@state.annualReportUpload.submitted_by} "
-      text = text + I18n.t('the') + " #{@state.annualReportUpload.submitted_at}"
+      download_button.removeClass('disabled')
+      text = I18n.t('submitted_at_info_box') + " " + @getSubmitter()
+      text = text + " " + I18n.t('on') + " #{@state.annualReportUpload.submitted_at}. "
+      text = text + I18n.t('download_info_box')
       info_text.html(text)
     else
-      modal_content.removeClass('smaller')
       text = I18n.t('change_sandbox_settings')
       text = text + "<a href='#{@state.adminUrl}' class='bold'>#{I18n.t('your_admin_page')}</a>"
       info_text.html(text)
@@ -102,7 +103,7 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       " #{I18n.t('records_submitted_by')} "
       span(
         {className: 'bold'}
-        @state.annualReportUpload.submitted_by
+        @getSubmitter()
       )
       " #{I18n.t('the')} "
       span(
@@ -110,3 +111,10 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
         @state.annualReportUpload.submitted_at
       )
     )
+
+  getSubmitter: ->
+    submitted_by_type = @state.annualReportUpload.submitted_by_type
+    if @state.userType == 'sapi' || (@state.userType == submitted_by_type)
+      @state.annualReportUpload.submitted_by
+    else
+      'WCMC'
