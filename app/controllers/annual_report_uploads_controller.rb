@@ -89,7 +89,7 @@ class AnnualReportUploadsController < ApplicationController
     changelog = aru.get_changelog("changelog_#{aru.id}-")
     zipfile = "#{Rails.root.join('tmp')}/report_#{aru.id}.zip"
     Zip::File.open(zipfile, Zip::File::CREATE) do |zipfile|
-      zipfile.add('changelog.csv', changelog.path)
+      zipfile.add('changelog.csv', changelog.path) unless File.zero?(changelog)
       zipfile.add('validation_report.csv', validation_report_csv_file.path)
     end
 
