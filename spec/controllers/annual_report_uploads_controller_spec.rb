@@ -309,9 +309,8 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
         allow_any_instance_of(Aws::S3::Client).to(
           receive(:get_object).and_return(true)
         )
-        CitesReportValidator.call(@aru.id, @epix_user)
       end
-      context "when annual report upload has not been submitted yet" do
+      context "when aru has not been submitted and there is no validation report" do
         it "should return json error message" do
           @request.env['devise.mapping'] = Devise.mappings[:epix_user]
           sign_in @epix_user
@@ -323,9 +322,28 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
           expect(JSON.parse(response.body)["error"].length).to be > 0
         end
       end
-      context "when annual report upload has been submitted" do
+      context "when aru has not been submitted and validation report is present" do
         before(:each) do
+          CitesReportValidator.call(@aru.id, @epix_user)
+        end
+        it "should download validation report" do
+          @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+          sign_in @epix_user
+
+          get 'download_error_report', params: {
+            id: @aru.id
+          }
+
+          expect(response.content_type).to eq('application/zip')
+          expect(response.body).to include("validation_report.csv")
+          expect(response.body).not_to include("changelog.csv")
+        end
+      end
+      context "when annual report upload has been submitted and validation report is present" do
+        before(:each) do
+          CitesReportValidator.call(@aru.id, @epix_user)
           @aru.update_attributes(epix_submitted_at: Time.now)
+          allow(File).to receive(:zero?).and_return(false)
         end
         it "should download validation report" do
           @request.env['devise.mapping'] = Devise.mappings[:epix_user]
