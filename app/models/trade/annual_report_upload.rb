@@ -60,8 +60,8 @@ class Trade::AnnualReportUpload < Sapi::Base
     @primary_validation_errors || @secondary_validation_errors
   end
 
-  def sandbox(tmp=false)
-    return nil if is_submitted? && !tmp
+  def sandbox
+    return nil if is_submitted?
     @sandbox ||= Trade::Sandbox.new(self)
   end
 
@@ -122,25 +122,9 @@ class Trade::AnnualReportUpload < Sapi::Base
       return false
     end
 
-    return false unless sandbox.copy_from_sandbox_to_shipments(submitter)
-
-    # generate changelog
-    ChangesHistoryGeneratorJob.perform_later(self.id, submitter, true)
-
-    update_column(:number_of_records_submitted, sandbox.moved_rows_cnt)
-
-    # flag as submitted
     submitter_type = submitter.class.to_s.split(':').first
-    if submitter_type == 'Epix'
-      update_column(:epix_submitted_at, DateTime.now)
-      update_column(:epix_submitted_by_id, submitter.id)
-    else
-      update_column(:submitted_at, DateTime.now)
-      update_column(:submitted_by_id, submitter.id)
-    end
 
-    # clear downloads cache
-    DownloadsCache.clear_shipments
+    SubmissionJob.perform_later(self.id, submitter.id, submitter_type)
   end
 
   def save_wo_timestamps
