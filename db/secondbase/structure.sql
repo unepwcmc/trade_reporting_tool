@@ -470,6 +470,57 @@ $_$;
 
 
 --
+-- Name: check_for_duplicates_in_shipments(integer); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION check_for_duplicates_in_shipments(annual_report_upload_id integer) RETURNS integer[]
+    LANGUAGE plpgsql
+    AS $$
+  DECLARE
+    table_name TEXT;
+    duplicates_ids INTEGER[];
+  BEGIN
+    table_name = 'trade_sandbox_' || annual_report_upload_id;
+
+    EXECUTE '
+      WITH duplicates AS (
+        SELECT DISTINCT sb.id
+        FROM ' || table_name || ' AS sb
+        JOIN geo_entities AS ge ON ge.iso_code2 = sb.trading_partner
+        JOIN trade_shipments AS s ON sb.reported_taxon_concept_id = s.reported_taxon_concept_id
+        AND sb.appendix = s.appendix AND sb.year::integer = s.year
+        JOIN trade_annual_report_uploads AS aru ON aru.id = ' || annual_report_upload_id || '
+        WHERE (
+          (aru.point_of_view = ''I'' AND NOT s.reported_by_exporter AND aru.trading_country_id = s.importer_id) AND
+          (COALESCE(sb.import_permit,'''') = COALESCE(s.import_permit_number,''''))
+        )
+        OR
+        (
+          (aru.point_of_view = ''I'' AND s.reported_by_exporter AND ge.id = s.importer_id) AND
+          (COALESCE(sb.import_permit,'''') = COALESCE(s.import_permit_number,''''))
+        )
+        OR
+        (
+          (aru.point_of_view = ''E'' AND s.reported_by_exporter AND aru.trading_country_id = s.exporter_id) AND
+          (COALESCE(sb.export_permit,'''') = COALESCE(s.export_permit_number,''''))
+        )
+        OR
+        (
+          (aru.point_of_view = ''E'' AND NOT s.reported_by_exporter AND ge.id = s.exporter_id) AND
+          (COALESCE(sb.export_permit,'''') = COALESCE(s.export_permit_number,''''))
+        )
+      )
+
+      SELECT ARRAY(SELECT id FROM duplicates);
+    ' INTO duplicates_ids;
+
+    RETURN duplicates_ids;
+
+  END;
+  $$;
+
+
+--
 -- Name: cites_aggregate_children_listing(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -15892,62 +15943,6 @@ CREATE VIEW trade_sandbox_1111_view AS
 
 
 --
--- Name: trade_sandbox_1112; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE trade_sandbox_1112 (
-)
-INHERITS (trade_sandbox_template);
-
-
---
--- Name: trade_sandbox_1112_view; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW trade_sandbox_1112_view AS
- SELECT aru.point_of_view,
-        CASE
-            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
-            ELSE trade_sandbox_1112.trading_partner
-        END AS exporter,
-        CASE
-            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1112.trading_partner
-            ELSE geo_entities.iso_code2
-        END AS importer,
-    taxon_concepts.full_name AS accepted_taxon_name,
-    (taxon_concepts.data -> 'rank_name'::text) AS rank,
-    taxon_concepts.rank_id,
-    trade_sandbox_1112.id,
-    trade_sandbox_1112.appendix,
-    trade_sandbox_1112.taxon_name,
-    trade_sandbox_1112.term_code,
-    trade_sandbox_1112.quantity,
-    trade_sandbox_1112.unit_code,
-    trade_sandbox_1112.trading_partner,
-    trade_sandbox_1112.country_of_origin,
-    trade_sandbox_1112.export_permit,
-    trade_sandbox_1112.origin_permit,
-    trade_sandbox_1112.purpose_code,
-    trade_sandbox_1112.source_code,
-    trade_sandbox_1112.year,
-    trade_sandbox_1112.import_permit,
-    trade_sandbox_1112.reported_taxon_concept_id,
-    trade_sandbox_1112.taxon_concept_id,
-    trade_sandbox_1112.created_at,
-    trade_sandbox_1112.updated_at,
-    trade_sandbox_1112.epix_created_at,
-    trade_sandbox_1112.epix_updated_at,
-    trade_sandbox_1112.epix_created_by_id,
-    trade_sandbox_1112.epix_updated_by_id,
-    trade_sandbox_1112.updated_by_id,
-    trade_sandbox_1112.created_by_id
-   FROM (((trade_sandbox_1112
-     JOIN trade_annual_report_uploads aru ON ((aru.id = 1112)))
-     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
-     LEFT JOIN taxon_concepts ON ((trade_sandbox_1112.taxon_concept_id = taxon_concepts.id)));
-
-
---
 -- Name: trade_sandbox_1113; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -16116,59 +16111,1011 @@ CREATE VIEW trade_sandbox_1116_view AS
 
 
 --
--- Name: trade_sandbox_1118; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE TABLE trade_sandbox_1118 (
+CREATE TABLE trade_sandbox_1119 (
 )
 INHERITS (trade_sandbox_template);
 
 
 --
--- Name: trade_sandbox_1118_view; Type: VIEW; Schema: public; Owner: -
+-- Name: trade_sandbox_1119_view; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE VIEW trade_sandbox_1118_view AS
+CREATE VIEW trade_sandbox_1119_view AS
  SELECT aru.point_of_view,
         CASE
             WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
-            ELSE trade_sandbox_1118.trading_partner
+            ELSE trade_sandbox_1119.trading_partner
         END AS exporter,
         CASE
-            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1118.trading_partner
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1119.trading_partner
             ELSE geo_entities.iso_code2
         END AS importer,
     taxon_concepts.full_name AS accepted_taxon_name,
     (taxon_concepts.data -> 'rank_name'::text) AS rank,
     taxon_concepts.rank_id,
-    trade_sandbox_1118.id,
-    trade_sandbox_1118.appendix,
-    trade_sandbox_1118.taxon_name,
-    trade_sandbox_1118.term_code,
-    trade_sandbox_1118.quantity,
-    trade_sandbox_1118.unit_code,
-    trade_sandbox_1118.trading_partner,
-    trade_sandbox_1118.country_of_origin,
-    trade_sandbox_1118.export_permit,
-    trade_sandbox_1118.origin_permit,
-    trade_sandbox_1118.purpose_code,
-    trade_sandbox_1118.source_code,
-    trade_sandbox_1118.year,
-    trade_sandbox_1118.import_permit,
-    trade_sandbox_1118.reported_taxon_concept_id,
-    trade_sandbox_1118.taxon_concept_id,
-    trade_sandbox_1118.created_at,
-    trade_sandbox_1118.updated_at,
-    trade_sandbox_1118.epix_created_at,
-    trade_sandbox_1118.epix_updated_at,
-    trade_sandbox_1118.epix_created_by_id,
-    trade_sandbox_1118.epix_updated_by_id,
-    trade_sandbox_1118.updated_by_id,
-    trade_sandbox_1118.created_by_id
-   FROM (((trade_sandbox_1118
-     JOIN trade_annual_report_uploads aru ON ((aru.id = 1118)))
+    trade_sandbox_1119.id,
+    trade_sandbox_1119.appendix,
+    trade_sandbox_1119.taxon_name,
+    trade_sandbox_1119.term_code,
+    trade_sandbox_1119.quantity,
+    trade_sandbox_1119.unit_code,
+    trade_sandbox_1119.trading_partner,
+    trade_sandbox_1119.country_of_origin,
+    trade_sandbox_1119.export_permit,
+    trade_sandbox_1119.origin_permit,
+    trade_sandbox_1119.purpose_code,
+    trade_sandbox_1119.source_code,
+    trade_sandbox_1119.year,
+    trade_sandbox_1119.import_permit,
+    trade_sandbox_1119.reported_taxon_concept_id,
+    trade_sandbox_1119.taxon_concept_id,
+    trade_sandbox_1119.created_at,
+    trade_sandbox_1119.updated_at,
+    trade_sandbox_1119.epix_created_at,
+    trade_sandbox_1119.epix_updated_at,
+    trade_sandbox_1119.epix_created_by_id,
+    trade_sandbox_1119.epix_updated_by_id,
+    trade_sandbox_1119.updated_by_id,
+    trade_sandbox_1119.created_by_id
+   FROM (((trade_sandbox_1119
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1119)))
      JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
-     LEFT JOIN taxon_concepts ON ((trade_sandbox_1118.taxon_concept_id = taxon_concepts.id)));
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1119.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1123; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1123 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1123_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1123_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1123.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1123.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1123.id,
+    trade_sandbox_1123.appendix,
+    trade_sandbox_1123.taxon_name,
+    trade_sandbox_1123.term_code,
+    trade_sandbox_1123.quantity,
+    trade_sandbox_1123.unit_code,
+    trade_sandbox_1123.trading_partner,
+    trade_sandbox_1123.country_of_origin,
+    trade_sandbox_1123.export_permit,
+    trade_sandbox_1123.origin_permit,
+    trade_sandbox_1123.purpose_code,
+    trade_sandbox_1123.source_code,
+    trade_sandbox_1123.year,
+    trade_sandbox_1123.import_permit,
+    trade_sandbox_1123.reported_taxon_concept_id,
+    trade_sandbox_1123.taxon_concept_id,
+    trade_sandbox_1123.created_at,
+    trade_sandbox_1123.updated_at,
+    trade_sandbox_1123.epix_created_at,
+    trade_sandbox_1123.epix_updated_at,
+    trade_sandbox_1123.epix_created_by_id,
+    trade_sandbox_1123.epix_updated_by_id,
+    trade_sandbox_1123.updated_by_id,
+    trade_sandbox_1123.created_by_id
+   FROM (((trade_sandbox_1123
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1123)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1123.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1124; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1124 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1124_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1124_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1124.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1124.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1124.id,
+    trade_sandbox_1124.appendix,
+    trade_sandbox_1124.taxon_name,
+    trade_sandbox_1124.term_code,
+    trade_sandbox_1124.quantity,
+    trade_sandbox_1124.unit_code,
+    trade_sandbox_1124.trading_partner,
+    trade_sandbox_1124.country_of_origin,
+    trade_sandbox_1124.export_permit,
+    trade_sandbox_1124.origin_permit,
+    trade_sandbox_1124.purpose_code,
+    trade_sandbox_1124.source_code,
+    trade_sandbox_1124.year,
+    trade_sandbox_1124.import_permit,
+    trade_sandbox_1124.reported_taxon_concept_id,
+    trade_sandbox_1124.taxon_concept_id,
+    trade_sandbox_1124.created_at,
+    trade_sandbox_1124.updated_at,
+    trade_sandbox_1124.epix_created_at,
+    trade_sandbox_1124.epix_updated_at,
+    trade_sandbox_1124.epix_created_by_id,
+    trade_sandbox_1124.epix_updated_by_id,
+    trade_sandbox_1124.updated_by_id,
+    trade_sandbox_1124.created_by_id
+   FROM (((trade_sandbox_1124
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1124)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1124.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1125; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1125 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1125_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1125_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1125.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1125.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1125.id,
+    trade_sandbox_1125.appendix,
+    trade_sandbox_1125.taxon_name,
+    trade_sandbox_1125.term_code,
+    trade_sandbox_1125.quantity,
+    trade_sandbox_1125.unit_code,
+    trade_sandbox_1125.trading_partner,
+    trade_sandbox_1125.country_of_origin,
+    trade_sandbox_1125.export_permit,
+    trade_sandbox_1125.origin_permit,
+    trade_sandbox_1125.purpose_code,
+    trade_sandbox_1125.source_code,
+    trade_sandbox_1125.year,
+    trade_sandbox_1125.import_permit,
+    trade_sandbox_1125.reported_taxon_concept_id,
+    trade_sandbox_1125.taxon_concept_id,
+    trade_sandbox_1125.created_at,
+    trade_sandbox_1125.updated_at,
+    trade_sandbox_1125.epix_created_at,
+    trade_sandbox_1125.epix_updated_at,
+    trade_sandbox_1125.epix_created_by_id,
+    trade_sandbox_1125.epix_updated_by_id,
+    trade_sandbox_1125.updated_by_id,
+    trade_sandbox_1125.created_by_id
+   FROM (((trade_sandbox_1125
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1125)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1125.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1127; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1127 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1127_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1127_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1127.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1127.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1127.id,
+    trade_sandbox_1127.appendix,
+    trade_sandbox_1127.taxon_name,
+    trade_sandbox_1127.term_code,
+    trade_sandbox_1127.quantity,
+    trade_sandbox_1127.unit_code,
+    trade_sandbox_1127.trading_partner,
+    trade_sandbox_1127.country_of_origin,
+    trade_sandbox_1127.export_permit,
+    trade_sandbox_1127.origin_permit,
+    trade_sandbox_1127.purpose_code,
+    trade_sandbox_1127.source_code,
+    trade_sandbox_1127.year,
+    trade_sandbox_1127.import_permit,
+    trade_sandbox_1127.reported_taxon_concept_id,
+    trade_sandbox_1127.taxon_concept_id,
+    trade_sandbox_1127.created_at,
+    trade_sandbox_1127.updated_at,
+    trade_sandbox_1127.epix_created_at,
+    trade_sandbox_1127.epix_updated_at,
+    trade_sandbox_1127.epix_created_by_id,
+    trade_sandbox_1127.epix_updated_by_id,
+    trade_sandbox_1127.updated_by_id,
+    trade_sandbox_1127.created_by_id
+   FROM (((trade_sandbox_1127
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1127)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1127.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1128; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1128 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1128_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1128_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1128.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1128.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1128.id,
+    trade_sandbox_1128.appendix,
+    trade_sandbox_1128.taxon_name,
+    trade_sandbox_1128.term_code,
+    trade_sandbox_1128.quantity,
+    trade_sandbox_1128.unit_code,
+    trade_sandbox_1128.trading_partner,
+    trade_sandbox_1128.country_of_origin,
+    trade_sandbox_1128.export_permit,
+    trade_sandbox_1128.origin_permit,
+    trade_sandbox_1128.purpose_code,
+    trade_sandbox_1128.source_code,
+    trade_sandbox_1128.year,
+    trade_sandbox_1128.import_permit,
+    trade_sandbox_1128.reported_taxon_concept_id,
+    trade_sandbox_1128.taxon_concept_id,
+    trade_sandbox_1128.created_at,
+    trade_sandbox_1128.updated_at,
+    trade_sandbox_1128.epix_created_at,
+    trade_sandbox_1128.epix_updated_at,
+    trade_sandbox_1128.epix_created_by_id,
+    trade_sandbox_1128.epix_updated_by_id,
+    trade_sandbox_1128.updated_by_id,
+    trade_sandbox_1128.created_by_id
+   FROM (((trade_sandbox_1128
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1128)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1128.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1129; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1129 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1129_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1129_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1129.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1129.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1129.id,
+    trade_sandbox_1129.appendix,
+    trade_sandbox_1129.taxon_name,
+    trade_sandbox_1129.term_code,
+    trade_sandbox_1129.quantity,
+    trade_sandbox_1129.unit_code,
+    trade_sandbox_1129.trading_partner,
+    trade_sandbox_1129.country_of_origin,
+    trade_sandbox_1129.export_permit,
+    trade_sandbox_1129.origin_permit,
+    trade_sandbox_1129.purpose_code,
+    trade_sandbox_1129.source_code,
+    trade_sandbox_1129.year,
+    trade_sandbox_1129.import_permit,
+    trade_sandbox_1129.reported_taxon_concept_id,
+    trade_sandbox_1129.taxon_concept_id,
+    trade_sandbox_1129.created_at,
+    trade_sandbox_1129.updated_at,
+    trade_sandbox_1129.epix_created_at,
+    trade_sandbox_1129.epix_updated_at,
+    trade_sandbox_1129.epix_created_by_id,
+    trade_sandbox_1129.epix_updated_by_id,
+    trade_sandbox_1129.updated_by_id,
+    trade_sandbox_1129.created_by_id
+   FROM (((trade_sandbox_1129
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1129)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1129.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1130; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1130 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1130_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1130_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1130.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1130.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1130.id,
+    trade_sandbox_1130.appendix,
+    trade_sandbox_1130.taxon_name,
+    trade_sandbox_1130.term_code,
+    trade_sandbox_1130.quantity,
+    trade_sandbox_1130.unit_code,
+    trade_sandbox_1130.trading_partner,
+    trade_sandbox_1130.country_of_origin,
+    trade_sandbox_1130.export_permit,
+    trade_sandbox_1130.origin_permit,
+    trade_sandbox_1130.purpose_code,
+    trade_sandbox_1130.source_code,
+    trade_sandbox_1130.year,
+    trade_sandbox_1130.import_permit,
+    trade_sandbox_1130.reported_taxon_concept_id,
+    trade_sandbox_1130.taxon_concept_id,
+    trade_sandbox_1130.created_at,
+    trade_sandbox_1130.updated_at,
+    trade_sandbox_1130.epix_created_at,
+    trade_sandbox_1130.epix_updated_at,
+    trade_sandbox_1130.epix_created_by_id,
+    trade_sandbox_1130.epix_updated_by_id,
+    trade_sandbox_1130.updated_by_id,
+    trade_sandbox_1130.created_by_id
+   FROM (((trade_sandbox_1130
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1130)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1130.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1134; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1134 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1134_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1134_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1134.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1134.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1134.id,
+    trade_sandbox_1134.appendix,
+    trade_sandbox_1134.taxon_name,
+    trade_sandbox_1134.term_code,
+    trade_sandbox_1134.quantity,
+    trade_sandbox_1134.unit_code,
+    trade_sandbox_1134.trading_partner,
+    trade_sandbox_1134.country_of_origin,
+    trade_sandbox_1134.export_permit,
+    trade_sandbox_1134.origin_permit,
+    trade_sandbox_1134.purpose_code,
+    trade_sandbox_1134.source_code,
+    trade_sandbox_1134.year,
+    trade_sandbox_1134.import_permit,
+    trade_sandbox_1134.reported_taxon_concept_id,
+    trade_sandbox_1134.taxon_concept_id,
+    trade_sandbox_1134.created_at,
+    trade_sandbox_1134.updated_at,
+    trade_sandbox_1134.epix_created_at,
+    trade_sandbox_1134.epix_updated_at,
+    trade_sandbox_1134.epix_created_by_id,
+    trade_sandbox_1134.epix_updated_by_id,
+    trade_sandbox_1134.updated_by_id,
+    trade_sandbox_1134.created_by_id
+   FROM (((trade_sandbox_1134
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1134)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1134.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1135; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1135 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1135_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1135_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1135.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1135.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1135.id,
+    trade_sandbox_1135.appendix,
+    trade_sandbox_1135.taxon_name,
+    trade_sandbox_1135.term_code,
+    trade_sandbox_1135.quantity,
+    trade_sandbox_1135.unit_code,
+    trade_sandbox_1135.trading_partner,
+    trade_sandbox_1135.country_of_origin,
+    trade_sandbox_1135.export_permit,
+    trade_sandbox_1135.origin_permit,
+    trade_sandbox_1135.purpose_code,
+    trade_sandbox_1135.source_code,
+    trade_sandbox_1135.year,
+    trade_sandbox_1135.import_permit,
+    trade_sandbox_1135.reported_taxon_concept_id,
+    trade_sandbox_1135.taxon_concept_id,
+    trade_sandbox_1135.created_at,
+    trade_sandbox_1135.updated_at,
+    trade_sandbox_1135.epix_created_at,
+    trade_sandbox_1135.epix_updated_at,
+    trade_sandbox_1135.epix_created_by_id,
+    trade_sandbox_1135.epix_updated_by_id,
+    trade_sandbox_1135.updated_by_id,
+    trade_sandbox_1135.created_by_id
+   FROM (((trade_sandbox_1135
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1135)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1135.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1136; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1136 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1136_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1136_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1136.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1136.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1136.id,
+    trade_sandbox_1136.appendix,
+    trade_sandbox_1136.taxon_name,
+    trade_sandbox_1136.term_code,
+    trade_sandbox_1136.quantity,
+    trade_sandbox_1136.unit_code,
+    trade_sandbox_1136.trading_partner,
+    trade_sandbox_1136.country_of_origin,
+    trade_sandbox_1136.export_permit,
+    trade_sandbox_1136.origin_permit,
+    trade_sandbox_1136.purpose_code,
+    trade_sandbox_1136.source_code,
+    trade_sandbox_1136.year,
+    trade_sandbox_1136.import_permit,
+    trade_sandbox_1136.reported_taxon_concept_id,
+    trade_sandbox_1136.taxon_concept_id,
+    trade_sandbox_1136.created_at,
+    trade_sandbox_1136.updated_at,
+    trade_sandbox_1136.epix_created_at,
+    trade_sandbox_1136.epix_updated_at,
+    trade_sandbox_1136.epix_created_by_id,
+    trade_sandbox_1136.epix_updated_by_id,
+    trade_sandbox_1136.updated_by_id,
+    trade_sandbox_1136.created_by_id
+   FROM (((trade_sandbox_1136
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1136)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1136.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1137; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1137 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1137_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1137_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1137.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1137.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1137.id,
+    trade_sandbox_1137.appendix,
+    trade_sandbox_1137.taxon_name,
+    trade_sandbox_1137.term_code,
+    trade_sandbox_1137.quantity,
+    trade_sandbox_1137.unit_code,
+    trade_sandbox_1137.trading_partner,
+    trade_sandbox_1137.country_of_origin,
+    trade_sandbox_1137.export_permit,
+    trade_sandbox_1137.origin_permit,
+    trade_sandbox_1137.purpose_code,
+    trade_sandbox_1137.source_code,
+    trade_sandbox_1137.year,
+    trade_sandbox_1137.import_permit,
+    trade_sandbox_1137.reported_taxon_concept_id,
+    trade_sandbox_1137.taxon_concept_id,
+    trade_sandbox_1137.created_at,
+    trade_sandbox_1137.updated_at,
+    trade_sandbox_1137.epix_created_at,
+    trade_sandbox_1137.epix_updated_at,
+    trade_sandbox_1137.epix_created_by_id,
+    trade_sandbox_1137.epix_updated_by_id,
+    trade_sandbox_1137.updated_by_id,
+    trade_sandbox_1137.created_by_id
+   FROM (((trade_sandbox_1137
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1137)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1137.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1138; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1138 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1138_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1138_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1138.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1138.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1138.id,
+    trade_sandbox_1138.appendix,
+    trade_sandbox_1138.taxon_name,
+    trade_sandbox_1138.term_code,
+    trade_sandbox_1138.quantity,
+    trade_sandbox_1138.unit_code,
+    trade_sandbox_1138.trading_partner,
+    trade_sandbox_1138.country_of_origin,
+    trade_sandbox_1138.export_permit,
+    trade_sandbox_1138.origin_permit,
+    trade_sandbox_1138.purpose_code,
+    trade_sandbox_1138.source_code,
+    trade_sandbox_1138.year,
+    trade_sandbox_1138.import_permit,
+    trade_sandbox_1138.reported_taxon_concept_id,
+    trade_sandbox_1138.taxon_concept_id,
+    trade_sandbox_1138.created_at,
+    trade_sandbox_1138.updated_at,
+    trade_sandbox_1138.epix_created_at,
+    trade_sandbox_1138.epix_updated_at,
+    trade_sandbox_1138.epix_created_by_id,
+    trade_sandbox_1138.epix_updated_by_id,
+    trade_sandbox_1138.updated_by_id,
+    trade_sandbox_1138.created_by_id
+   FROM (((trade_sandbox_1138
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1138)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1138.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1139; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1139 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1139_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1139_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1139.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1139.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1139.id,
+    trade_sandbox_1139.appendix,
+    trade_sandbox_1139.taxon_name,
+    trade_sandbox_1139.term_code,
+    trade_sandbox_1139.quantity,
+    trade_sandbox_1139.unit_code,
+    trade_sandbox_1139.trading_partner,
+    trade_sandbox_1139.country_of_origin,
+    trade_sandbox_1139.export_permit,
+    trade_sandbox_1139.origin_permit,
+    trade_sandbox_1139.purpose_code,
+    trade_sandbox_1139.source_code,
+    trade_sandbox_1139.year,
+    trade_sandbox_1139.import_permit,
+    trade_sandbox_1139.reported_taxon_concept_id,
+    trade_sandbox_1139.taxon_concept_id,
+    trade_sandbox_1139.created_at,
+    trade_sandbox_1139.updated_at,
+    trade_sandbox_1139.epix_created_at,
+    trade_sandbox_1139.epix_updated_at,
+    trade_sandbox_1139.epix_created_by_id,
+    trade_sandbox_1139.epix_updated_by_id,
+    trade_sandbox_1139.updated_by_id,
+    trade_sandbox_1139.created_by_id
+   FROM (((trade_sandbox_1139
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1139)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1139.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1140; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1140 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1140_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1140_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1140.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1140.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1140.id,
+    trade_sandbox_1140.appendix,
+    trade_sandbox_1140.taxon_name,
+    trade_sandbox_1140.term_code,
+    trade_sandbox_1140.quantity,
+    trade_sandbox_1140.unit_code,
+    trade_sandbox_1140.trading_partner,
+    trade_sandbox_1140.country_of_origin,
+    trade_sandbox_1140.export_permit,
+    trade_sandbox_1140.origin_permit,
+    trade_sandbox_1140.purpose_code,
+    trade_sandbox_1140.source_code,
+    trade_sandbox_1140.year,
+    trade_sandbox_1140.import_permit,
+    trade_sandbox_1140.reported_taxon_concept_id,
+    trade_sandbox_1140.taxon_concept_id,
+    trade_sandbox_1140.created_at,
+    trade_sandbox_1140.updated_at,
+    trade_sandbox_1140.epix_created_at,
+    trade_sandbox_1140.epix_updated_at,
+    trade_sandbox_1140.epix_created_by_id,
+    trade_sandbox_1140.epix_updated_by_id,
+    trade_sandbox_1140.updated_by_id,
+    trade_sandbox_1140.created_by_id
+   FROM (((trade_sandbox_1140
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1140)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1140.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1141; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1141 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1141_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1141_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1141.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1141.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1141.id,
+    trade_sandbox_1141.appendix,
+    trade_sandbox_1141.taxon_name,
+    trade_sandbox_1141.term_code,
+    trade_sandbox_1141.quantity,
+    trade_sandbox_1141.unit_code,
+    trade_sandbox_1141.trading_partner,
+    trade_sandbox_1141.country_of_origin,
+    trade_sandbox_1141.export_permit,
+    trade_sandbox_1141.origin_permit,
+    trade_sandbox_1141.purpose_code,
+    trade_sandbox_1141.source_code,
+    trade_sandbox_1141.year,
+    trade_sandbox_1141.import_permit,
+    trade_sandbox_1141.reported_taxon_concept_id,
+    trade_sandbox_1141.taxon_concept_id,
+    trade_sandbox_1141.created_at,
+    trade_sandbox_1141.updated_at,
+    trade_sandbox_1141.epix_created_at,
+    trade_sandbox_1141.epix_updated_at,
+    trade_sandbox_1141.epix_created_by_id,
+    trade_sandbox_1141.epix_updated_by_id,
+    trade_sandbox_1141.updated_by_id,
+    trade_sandbox_1141.created_by_id
+   FROM (((trade_sandbox_1141
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1141)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1141.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1142; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1142 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1142_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1142_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1142.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1142.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1142.id,
+    trade_sandbox_1142.appendix,
+    trade_sandbox_1142.taxon_name,
+    trade_sandbox_1142.term_code,
+    trade_sandbox_1142.quantity,
+    trade_sandbox_1142.unit_code,
+    trade_sandbox_1142.trading_partner,
+    trade_sandbox_1142.country_of_origin,
+    trade_sandbox_1142.export_permit,
+    trade_sandbox_1142.origin_permit,
+    trade_sandbox_1142.purpose_code,
+    trade_sandbox_1142.source_code,
+    trade_sandbox_1142.year,
+    trade_sandbox_1142.import_permit,
+    trade_sandbox_1142.reported_taxon_concept_id,
+    trade_sandbox_1142.taxon_concept_id,
+    trade_sandbox_1142.created_at,
+    trade_sandbox_1142.updated_at,
+    trade_sandbox_1142.epix_created_at,
+    trade_sandbox_1142.epix_updated_at,
+    trade_sandbox_1142.epix_created_by_id,
+    trade_sandbox_1142.epix_updated_by_id,
+    trade_sandbox_1142.updated_by_id,
+    trade_sandbox_1142.created_by_id
+   FROM (((trade_sandbox_1142
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1142)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1142.taxon_concept_id = taxon_concepts.id)));
+
+
+--
+-- Name: trade_sandbox_1143; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE trade_sandbox_1143 (
+)
+INHERITS (trade_sandbox_template);
+
+
+--
+-- Name: trade_sandbox_1143_view; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW trade_sandbox_1143_view AS
+ SELECT aru.point_of_view,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN geo_entities.iso_code2
+            ELSE trade_sandbox_1143.trading_partner
+        END AS exporter,
+        CASE
+            WHEN ((aru.point_of_view)::text = 'E'::text) THEN trade_sandbox_1143.trading_partner
+            ELSE geo_entities.iso_code2
+        END AS importer,
+    taxon_concepts.full_name AS accepted_taxon_name,
+    (taxon_concepts.data -> 'rank_name'::text) AS rank,
+    taxon_concepts.rank_id,
+    trade_sandbox_1143.id,
+    trade_sandbox_1143.appendix,
+    trade_sandbox_1143.taxon_name,
+    trade_sandbox_1143.term_code,
+    trade_sandbox_1143.quantity,
+    trade_sandbox_1143.unit_code,
+    trade_sandbox_1143.trading_partner,
+    trade_sandbox_1143.country_of_origin,
+    trade_sandbox_1143.export_permit,
+    trade_sandbox_1143.origin_permit,
+    trade_sandbox_1143.purpose_code,
+    trade_sandbox_1143.source_code,
+    trade_sandbox_1143.year,
+    trade_sandbox_1143.import_permit,
+    trade_sandbox_1143.reported_taxon_concept_id,
+    trade_sandbox_1143.taxon_concept_id,
+    trade_sandbox_1143.created_at,
+    trade_sandbox_1143.updated_at,
+    trade_sandbox_1143.epix_created_at,
+    trade_sandbox_1143.epix_updated_at,
+    trade_sandbox_1143.epix_created_by_id,
+    trade_sandbox_1143.epix_updated_by_id,
+    trade_sandbox_1143.updated_by_id,
+    trade_sandbox_1143.created_by_id
+   FROM (((trade_sandbox_1143
+     JOIN trade_annual_report_uploads aru ON ((aru.id = 1143)))
+     JOIN geo_entities ON ((geo_entities.id = aru.trading_country_id)))
+     LEFT JOIN taxon_concepts ON ((trade_sandbox_1143.taxon_concept_id = taxon_concepts.id)));
 
 
 --
@@ -18529,27 +19476,6 @@ ALTER TABLE ONLY trade_sandbox_1111 ALTER COLUMN updated_at SET DEFAULT timezone
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY trade_sandbox_1112 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
-
-
---
--- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY trade_sandbox_1112 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
-
-
---
--- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY trade_sandbox_1112 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
 ALTER TABLE ONLY trade_sandbox_1113 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
 
 
@@ -18613,21 +19539,378 @@ ALTER TABLE ONLY trade_sandbox_1116 ALTER COLUMN updated_at SET DEFAULT timezone
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY trade_sandbox_1118 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+ALTER TABLE ONLY trade_sandbox_1119 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
 
 
 --
 -- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY trade_sandbox_1118 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+ALTER TABLE ONLY trade_sandbox_1119 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
 
 
 --
 -- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY trade_sandbox_1118 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+ALTER TABLE ONLY trade_sandbox_1119 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1123 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1123 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1123 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1124 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1124 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1124 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1125 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1125 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1125 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1127 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1127 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1127 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1128 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1128 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1128 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1129 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1129 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1129 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1130 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1130 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1130 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1134 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1134 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1134 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1135 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1135 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1135 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1136 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1136 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1136 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1137 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1137 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1137 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1138 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1138 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1138 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1139 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1139 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1139 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1140 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1140 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1140 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1141 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1141 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1141 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1142 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1142 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1142 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1143 ALTER COLUMN id SET DEFAULT nextval('trade_sandbox_template_id_seq'::regclass);
+
+
+--
+-- Name: created_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1143 ALTER COLUMN created_at SET DEFAULT timezone('utc'::text, now());
+
+
+--
+-- Name: updated_at; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY trade_sandbox_1143 ALTER COLUMN updated_at SET DEFAULT timezone('utc'::text, now());
 
 
 --
@@ -19708,14 +20991,6 @@ ALTER TABLE ONLY trade_sandbox_1111
 
 
 --
--- Name: trade_sandbox_1112_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
---
-
-ALTER TABLE ONLY trade_sandbox_1112
-    ADD CONSTRAINT trade_sandbox_1112_pkey PRIMARY KEY (id);
-
-
---
 -- Name: trade_sandbox_1113_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -19740,11 +21015,147 @@ ALTER TABLE ONLY trade_sandbox_1116
 
 
 --
--- Name: trade_sandbox_1118_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
-ALTER TABLE ONLY trade_sandbox_1118
-    ADD CONSTRAINT trade_sandbox_1118_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY trade_sandbox_1119
+    ADD CONSTRAINT trade_sandbox_1119_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1123_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1123
+    ADD CONSTRAINT trade_sandbox_1123_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1124_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1124
+    ADD CONSTRAINT trade_sandbox_1124_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1125_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1125
+    ADD CONSTRAINT trade_sandbox_1125_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1127_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1127
+    ADD CONSTRAINT trade_sandbox_1127_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1128_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1128
+    ADD CONSTRAINT trade_sandbox_1128_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1129_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1129
+    ADD CONSTRAINT trade_sandbox_1129_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1130_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1130
+    ADD CONSTRAINT trade_sandbox_1130_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1134_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1134
+    ADD CONSTRAINT trade_sandbox_1134_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1135_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1135
+    ADD CONSTRAINT trade_sandbox_1135_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1136_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1136
+    ADD CONSTRAINT trade_sandbox_1136_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1137_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1137
+    ADD CONSTRAINT trade_sandbox_1137_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1138_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1138
+    ADD CONSTRAINT trade_sandbox_1138_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1139_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1139
+    ADD CONSTRAINT trade_sandbox_1139_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1140_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1140
+    ADD CONSTRAINT trade_sandbox_1140_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1141_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1141
+    ADD CONSTRAINT trade_sandbox_1141_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1142_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1142
+    ADD CONSTRAINT trade_sandbox_1142_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: trade_sandbox_1143_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY trade_sandbox_1143
+    ADD CONSTRAINT trade_sandbox_1143_pkey PRIMARY KEY (id);
 
 
 --
@@ -25987,76 +27398,6 @@ CREATE INDEX trade_sandbox_1111_unit_code_idx ON trade_sandbox_1111 USING btree 
 
 
 --
--- Name: trade_sandbox_1112_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_appendix_idx ON trade_sandbox_1112 USING btree (appendix);
-
-
---
--- Name: trade_sandbox_1112_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_country_of_origin_idx ON trade_sandbox_1112 USING btree (country_of_origin);
-
-
---
--- Name: trade_sandbox_1112_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_purpose_code_idx ON trade_sandbox_1112 USING btree (purpose_code);
-
-
---
--- Name: trade_sandbox_1112_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_quantity_idx ON trade_sandbox_1112 USING btree (quantity);
-
-
---
--- Name: trade_sandbox_1112_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_source_code_idx ON trade_sandbox_1112 USING btree (source_code);
-
-
---
--- Name: trade_sandbox_1112_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_taxon_concept_id_idx ON trade_sandbox_1112 USING btree (taxon_concept_id);
-
-
---
--- Name: trade_sandbox_1112_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_taxon_name_idx ON trade_sandbox_1112 USING btree (taxon_name);
-
-
---
--- Name: trade_sandbox_1112_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_term_code_idx ON trade_sandbox_1112 USING btree (term_code);
-
-
---
--- Name: trade_sandbox_1112_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_trading_partner_idx ON trade_sandbox_1112 USING btree (trading_partner);
-
-
---
--- Name: trade_sandbox_1112_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1112_unit_code_idx ON trade_sandbox_1112 USING btree (unit_code);
-
-
---
 -- Name: trade_sandbox_1113_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -26267,73 +27608,1263 @@ CREATE INDEX trade_sandbox_1116_unit_code_idx ON trade_sandbox_1116 USING btree 
 
 
 --
--- Name: trade_sandbox_1118_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX trade_sandbox_1118_appendix_idx ON trade_sandbox_1118 USING btree (appendix);
-
-
---
--- Name: trade_sandbox_1118_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1118_country_of_origin_idx ON trade_sandbox_1118 USING btree (country_of_origin);
+CREATE INDEX trade_sandbox_1119_appendix_idx ON trade_sandbox_1119 USING btree (appendix);
 
 
 --
--- Name: trade_sandbox_1118_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX trade_sandbox_1118_purpose_code_idx ON trade_sandbox_1118 USING btree (purpose_code);
-
-
---
--- Name: trade_sandbox_1118_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1118_quantity_idx ON trade_sandbox_1118 USING btree (quantity);
+CREATE INDEX trade_sandbox_1119_country_of_origin_idx ON trade_sandbox_1119 USING btree (country_of_origin);
 
 
 --
--- Name: trade_sandbox_1118_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX trade_sandbox_1118_source_code_idx ON trade_sandbox_1118 USING btree (source_code);
-
-
---
--- Name: trade_sandbox_1118_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1118_taxon_concept_id_idx ON trade_sandbox_1118 USING btree (taxon_concept_id);
+CREATE INDEX trade_sandbox_1119_purpose_code_idx ON trade_sandbox_1119 USING btree (purpose_code);
 
 
 --
--- Name: trade_sandbox_1118_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX trade_sandbox_1118_taxon_name_idx ON trade_sandbox_1118 USING btree (taxon_name);
-
-
---
--- Name: trade_sandbox_1118_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX trade_sandbox_1118_term_code_idx ON trade_sandbox_1118 USING btree (term_code);
+CREATE INDEX trade_sandbox_1119_quantity_idx ON trade_sandbox_1119 USING btree (quantity);
 
 
 --
--- Name: trade_sandbox_1118_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX trade_sandbox_1118_trading_partner_idx ON trade_sandbox_1118 USING btree (trading_partner);
+CREATE INDEX trade_sandbox_1119_source_code_idx ON trade_sandbox_1119 USING btree (source_code);
 
 
 --
--- Name: trade_sandbox_1118_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+-- Name: trade_sandbox_1119_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
-CREATE INDEX trade_sandbox_1118_unit_code_idx ON trade_sandbox_1118 USING btree (unit_code);
+CREATE INDEX trade_sandbox_1119_taxon_concept_id_idx ON trade_sandbox_1119 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1119_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1119_taxon_name_idx ON trade_sandbox_1119 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1119_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1119_term_code_idx ON trade_sandbox_1119 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1119_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1119_trading_partner_idx ON trade_sandbox_1119 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1119_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1119_unit_code_idx ON trade_sandbox_1119 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1123_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_appendix_idx ON trade_sandbox_1123 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1123_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_country_of_origin_idx ON trade_sandbox_1123 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1123_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_purpose_code_idx ON trade_sandbox_1123 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1123_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_quantity_idx ON trade_sandbox_1123 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1123_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_source_code_idx ON trade_sandbox_1123 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1123_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_taxon_concept_id_idx ON trade_sandbox_1123 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1123_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_taxon_name_idx ON trade_sandbox_1123 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1123_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_term_code_idx ON trade_sandbox_1123 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1123_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_trading_partner_idx ON trade_sandbox_1123 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1123_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1123_unit_code_idx ON trade_sandbox_1123 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1124_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_appendix_idx ON trade_sandbox_1124 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1124_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_country_of_origin_idx ON trade_sandbox_1124 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1124_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_purpose_code_idx ON trade_sandbox_1124 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1124_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_quantity_idx ON trade_sandbox_1124 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1124_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_source_code_idx ON trade_sandbox_1124 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1124_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_taxon_concept_id_idx ON trade_sandbox_1124 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1124_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_taxon_name_idx ON trade_sandbox_1124 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1124_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_term_code_idx ON trade_sandbox_1124 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1124_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_trading_partner_idx ON trade_sandbox_1124 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1124_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1124_unit_code_idx ON trade_sandbox_1124 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1125_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_appendix_idx ON trade_sandbox_1125 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1125_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_country_of_origin_idx ON trade_sandbox_1125 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1125_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_purpose_code_idx ON trade_sandbox_1125 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1125_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_quantity_idx ON trade_sandbox_1125 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1125_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_source_code_idx ON trade_sandbox_1125 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1125_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_taxon_concept_id_idx ON trade_sandbox_1125 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1125_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_taxon_name_idx ON trade_sandbox_1125 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1125_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_term_code_idx ON trade_sandbox_1125 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1125_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_trading_partner_idx ON trade_sandbox_1125 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1125_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1125_unit_code_idx ON trade_sandbox_1125 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1127_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_appendix_idx ON trade_sandbox_1127 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1127_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_country_of_origin_idx ON trade_sandbox_1127 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1127_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_purpose_code_idx ON trade_sandbox_1127 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1127_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_quantity_idx ON trade_sandbox_1127 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1127_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_source_code_idx ON trade_sandbox_1127 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1127_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_taxon_concept_id_idx ON trade_sandbox_1127 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1127_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_taxon_name_idx ON trade_sandbox_1127 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1127_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_term_code_idx ON trade_sandbox_1127 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1127_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_trading_partner_idx ON trade_sandbox_1127 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1127_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1127_unit_code_idx ON trade_sandbox_1127 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1128_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_appendix_idx ON trade_sandbox_1128 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1128_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_country_of_origin_idx ON trade_sandbox_1128 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1128_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_purpose_code_idx ON trade_sandbox_1128 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1128_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_quantity_idx ON trade_sandbox_1128 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1128_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_source_code_idx ON trade_sandbox_1128 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1128_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_taxon_concept_id_idx ON trade_sandbox_1128 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1128_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_taxon_name_idx ON trade_sandbox_1128 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1128_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_term_code_idx ON trade_sandbox_1128 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1128_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_trading_partner_idx ON trade_sandbox_1128 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1128_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1128_unit_code_idx ON trade_sandbox_1128 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1129_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_appendix_idx ON trade_sandbox_1129 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1129_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_country_of_origin_idx ON trade_sandbox_1129 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1129_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_purpose_code_idx ON trade_sandbox_1129 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1129_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_quantity_idx ON trade_sandbox_1129 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1129_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_source_code_idx ON trade_sandbox_1129 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1129_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_taxon_concept_id_idx ON trade_sandbox_1129 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1129_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_taxon_name_idx ON trade_sandbox_1129 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1129_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_term_code_idx ON trade_sandbox_1129 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1129_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_trading_partner_idx ON trade_sandbox_1129 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1129_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1129_unit_code_idx ON trade_sandbox_1129 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1130_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_appendix_idx ON trade_sandbox_1130 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1130_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_country_of_origin_idx ON trade_sandbox_1130 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1130_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_purpose_code_idx ON trade_sandbox_1130 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1130_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_quantity_idx ON trade_sandbox_1130 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1130_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_source_code_idx ON trade_sandbox_1130 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1130_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_taxon_concept_id_idx ON trade_sandbox_1130 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1130_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_taxon_name_idx ON trade_sandbox_1130 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1130_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_term_code_idx ON trade_sandbox_1130 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1130_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_trading_partner_idx ON trade_sandbox_1130 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1130_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1130_unit_code_idx ON trade_sandbox_1130 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1134_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_appendix_idx ON trade_sandbox_1134 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1134_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_country_of_origin_idx ON trade_sandbox_1134 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1134_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_purpose_code_idx ON trade_sandbox_1134 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1134_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_quantity_idx ON trade_sandbox_1134 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1134_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_source_code_idx ON trade_sandbox_1134 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1134_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_taxon_concept_id_idx ON trade_sandbox_1134 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1134_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_taxon_name_idx ON trade_sandbox_1134 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1134_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_term_code_idx ON trade_sandbox_1134 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1134_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_trading_partner_idx ON trade_sandbox_1134 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1134_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1134_unit_code_idx ON trade_sandbox_1134 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1135_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_appendix_idx ON trade_sandbox_1135 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1135_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_country_of_origin_idx ON trade_sandbox_1135 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1135_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_purpose_code_idx ON trade_sandbox_1135 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1135_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_quantity_idx ON trade_sandbox_1135 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1135_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_source_code_idx ON trade_sandbox_1135 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1135_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_taxon_concept_id_idx ON trade_sandbox_1135 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1135_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_taxon_name_idx ON trade_sandbox_1135 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1135_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_term_code_idx ON trade_sandbox_1135 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1135_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_trading_partner_idx ON trade_sandbox_1135 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1135_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1135_unit_code_idx ON trade_sandbox_1135 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1136_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_appendix_idx ON trade_sandbox_1136 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1136_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_country_of_origin_idx ON trade_sandbox_1136 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1136_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_purpose_code_idx ON trade_sandbox_1136 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1136_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_quantity_idx ON trade_sandbox_1136 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1136_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_source_code_idx ON trade_sandbox_1136 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1136_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_taxon_concept_id_idx ON trade_sandbox_1136 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1136_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_taxon_name_idx ON trade_sandbox_1136 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1136_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_term_code_idx ON trade_sandbox_1136 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1136_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_trading_partner_idx ON trade_sandbox_1136 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1136_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1136_unit_code_idx ON trade_sandbox_1136 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1137_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_appendix_idx ON trade_sandbox_1137 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1137_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_country_of_origin_idx ON trade_sandbox_1137 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1137_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_purpose_code_idx ON trade_sandbox_1137 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1137_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_quantity_idx ON trade_sandbox_1137 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1137_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_source_code_idx ON trade_sandbox_1137 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1137_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_taxon_concept_id_idx ON trade_sandbox_1137 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1137_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_taxon_name_idx ON trade_sandbox_1137 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1137_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_term_code_idx ON trade_sandbox_1137 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1137_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_trading_partner_idx ON trade_sandbox_1137 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1137_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1137_unit_code_idx ON trade_sandbox_1137 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1138_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_appendix_idx ON trade_sandbox_1138 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1138_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_country_of_origin_idx ON trade_sandbox_1138 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1138_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_purpose_code_idx ON trade_sandbox_1138 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1138_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_quantity_idx ON trade_sandbox_1138 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1138_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_source_code_idx ON trade_sandbox_1138 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1138_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_taxon_concept_id_idx ON trade_sandbox_1138 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1138_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_taxon_name_idx ON trade_sandbox_1138 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1138_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_term_code_idx ON trade_sandbox_1138 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1138_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_trading_partner_idx ON trade_sandbox_1138 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1138_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1138_unit_code_idx ON trade_sandbox_1138 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1139_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_appendix_idx ON trade_sandbox_1139 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1139_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_country_of_origin_idx ON trade_sandbox_1139 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1139_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_purpose_code_idx ON trade_sandbox_1139 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1139_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_quantity_idx ON trade_sandbox_1139 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1139_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_source_code_idx ON trade_sandbox_1139 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1139_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_taxon_concept_id_idx ON trade_sandbox_1139 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1139_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_taxon_name_idx ON trade_sandbox_1139 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1139_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_term_code_idx ON trade_sandbox_1139 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1139_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_trading_partner_idx ON trade_sandbox_1139 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1139_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1139_unit_code_idx ON trade_sandbox_1139 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1140_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_appendix_idx ON trade_sandbox_1140 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1140_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_country_of_origin_idx ON trade_sandbox_1140 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1140_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_purpose_code_idx ON trade_sandbox_1140 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1140_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_quantity_idx ON trade_sandbox_1140 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1140_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_source_code_idx ON trade_sandbox_1140 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1140_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_taxon_concept_id_idx ON trade_sandbox_1140 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1140_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_taxon_name_idx ON trade_sandbox_1140 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1140_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_term_code_idx ON trade_sandbox_1140 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1140_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_trading_partner_idx ON trade_sandbox_1140 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1140_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1140_unit_code_idx ON trade_sandbox_1140 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1141_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_appendix_idx ON trade_sandbox_1141 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1141_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_country_of_origin_idx ON trade_sandbox_1141 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1141_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_purpose_code_idx ON trade_sandbox_1141 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1141_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_quantity_idx ON trade_sandbox_1141 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1141_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_source_code_idx ON trade_sandbox_1141 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1141_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_taxon_concept_id_idx ON trade_sandbox_1141 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1141_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_taxon_name_idx ON trade_sandbox_1141 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1141_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_term_code_idx ON trade_sandbox_1141 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1141_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_trading_partner_idx ON trade_sandbox_1141 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1141_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1141_unit_code_idx ON trade_sandbox_1141 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1142_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_appendix_idx ON trade_sandbox_1142 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1142_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_country_of_origin_idx ON trade_sandbox_1142 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1142_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_purpose_code_idx ON trade_sandbox_1142 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1142_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_quantity_idx ON trade_sandbox_1142 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1142_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_source_code_idx ON trade_sandbox_1142 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1142_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_taxon_concept_id_idx ON trade_sandbox_1142 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1142_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_taxon_name_idx ON trade_sandbox_1142 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1142_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_term_code_idx ON trade_sandbox_1142 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1142_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_trading_partner_idx ON trade_sandbox_1142 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1142_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1142_unit_code_idx ON trade_sandbox_1142 USING btree (unit_code);
+
+
+--
+-- Name: trade_sandbox_1143_appendix_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_appendix_idx ON trade_sandbox_1143 USING btree (appendix);
+
+
+--
+-- Name: trade_sandbox_1143_country_of_origin_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_country_of_origin_idx ON trade_sandbox_1143 USING btree (country_of_origin);
+
+
+--
+-- Name: trade_sandbox_1143_purpose_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_purpose_code_idx ON trade_sandbox_1143 USING btree (purpose_code);
+
+
+--
+-- Name: trade_sandbox_1143_quantity_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_quantity_idx ON trade_sandbox_1143 USING btree (quantity);
+
+
+--
+-- Name: trade_sandbox_1143_source_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_source_code_idx ON trade_sandbox_1143 USING btree (source_code);
+
+
+--
+-- Name: trade_sandbox_1143_taxon_concept_id_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_taxon_concept_id_idx ON trade_sandbox_1143 USING btree (taxon_concept_id);
+
+
+--
+-- Name: trade_sandbox_1143_taxon_name_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_taxon_name_idx ON trade_sandbox_1143 USING btree (taxon_name);
+
+
+--
+-- Name: trade_sandbox_1143_term_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_term_code_idx ON trade_sandbox_1143 USING btree (term_code);
+
+
+--
+-- Name: trade_sandbox_1143_trading_partner_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_trading_partner_idx ON trade_sandbox_1143 USING btree (trading_partner);
+
+
+--
+-- Name: trade_sandbox_1143_unit_code_idx; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX trade_sandbox_1143_unit_code_idx ON trade_sandbox_1143 USING btree (unit_code);
 
 
 --
