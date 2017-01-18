@@ -31,8 +31,5 @@ class ChangesHistoryGeneratorJob < ApplicationJob
     NotificationMailer.changelog(user, aru, tempfile).deliver
 
     tempfile.delete
-
-    # remove sandbox table
-    aru.sandbox(true).destroy
   end
 end
