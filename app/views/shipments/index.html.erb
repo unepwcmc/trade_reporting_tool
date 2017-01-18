@@ -1,4 +1,11 @@
-<%= render "shared/back_link" %>
+<%=
+  render partial: "shared/back_link",
+    locals: {
+      text: t('back_to_report') ,
+      link: annual_report_upload_path(@annual_report_upload)
+    }
+%>
+
 <div class='top-info-box'>
   <span><%= t('selected_error') %>:</span><span class='bold'> <%= @error %></span>
 </div>

@@ -1,4 +1,10 @@
-<%= render "shared/back_link" %>
+<%=
+  render partial: "shared/back_link",
+    locals: {
+      text: t('back_to_report') ,
+      link: annual_report_upload_path(@annual_report_upload)
+    }
+%>
 <h1 class="bold"><%= t('edit') %></h1>
 <div class="edit-container">
   <%=
