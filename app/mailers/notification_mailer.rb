@@ -28,7 +28,7 @@ class NotificationMailer < ApplicationMailer
   def duplicates(user, aru, csv_file)
     @user = user
     @aru = aru
-    attachments["changelog_with_dulpicates_#{@aru.id}.csv"] = File.read(csv_file)
+    attachments["changelog_with_duplicates_#{@aru.id}.csv"] = File.read(csv_file)
     mail(to: @user.email, subject: 'Duplicates detected on submission')
   end
 
