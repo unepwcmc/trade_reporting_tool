@@ -60,3 +60,5 @@ en:
   aru_changelog_generation_scheduled: 'Generation of changelog scheduled. An email notification will be delivered.'
   download_report_disabled: "You can't download a report that has not been submitted or does not have a validation report yet."
   back_to_report: "Back to report"
+  report: "Report"
+  scheduled_for_submission: "has been successfully scheduled for submission. Email notification will be sent when it is processed."

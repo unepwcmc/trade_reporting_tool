@@ -61,7 +61,7 @@ class AnnualReportUploadsController < ApplicationController
   def submit
     @annual_report_upload = Trade::AnnualReportUpload.find(params[:id])
     if @annual_report_upload.submit(current_user)
-      flash[:notice] = "Annual Report Upload #{params[:id]} submitted succesfully"
+      flash[:notice] = "#{t('report')} #{params[:id]} #{t('scheduled_for_submission')}"
     else
       flash[:error] = @annual_report_upload.errors
     end
