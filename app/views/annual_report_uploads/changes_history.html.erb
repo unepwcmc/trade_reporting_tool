@@ -1,4 +1,10 @@
-<%= render "shared/back_to_shipments" %>
+<%=
+  render partial: "shared/back_link",
+    locals: {
+      text: t('back_to_report') ,
+      link: annual_report_upload_path(@annual_report_upload)
+    }
+%>
 <h3 class="sandbox-upload-summary no-border">
   <%= @annual_report_upload.summary %>
 </h3>

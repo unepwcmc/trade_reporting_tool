@@ -27,7 +27,7 @@ Rails.application.routes.draw do
   post 'annual_report_uploads/:id/submit', to: 'annual_report_uploads#submit', as: 'submit'
   resources :annual_report_uploads, only: [:index, :show, :destroy] do
     resources :shipments, only: [:index, :edit, :update, :destroy]
-    get 'validation_errors/:validation_error_id/shipments', to: 'shipments#index', as: 'shipment_with_errors'
+    get 'validation_errors/:validation_error_id/shipments', to: 'shipments#index', as: 'shipments_with_errors'
   end
 
   wash_out "api/v1/cites_reporting"
