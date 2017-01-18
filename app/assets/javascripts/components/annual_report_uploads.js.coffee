@@ -48,6 +48,7 @@ window.AnnualReportUploads = class AnnualReportUploads extends React.Component
       success: (response) =>
         data = response.annual_report_uploads
         @setState({data: data[props.pageName]})
+        $('.fa-spinner').hide()
       error: (response) ->
         console.log("Something went wrong")
     })
