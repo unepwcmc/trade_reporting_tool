@@ -30,7 +30,7 @@
   <% end %>
   <div class="uploads-lists col col-sm-9 col-md-9 col-lg-9">
     <h4 class="bold"><%= t('uploads_in_progress') %></h4>
-    <i class="fa fa-spinner fa-pulse fa-3x"></i>
+    <i class="fa fa-spinner fa-pulse fa-3x in_progress_uploads-spinner"></i>
       <%=
         react_component 'AnnualReportUploadsContainer',
           {
@@ -41,7 +41,7 @@
           }
       %>
     <h4 class="bold"><%= t('past_uploads') %></h4>
-    <i class="fa fa-spinner fa-pulse fa-3x"></i>
+    <i class="fa fa-spinner fa-pulse fa-3x submitted_uploads-spinner"></i>
       <%=
         react_component 'AnnualReportUploadsContainer',
           {
