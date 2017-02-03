@@ -68,6 +68,7 @@ h3.sandbox-upload-summary {
 .validation-error {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin: 0 0 10px 0;
 }
 
@@ -78,6 +79,7 @@ h3.sandbox-upload-summary {
   color: white;
   line-height: 30px;
   text-align: center;
+  padding: 0 10px;
   &.primary {
     background: $red;
   }

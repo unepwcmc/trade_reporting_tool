@@ -57,7 +57,7 @@ class Trade::AnnualReportUpload < Sapi::Base
   # report upload
 
   def validation_errors
-    @primary_validation_errors || @secondary_validation_errors
+    @primary_validation_errors.presence || @secondary_validation_errors
   end
 
   def sandbox
