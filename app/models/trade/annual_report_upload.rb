@@ -149,7 +149,7 @@ class Trade::AnnualReportUpload < Sapi::Base
       key = "#{Rails.env}/trade/annual_report_upload/#{self.id}/changelog.csv"
       s3.get_object({bucket: bucket, key: key}, target: changelog.path)
     rescue Aws::S3::Errors::ServiceError => e
-      Rails.logger.warn "Something went wrong while uploading #{self.id} to S3"
+      Rails.logger.warn "Something went wrong while fetching #{self.id} from S3"
       Appsignal.add_exception(e) if defined? Appsignal
     end
     changelog
