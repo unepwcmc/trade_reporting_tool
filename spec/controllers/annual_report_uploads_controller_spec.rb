@@ -57,24 +57,50 @@ RSpec.describe AnnualReportUploadsController, type: :controller do
       @epix_user = FactoryGirl.create(:epix_user)
       @sapi_user = FactoryGirl.create(:sapi_user)
       @epix_upload = FactoryGirl.create(:annual_report_upload, epix_creator: @epix_user)
-      2.times {
-        FactoryGirl.create(
-          :annual_report_upload,
-          created_by_id: @sapi_user.id,
-          submitted_by_id: @sapi_user.id,
-          submitted_at: DateTime.now
-        )
-      }
+      @sapi_upload = FactoryGirl.create(:annual_report_upload, sapi_creator: @sapi_user)
     end
 
     context "Initialise variables" do
+      context "when epix user" do
+        context "when sandbox enabled" do
+          before(:each) do
+            @epix_user.organisation.update_attributes(
+              trade_error_correction_in_sandbox_enabled: true
+            )
+          end
+          it "should assign annual_report_upload" do
+            @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+            sign_in @epix_user
+
+            get :show, params: {
+              id: @epix_upload.id
+            }
+            expect(response.status).to be(200)
+            expect(assigns(:annual_report_upload).present?).to be(true)
+          end
+        end
+        context "when sandbox disabled" do
+          it "should assign redirect back" do
+            @request.env['devise.mapping'] = Devise.mappings[:epix_user]
+            sign_in @epix_user
+
+            get :show, params: {
+              id: @epix_upload.id
+            }
+            expect(response.status).to be(302)
+          end
+        end
+      end
+    end
+    context "when sapi user" do
       it "should assign annual_report_upload" do
-        @request.env['devise.mapping'] = Devise.mappings[:epix_user]
-        sign_in @epix_user
+        @request.env['devise.mapping'] = Devise.mappings[:sapi_user]
+        sign_in @sapi_user
 
         get :show, params: {
-          id: @epix_upload.id
+          id: @sapi_upload.id
         }
+        expect(response.status).to be(200)
         expect(assigns(:annual_report_upload).present?).to be(true)
       end
     end
