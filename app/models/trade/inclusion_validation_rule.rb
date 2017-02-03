@@ -78,8 +78,9 @@ class Trade::InclusionValidationRule < Trade::ValidationRule
   end
 
   def column_names_for_display
-    if column_names.include? ('taxon_concept_id')
-      column_names << 'accepted_taxon_name'
+    if column_names.include?('taxon_concept_id') &&
+      !column_names.include?('accepted_taxon_name')
+        column_names << 'accepted_taxon_name'
     else
       column_names
     end
