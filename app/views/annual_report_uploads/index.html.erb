@@ -37,7 +37,8 @@
             pageName: 'in_progress_uploads',
             totalPages: @in_progress_pages,
             sandboxEnabled: @sandbox_enabled,
-            adminUrl: admin_url
+            adminUrl: admin_url,
+            userType: current_epix_user ? 'epix' : current_sapi_user ? 'sapi' : ''
           }
       %>
     <h4 class="bold"><%= t('past_uploads') %></h4>

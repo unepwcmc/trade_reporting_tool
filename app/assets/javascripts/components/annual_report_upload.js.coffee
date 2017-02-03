@@ -44,10 +44,10 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     else
       div(
         {className: 'in-progress-upload'}
-        unless @state.sandboxEnabled
-          @renderWithDownload()
-        else
+        if @state.userType == 'sapi' || @state.sandboxEnabled
           @renderWithSandbox(@state.annualReportUpload)
+        else
+          @renderWithDownload()
         a(
           {
             className: 'delete-upload',
