@@ -1,6 +1,7 @@
 require 'zip'
 class AnnualReportUploadsController < ApplicationController
   before_action :authorise_edit, only: [:destroy]
+  before_action :authorise_sandbox, only: [:show]
   respond_to :json
 
   def index
@@ -99,6 +100,16 @@ class AnnualReportUploadsController < ApplicationController
     changelog.delete
     File.delete(zipfile)
     send_data data, type: 'application/zip', filename: "report_#{aru.id}.zip"
+  end
+
+  private
+
+  def authorise_sandbox
+    if !current_sapi_user && current_epix_user &&
+      !current_epix_user.organisation.trade_error_correction_in_sandbox_enabled
+      flash[:alert] = t('action_unauthorised')
+      redirect_to (request.referer || root_path)
+    end
   end
 
 end
