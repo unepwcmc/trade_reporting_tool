@@ -18,7 +18,10 @@
           )
         %>
         <%=
-          link_to('Download', '#', class: 'download-button button')
+          content_tag('a', { class: 'download-button button', href: '#' }) do
+            content_tag('span', 'Download') +
+            content_tag('i', '', class: "fa fa-spinner fa-pulse fa-3xr download-spinner")
+          end
         %>
       </div>
     </div>

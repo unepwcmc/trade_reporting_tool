@@ -169,4 +169,9 @@ input.real-file-input {
   position: relative;
   left: 50%;
   padding: 30px 0;
+  &.download-spinner {
+    color: white;
+    left: 20%;
+    padding: 0;
+  }
 }

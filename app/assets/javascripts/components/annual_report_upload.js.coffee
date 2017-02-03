@@ -19,12 +19,13 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
     download_button.attr('href',
       "/annual_report_uploads/#{@state.annualReportUpload.id}/download_error_report"
     )
+    download_button.find('i.download-spinner').show()
     if @state.annualReportUpload.has_validation_report
       download_button.removeClass('disabled')
     else
       download_button.addClass('disabled')
     if @state.submitted
-      download_button.removeClass('disabled')
+      @isDownloadAvailable(download_button)
       text = I18n.t('submitted_at_info_box') + " " + @getSubmitter()
       text = text + " " + I18n.t('on') + " #{@state.annualReportUpload.submitted_at}. "
       text = text + I18n.t('download_info_box')
@@ -33,6 +34,18 @@ window.AnnualReportUpload = class AnnualReportUpload extends React.Component
       text = I18n.t('change_sandbox_settings')
       text = text + "<a href='#{@state.adminUrl}' class='bold'>#{I18n.t('your_admin_page')}</a>"
       info_text.html(text)
+
+  isDownloadAvailable: (download_button) ->
+    $.ajax({
+      url: "/annual_report_uploads/#{@state.annualReportUpload.id}/download_available"
+      dataType: 'json'
+      success: (response) ->
+        if response.available
+          download_button.removeClass('disabled')
+        download_button.find('i.download-spinner').hide()
+      error: (response) ->
+        console.log("Something went wrong while checking download availability")
+    })
 
   render: ->
     if @state.submitted
