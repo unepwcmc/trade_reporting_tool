@@ -24,6 +24,8 @@ Rails.application.routes.draw do
     to: 'annual_report_uploads#changes_history_download', as: 'changes_history_download'
   get 'annual_report_uploads/:id/download_error_report',
     to: 'annual_report_uploads#download_error_report', as: 'download_error_report'
+  get 'annual_report_uploads/:id/download_available',
+    to: 'annual_report_uploads#download_available', as: 'download_available'
   post 'annual_report_uploads/:id/submit', to: 'annual_report_uploads#submit', as: 'submit'
   resources :annual_report_uploads, only: [:index, :show, :destroy] do
     resources :shipments, only: [:index, :edit, :update, :destroy]

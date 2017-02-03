@@ -93,13 +93,21 @@ class AnnualReportUploadsController < ApplicationController
       zipfile.add('changelog.csv', changelog.path) unless File.zero?(changelog)
       filepath = "validation_report.csv"
       filepath.prepend("report_#{aru.id}/") if File.zero?(changelog)
-      zipfile.add(filepath, validation_report_csv_file.path)
+      zipfile.add(filepath, validation_report_csv_file.path) if validation_report_csv_file
     end
 
     data = File.read(zipfile)
     changelog.delete
     File.delete(zipfile)
     send_data data, type: 'application/zip', filename: "report_#{aru.id}.zip"
+  end
+
+  def download_available
+    aru = Trade::AnnualReportUpload.find(params[:id])
+    changelog = aru.get_changelog("changelog_#{aru.id}-")
+    render json: {
+      available: aru.validation_report.present? || !File.zero?(changelog)
+    }
   end
 
   private

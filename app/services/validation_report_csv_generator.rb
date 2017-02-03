@@ -2,6 +2,7 @@ require 'csv'
 class ValidationReportCsvGenerator
 
   def self.call(aru)
+    return nil unless aru.validation_report
     data_columns = if aru.reported_by_exporter?
       Trade::SandboxTemplate::EXPORTER_COLUMNS
     else
